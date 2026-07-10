@@ -1,0 +1,17 @@
+# sprintctl state — remote postgres is the source of truth; local dir holds
+# only the backend marker (committed) and transient session droppings
+.sprintctl/*
+!.sprintctl/backend.json
+handoff-*.json
+sprint-*.json
+
+# secrets — SPRINTCTL_URL carries credentials
+.env.sprintctl.local
+
+# auditctl sidecar db
+.auditctl/
+
+# python
+__pycache__/
+*.egg-info/
+.venv/
