@@ -8,7 +8,11 @@ the fixture.
 
 Design rationale: `docs/DESIGN.md`. Target shape: `docs/ARCHITECTURE.md`.
 
-## Phase A — extraction (mechanical; do first)
+## Phase A — extraction (mechanical; do first) — DONE 2026-07-10
+
+All six items landed, plus the Phase-D `status --write` dashboard and the
+`init`/`ratify`/`adopt` commands (test-driven, 51 tests). Parity gate passed:
+identical `status` bytes, identical pack sha `b1aa50b69a16`; ff.py retired.
 
 1. Package skeleton: `pyproject.toml`, `scribectl/`, `tests/`, `fixtures/`.
 2. Move `fertile-flames-pipeline/pipeline/*` → `scribectl/core/`, replacing

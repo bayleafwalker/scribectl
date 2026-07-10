@@ -1,44 +1,29 @@
-# fertile-flames-pipeline
+# fertile-flames-pipeline — RETIRED (extracted into scribectl)
 
-A fiction production system with canon control. Obsidian is the world database
-and writing cockpit; this repo is the contract runner; LLMs fill, review, and
-refactor; you stay the canon ratifier and taste gate.
+This directory was the Phase-0 substrate: a fiction production system with
+canon control, proven at ~400 lines against a fixture vault. On 2026-07-10 the
+parity gate passed (identical `status` output; identical pack sha
+`b1aa50b69a16`) and it was retired as a live tool. Only the historical plan
+remains here.
 
-The dangerous failure mode is not bad prose — it is quiet canon rot. Everything
-here exists to make canon legible and to keep prose from silently amending it.
-
-## Layout
-
-```
-pipeline/        the engine (read-only over the vault, except pack output)
-  vault.py       note / frontmatter / wikilink / section parsing
-  timeline.py    append-only chronology — the oracle review_canon checks
-  contextpack.py the assembler: minimal canon slice per scene card  ← center
-  project.py     derived state (status is computed, never stored)
-templates/       the eight artifact contracts — copy into the vault to instantiate
-vault/           Obsidian vault. The volcanic city-state is the TEST FIXTURE,
-                 not content I authored for you — skeletal, yours to fill.
-ff.py            CLI: the vertical slice runs through here
-```
-
-## Run the slice
+Where everything went:
 
 ```
-python3 ff.py status              # derived state of every node + scene
-python3 ff.py pack "Scene 01-01"  # assemble + freeze a context pack
+pipeline/vault.py timeline.py contextpack.py project.py
+                     → scribectl/core/        (unchanged behavior)
+templates/           → scribectl/templates/fiction/
+vault/               → fixtures/fertile-flames/  (now carries a scribe-project
+                                                  note — the config spec test)
+ff.py status / pack  → scribectl status / scribectl pack
 ```
 
-`pack` writes a hashed, frozen pack to `vault/control/context-packs/`. Feed it
-plus the scene card to your `body_fill` agent. Rework the draft by hand. Then
-request `review_canon` (checks the timeline) and `review_voice` (checks the
-exemplars). Route invented facts through the ratification log.
-
-## Two symmetric modes, one interface
+Run the slice via the package now:
 
 ```
-manual:     scene card → you draft → canon/voice/beta review → refactor → ratify
-llm-assist: scene card → pack → llm draft → you rework → review → ratify
+uv pip install -e .              # from the repo root
+SCRIBECTL_VAULT=$PWD/fixtures scribectl status
+SCRIBECTL_VAULT=$PWD/fixtures scribectl pack "Scene 01-01"
 ```
 
-The scene card + context pack + review loop is the product. The lore bible is
-a byproduct.
+`PLAN.md` in this directory is the original Phase-0/1 build plan, kept as the
+design record. The repo-level `PLAN.md` supersedes it.
