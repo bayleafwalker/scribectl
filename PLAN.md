@@ -30,12 +30,24 @@ identical `status` bytes, identical pack sha `b1aa50b69a16`; ff.py retired.
 ## Phase B — land in the real vault
 
 1. `scribectl init "Fertile Flames"` → `/media/Creative/30 Creative/Works/`.
+   — DONE 2026-07-10; `projects` discovers it.
 2. Write the scribe-project note; list the legacy saga notes under `sources:`.
+   — DONE 2026-07-10: `[[Fertile Flames Saga]]` (dossier over the ~35k-word
+   scratchpad original) and `[[Crusade narratives across fictional worlds]]`
+   (the four FF vignettes). Other vault mentions are index links, not ore.
 3. `scribectl adopt` the two or three legacy notes that carry the most load
    (e.g. `Fertile Flames Saga.md`) into canon-node *stubs with open
    questions*. Ratify facts out of them by hand — the log is the receipt.
+   — ADOPTED 2026-07-10 (both sources → `world/canon/` stubs, sources
+   untouched; `status --write` dashboard emitted). Ratifying facts is the
+   author's move and stays open.
 4. Confirm livesync behaves with engine-created files (packs, stubs) while
    another device has the vault open. This is a test, not an assumption.
+   — OPEN: livesync is installed+enabled but runs inside Obsidian, which
+   wasn't running during the engine writes. Test = open the vault here (it
+   will push the ~12 new files) with a second device online, then run
+   `status --write` + `ratify` again while both are open and watch for
+   conflicts on the ledgers.
 
 ## Phase C — the vertical slice, for real
 
