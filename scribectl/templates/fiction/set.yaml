@@ -24,5 +24,6 @@ init:
   files:
     timeline.md: control/timeline/Timeline.md
     ratification_log.md: control/ratification/Ratification Log.md
+    ratification_inbox.md: control/ratification/Inbox.md
     voice_canon.md: world/language/Prose Voice Canon.md
     world_seed.md: world/World Seed.md

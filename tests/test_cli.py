@@ -173,6 +173,120 @@ def test_ratify_requires_at_least_one_entry(run, scratch_root, scratch_project):
     assert log.read_text(encoding="utf-8") == before
 
 
+# -- ratify --sweep -----------------------------------------------------------
+
+SWEEP_INBOX = """\
+---
+type: ratification_inbox
+---
+
+# Ratification Inbox
+
+- [x] "Ash-line ledgers track heat debts by family." → [[The Volcanic City-State]]
+      (from [[Scene 01-01 — draft 1]], pack 0123abcdef01)
+- [-] "A royal bloodline rules the rim." → [[The Volcanic City-State]]
+- [>] "Gate-warden guild controls the curfew keys." → [[Mara Vey]]
+- [ ] "The Mist sings in Bay Nine." → [[The Mist]]
+"""
+
+
+@pytest.fixture
+def inbox(scratch_project) -> Path:
+    path = scratch_project / "control/ratification/Inbox.md"
+    path.write_text(SWEEP_INBOX, encoding="utf-8")
+    return path
+
+
+def test_sweep_executes_verdicts(run, scratch_root, scratch_project, inbox):
+    node = scratch_project / "world/canon/The Volcanic City-State.md"
+    log = scratch_project / "control/ratification/Ratification Log.md"
+    node_before, log_before = node.read_text(encoding="utf-8"), log.read_text(encoding="utf-8")
+
+    code, out, err = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0 and err == ""
+
+    # Accepted fact landed at the tail of Ratified facts; nothing else moved.
+    node_after = node.read_text(encoding="utf-8")
+    assert "- Class maps loosely to altitude: rim is power, lower terraces are labor.\n- Ash-line ledgers track heat debts by family.\n\n## Open questions" in node_after
+    assert node_after.startswith(node_before.split("## Ratified facts")[0])
+    assert node_after.endswith(node_before.split("labor.")[1])
+
+    # Receipts: verdict wording + route + provenance, writer typed none of it.
+    tail = log.read_text(encoding="utf-8")[len(log_before):]
+    assert log.read_text(encoding="utf-8").startswith(log_before)  # append-only
+    assert '"Ash-line ledgers track heat debts by family." → promoted to [[The Volcanic City-State]] (from [[Scene 01-01 — draft 1]], pack 0123abcdef01)' in tail
+    assert "### Rejected\n- \"A royal bloodline rules the rim.\"" in tail
+    assert "### Deferred\n- \"Gate-warden guild controls the curfew keys.\"" in tail
+
+    # Decided candidates cleared; the undecided one keeps its place.
+    left = inbox.read_text(encoding="utf-8")
+    assert "Bay Nine" in left and "Ash-line" not in left and "# Ratification Inbox" in left
+
+    # The two halves of ratification moved together: fact + receipt = ratified.
+    _, out, _ = run("status", vault=scratch_root)
+    assert "canon_node   The Volcanic City-State ratified" in out
+
+
+def test_sweep_dry_run_writes_nothing(run, scratch_root, scratch_project, inbox):
+    snapshot = {p: p.read_text(encoding="utf-8")
+                for p in scratch_project.rglob("*.md")}
+    code, out, _ = run("ratify", "--sweep", "--dry-run", vault=scratch_root)
+    assert code == 0
+    assert "dry run" in out and "Ash-line" in out and "would clear 3" in out
+    assert snapshot == {p: p.read_text(encoding="utf-8")
+                        for p in scratch_project.rglob("*.md")}
+
+
+def test_sweep_unresolved_target_stays_in_inbox(run, scratch_root, scratch_project, inbox):
+    inbox.write_text(SWEEP_INBOX.replace("[[Mara Vey]]", "[[No Such Node]]").replace(
+        "- [>] \"Gate-warden guild", "- [x] \"Gate-warden guild"), encoding="utf-8")
+    code, _, err = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0
+    assert "No Such Node" in err and "stays in the inbox" in err
+    left = inbox.read_text(encoding="utf-8")
+    assert "Gate-warden" in left and "Ash-line" not in left  # valid ones still swept
+
+
+def test_sweep_accept_targets_nodes_only(run, scratch_root, scratch_project, inbox):
+    inbox.write_text('- [x] "fact" → [[Scene 01-01]]\n', encoding="utf-8")
+    code, _, err = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0
+    assert "scene_card" in err and "fact-bearing" in err
+    assert "[[Scene 01-01]]" in inbox.read_text(encoding="utf-8")
+
+
+def test_sweep_into_adopted_stub_retires_placeholder(run, scratch_root, scratch_project, inbox):
+    (scratch_root / "Legacy.md").write_text("# Legacy\n\nOre.\n", encoding="utf-8")
+    run("adopt", "Legacy", vault=scratch_root)
+    inbox.write_text('- [x] "Extracted, ratified wording." → [[Legacy]]\n', encoding="utf-8")
+    code, _, _ = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0
+    stub = (scratch_project / "world/canon/Legacy.md").read_text(encoding="utf-8")
+    assert "_(none" not in stub and "- Extracted, ratified wording." in stub
+    _, out, _ = run("status", vault=scratch_root)
+    assert "canon_node   Legacy                  ratified" in out
+
+
+def test_sweep_nothing_ticked(run, scratch_root, inbox):
+    inbox.write_text('- [ ] "still thinking" → [[The Mist]]\n', encoding="utf-8")
+    code, out, _ = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0
+    assert "nothing to sweep" in out and "1 pending" in out
+
+
+def test_sweep_requires_inbox(run, scratch_root):
+    code, _, err = run("ratify", "--sweep", vault=scratch_root)
+    assert code != 0
+    assert "no inbox" in err
+
+
+def test_sweep_rejects_flag_mixing(run, scratch_root, inbox):
+    code, _, err = run("ratify", "--sweep", "--accept", "x", vault=scratch_root)
+    assert code != 0 and "inbox" in err
+    code, _, err = run("ratify", "--dry-run", "--accept", "x", vault=scratch_root)
+    assert code != 0 and "--sweep" in err
+
+
 # -- adopt ------------------------------------------------------------------
 
 def test_adopt_wraps_legacy_note_as_stub(run, scratch_root, scratch_project):
@@ -221,7 +335,8 @@ def test_init_instantiates_project(run, scratch_root):
     for rel in [
         "world/canon", "world/language/Prose Voice Canon.md", "world/World Seed.md",
         "structure/scenes", "body/drafts", "control/timeline/Timeline.md",
-        "control/ratification/Ratification Log.md", "control/context-packs",
+        "control/ratification/Ratification Log.md", "control/ratification/Inbox.md",
+        "control/context-packs",
         "reviews/canon", "reviews/voice", "reviews/beta",
     ]:
         assert (root / rel).exists(), rel

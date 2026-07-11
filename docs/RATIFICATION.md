@@ -1,8 +1,10 @@
 # Ratification, iterated — and agent-filled canon nodes
 
 **Status:** proposal, 2026-07-11. Grounded in the first real-vault Phase C run
-(Fertile Flames, scene `What Aune Brings Back`). Nothing here is implemented
-except the fixes listed at the end; everything else is design for Phase D.
+(Fertile Flames, scene `What Aune Brings Back`). Implemented so far: the fixes
+listed at the end, and build-order item 1 — the verdict inbox and
+`ratify --sweep` (same day; see the note on `[ ]` vs `[>]` below). Items 2–4
+remain design.
 
 ## What the run taught about ratification
 
@@ -54,9 +56,13 @@ mid-draft. One candidate per line, checkbox syntax the writer already knows:
       (from [[What Aune Brings Back — draft 1]], pack 01318d2d1470)
 ```
 
-The writer's entire job: tick `[x]` to accept, `[-]` to reject, leave `[ ]` to
+The writer's entire job: tick `[x]` to accept, `[-]` to reject, `[>]` to
 defer, optionally rewrite the fact text in place (the rewrite *is* the
-ratified wording — taste applied at the moment of decision). Then:
+ratified wording — taste applied at the moment of decision). An untouched
+`[ ]` is *undecided*, not deferred: it stays in the inbox with no receipt, so
+a sweep never flushes candidates the writer simply hasn't looked at yet.
+(This refines the original sketch, which overloaded `[ ]` as defer — that
+would have force-deferred the whole backlog on every sweep.) Then:
 
 ```
 scribectl ratify --sweep
@@ -162,6 +168,13 @@ longer seeds a phantom event into every pack.
 
 1. `ratify --sweep` + inbox parsing — kills the two-step disconnect and the
    shell-quoting wall; smallest change with the largest writer payoff.
+   — DONE 2026-07-11: `core/inbox.py` (parse + pure transforms; fenced
+   examples ignored, malformed candidates warn and stay), sweep writes the
+   fact, the receipt (provenance verbatim), and the inbox clear in one
+   motion; `--dry-run` for the conservative setting; accepts land only in
+   the set's fact-bearing node types; the first fact retires a stub's
+   `_(none …)_` placeholder. `ratification_inbox` template ships in both
+   sets and `init` instantiates it.
 2. Review-report template gains machine-parsable candidate lines that
    `--sweep` can lift into the inbox (or reports write to the inbox directly).
 3. Mining packs + `propose` + `fact_proposal` status rows.

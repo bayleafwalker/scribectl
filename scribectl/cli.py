@@ -3,7 +3,13 @@
 core/ takes the vault as data and never writes. This module is the only place
 that holds write paths, and they are exactly the designated outputs:
 pack_output/ (pack), control/Status.md (status --write), ledger appends
-(ratify), stubs (adopt, init). Nothing here rewrites a note a human edits.
+(ratify), stubs (adopt, init), the verdict inbox (ratify --sweep clears
+decided candidates), and — the one sanctioned append into a human note — a
+swept fact landing in its node's `## Ratified facts`. That write is the
+writer's own verdict executed: append-only, into exactly one section,
+receipt-logged, byte-traceable to a checkbox the writer ticked
+(docs/RATIFICATION.md, "the write-discipline question"). Nothing here ever
+rewrites what a human wrote.
 """
 from __future__ import annotations
 
@@ -14,6 +20,7 @@ from pathlib import Path
 
 from .config import DEFAULTS, DEFAULT_ROOTS, ProjectConfig, discover_projects, vault_roots
 from .core.contextpack import build_pack
+from .core.inbox import append_bullets, parse_inbox, receipt, remove_candidates
 from .core.project import project as project_rows
 from .core.vault import Vault
 from .templateset import TemplateSet, list_sets, load_set
@@ -119,12 +126,8 @@ def cmd_pack(args) -> int:
     return 0
 
 
-def cmd_ratify(args) -> int:
-    cfg = _select(args.project)
-    groups = [("Accepted", args.accept), ("Rejected", args.reject), ("Deferred", args.defer)]
-    if not any(entries for _, entries in groups):
-        raise CLIError("nothing to ratify: pass --accept/--reject/--defer at least once")
-    ledger = cfg.ratification_log
+def _append_ledger(ledger: Path, groups: list[tuple[str, list[str]]]) -> int:
+    """Append one dated block of verdict entries; returns the entry count."""
     if not ledger.is_file():
         raise CLIError(f"ratification log missing: {ledger}")
     existing = ledger.read_text(encoding="utf-8")
@@ -141,8 +144,96 @@ def cmd_ratify(args) -> int:
     lead = "" if existing.endswith("\n") else "\n"
     with ledger.open("a", encoding="utf-8") as f:  # append-only: the sole writer
         f.write(lead + "\n".join(block) + "\n")
-    n = sum(len(e) for _, e in groups)
-    print(f"appended {n} entr{'y' if n == 1 else 'ies'} to {ledger}")
+    return sum(len(e) for _, e in groups)
+
+
+def _sweep(cfg: ProjectConfig, dry_run: bool) -> int:
+    """Execute the writer's checkbox verdicts from the inbox: fact into the
+    node, receipt into the ledger, candidate out of the inbox — the mechanics
+    of ratification with the decision already made (docs/RATIFICATION.md)."""
+    inbox = cfg.ratification_inbox
+    if not inbox.is_file():
+        raise CLIError(f"no inbox at {inbox} — nothing has proposed canon yet "
+                       "(the ratification_inbox template creates it)")
+    text = inbox.read_text(encoding="utf-8")
+    candidates, problems = parse_inbox(text)
+    for lineno, msg in problems:
+        print(f"scribectl: warning: {inbox.name}:{lineno}: {msg}", file=sys.stderr)
+    decided = [c for c in candidates if c.verdict != "pending"]
+    pending = len(candidates) - len(decided)
+    if not decided:
+        print(f"nothing to sweep ({pending} pending candidate{'s' if pending != 1 else ''} in {inbox.name})")
+        return 0
+
+    # Validate every accept before writing anything: a fact with no node to
+    # land in must keep its checkbox, not lose it to a half-executed sweep.
+    vault = Vault.load(cfg.root)
+    ts = _ts(cfg)
+    ok: list = []
+    for c in decided:
+        node = vault.resolve(c.target)
+        if c.verdict == "accept" and node is None:
+            print(f"scribectl: warning: [[{c.target}]] does not resolve — "
+                  f"candidate stays in the inbox", file=sys.stderr)
+        elif c.verdict == "accept" and node.type not in ts.node_types:
+            print(f"scribectl: warning: [[{c.target}]] is {node.type}, not a fact-bearing "
+                  f"node ({', '.join(ts.node_types)}) — candidate stays in the inbox", file=sys.stderr)
+        else:
+            ok.append(c)
+
+    by_node: dict[str, list] = {}
+    for c in ok:
+        if c.verdict == "accept":
+            by_node.setdefault(c.target, []).append(c)
+
+    if dry_run:
+        print("dry run — nothing written\n")
+        for target, cs in by_node.items():
+            print(f"would append to [[{target}]] · Ratified facts:")
+            for c in cs:
+                print(f"  - {c.fact}")
+        for title, v in (("Accepted", "accept"), ("Rejected", "reject"), ("Deferred", "defer")):
+            for c in ok:
+                if c.verdict == v:
+                    print(f"would ledger under {title}: - {receipt(c)}")
+        print(f"\nwould clear {len(ok)} candidate{'s' if len(ok) != 1 else ''} from {inbox.name}; {pending} pending would remain")
+        return 0
+
+    for target, cs in by_node.items():
+        node = vault.resolve(target)
+        try:
+            new = append_bullets(node.path.read_text(encoding="utf-8"),
+                                 "Ratified facts", [c.fact for c in cs])
+        except ValueError as e:
+            print(f"scribectl: warning: [[{target}]]: {e} — "
+                  f"candidate stays in the inbox", file=sys.stderr)
+            ok = [c for c in ok if c.target != target or c.verdict != "accept"]
+            continue
+        node.path.write_text(new, encoding="utf-8")
+        print(f"ratified {len(cs)} fact{'s' if len(cs) != 1 else ''} into [[{target}]]")
+    groups = [(title, [receipt(c) for c in ok if c.verdict == v])
+              for title, v in (("Accepted", "accept"), ("Rejected", "reject"), ("Deferred", "defer"))]
+    if ok:
+        n = _append_ledger(cfg.ratification_log, groups)
+        print(f"appended {n} receipt{'s' if n != 1 else ''} to {cfg.ratification_log.name}")
+        inbox.write_text(remove_candidates(text, ok), encoding="utf-8")
+    print(f"cleared {len(ok)} candidate{'s' if len(ok) != 1 else ''} from {inbox.name}; {pending} pending remain")
+    return 0
+
+
+def cmd_ratify(args) -> int:
+    cfg = _select(args.project)
+    groups = [("Accepted", args.accept), ("Rejected", args.reject), ("Deferred", args.defer)]
+    if args.sweep:
+        if any(entries for _, entries in groups):
+            raise CLIError("--sweep takes its verdicts from the inbox; drop --accept/--reject/--defer")
+        return _sweep(cfg, dry_run=args.dry_run)
+    if args.dry_run:
+        raise CLIError("--dry-run only applies to --sweep")
+    if not any(entries for _, entries in groups):
+        raise CLIError("nothing to ratify: pass --accept/--reject/--defer at least once, or --sweep")
+    n = _append_ledger(cfg.ratification_log, groups)
+    print(f"appended {n} entr{'y' if n == 1 else 'ies'} to {cfg.ratification_log}")
     return 0
 
 
@@ -202,6 +293,7 @@ roots:
 voice_canon: {voice_canon}
 timeline: {timeline}
 ratification_log: {ratification_log}
+ratification_inbox: {ratification_inbox}
 pack_output: {pack_output}
 sources: []
 ---
@@ -257,6 +349,10 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--accept", action="append", default=[], metavar="ENTRY")
     p.add_argument("--reject", action="append", default=[], metavar="ENTRY")
     p.add_argument("--defer", action="append", default=[], metavar="ENTRY")
+    p.add_argument("--sweep", action="store_true",
+                   help="execute the checkbox verdicts in the ratification inbox")
+    p.add_argument("--dry-run", action="store_true",
+                   help="with --sweep: print what would land where, write nothing")
     p.set_defaults(fn=cmd_ratify)
 
     p = sub.add_parser("adopt", help="wrap a legacy vault note as a canon-node stub")

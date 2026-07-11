@@ -27,6 +27,7 @@ DEFAULTS = {
     "voice_canon": "world/language/Prose Voice Canon.md",
     "timeline": "control/timeline/Timeline.md",
     "ratification_log": "control/ratification/Ratification Log.md",
+    "ratification_inbox": "control/ratification/Inbox.md",
     "pack_output": "control/context-packs",
 }
 
@@ -40,6 +41,7 @@ class ProjectConfig:
     voice_canon: Path
     timeline: Path
     ratification_log: Path
+    ratification_inbox: Path
     pack_output: Path
     sources: list[str] = field(default_factory=list)
 
@@ -64,6 +66,7 @@ class ProjectConfig:
             voice_canon=base / meta.get("voice_canon", DEFAULTS["voice_canon"]),
             timeline=base / meta.get("timeline", DEFAULTS["timeline"]),
             ratification_log=base / meta.get("ratification_log", DEFAULTS["ratification_log"]),
+            ratification_inbox=base / meta.get("ratification_inbox", DEFAULTS["ratification_inbox"]),
             pack_output=base / meta.get("pack_output", DEFAULTS["pack_output"]),
             sources=[str(s) for s in meta.get("sources") or []],
         )

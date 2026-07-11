@@ -67,6 +67,9 @@ like you, the architecture is real. If it doesn't, no orchestration saves it.
 
 ## Phase D — conveniences (only after C holds)
 
+- Ratification, iterated (`docs/RATIFICATION.md`): verdict inbox +
+  `ratify --sweep` — DONE 2026-07-11; machine-parsable review candidates,
+  mining packs / `propose`, reconciler still open.
 - `scribectl status --write` → generated `control/Status.md` dashboard.
 - QuickAdd capture configs for instantiating templates from inside Obsidian.
 - Enable Longform for the project; compile `body/drafts/` to manuscript.
