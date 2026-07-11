@@ -53,7 +53,8 @@ class Note:
             text = yaml.safe_dump(self.meta[field_or_section])
         else:
             text = self.section(field_or_section) or ""
-        return WIKILINK.findall(text)
+        # Blank targets ([[ ]] template placeholders) are not links.
+        return [t for t in WIKILINK.findall(text) if t.strip()]
 
 
 def _parse(path: Path) -> Note:

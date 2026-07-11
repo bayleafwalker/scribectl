@@ -20,6 +20,7 @@ from datetime import date
 
 from .vault import Vault, Note
 from .timeline import prior_relevant
+from .project import canon_status, ledger_accepted
 
 
 @dataclass
@@ -27,6 +28,7 @@ class ContextPack:
     scene: str
     markdown: str
     sha: str
+    warnings: list[str]
 
 
 def _node_brief(note: Note) -> str:
@@ -57,6 +59,21 @@ def build_pack(vault: Vault, scene_name: str) -> ContextPack:
     nodes = [vault.resolve(l) for l in scope_links]
     nodes = [n for n in nodes if n is not None]
     missing = [l for l in scope_links if vault.resolve(l) is None]
+
+    # Advisory only — packing is never gated, but the author should know when
+    # in-scope facts ship without a ledger receipt behind them.
+    accepted = ledger_accepted(vault)
+    warnings: list[str] = []
+    for n in nodes:
+        if n.type != "canon_node":
+            continue
+        s = canon_status(vault, n, accepted)
+        if s == "stub":
+            warnings.append(f"[[{n.name}]] is a stub — it ships no facts")
+        elif s == "seeded":
+            warnings.append(f"[[{n.name}]] is seeded, not ratified — its facts ship without a ledger receipt")
+        elif s == "ratified_empty":
+            warnings.append(f"[[{n.name}]] is ledger-accepted but carries no facts — paste them into the node")
 
     actors = set(card.links("characters")) | ({card.meta.get("pov")} if card.meta.get("pov") else set())
     actors = {a.strip("[]") for a in actors if a}
@@ -106,4 +123,4 @@ def build_pack(vault: Vault, scene_name: str) -> ContextPack:
     md = "\n\n".join(parts).strip() + "\n"
     sha = hashlib.sha256(md.encode("utf-8")).hexdigest()[:12]
     md = md.replace("_Generated", f"`pack-sha: {sha}`\n\n_Generated", 1)
-    return ContextPack(scene=scene_name, markdown=md, sha=sha)
+    return ContextPack(scene=scene_name, markdown=md, sha=sha, warnings=warnings)

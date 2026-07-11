@@ -15,7 +15,7 @@ type         name                    status
 canon_node   Mara Vey                seeded
 canon_node   The Mist                ratified
 canon_node   The Volcanic City-State seeded
-scene_card   Scene 01-01             blocked_unresolved_scope
+scene_card   Scene 01-01             blocked_unresolved_scope  (missing: [[Lower Ashmarket]])
 """
 
 
@@ -85,12 +85,35 @@ def test_status_write_emits_dashboard(run, scratch_root, scratch_project):
 def test_pack_writes_frozen_pack(run, scratch_root, scratch_project):
     code, out, _ = run("pack", "Scene 01-01", vault=scratch_root)
     assert code == 0
-    dest = scratch_project / "control/context-packs/Scene-01-01-context.md"
-    assert dest.exists()
-    text = dest.read_text(encoding="utf-8")
+    packs = list((scratch_project / "control/context-packs").glob("Scene-01-01-*-context.md"))
+    assert len(packs) == 1
+    text = packs[0].read_text(encoding="utf-8")
     assert text.startswith("# Context Pack — Scene 01-01")
     sha = text.split("`pack-sha: ")[1][:12]
-    assert sha in out and str(dest) in out
+    # The sha is the filename: a later regeneration can never clobber this freeze.
+    assert packs[0].name == f"Scene-01-01-{sha}-context.md"
+    assert sha in out and str(packs[0]) in out
+
+
+def test_pack_freeze_survives_regeneration(run, scratch_root, scratch_project):
+    """Regenerating after canon changes must add a pack, not overwrite the audit copy."""
+    run("pack", "Scene 01-01", vault=scratch_root)
+    _, out, _ = run("pack", "Scene 01-01", vault=scratch_root)
+    assert "unchanged" in out  # identical content: same freeze, no rewrite
+    node = scratch_project / "world/canon/The Mist.md"
+    node.write_text(node.read_text(encoding="utf-8").replace(
+        "- The Mist is not weather", "- The Mist hums at dawn.\n- The Mist is not weather"
+    ), encoding="utf-8")
+    code, _, _ = run("pack", "Scene 01-01", vault=scratch_root)
+    assert code == 0
+    packs = list((scratch_project / "control/context-packs").glob("Scene-01-01-*-context.md"))
+    assert len(packs) == 2
+
+
+def test_pack_warns_on_unratified_scope(run, scratch_root):
+    _, _, err = run("pack", "Scene 01-01", vault=scratch_root)
+    assert "The Volcanic City-State" in err and "seeded" in err
+    assert "The Mist" not in err  # ratified nodes are not warned about
 
 
 def test_pack_unknown_card(run, scratch_root):
@@ -120,6 +143,17 @@ def test_ratify_appends_only_and_promotes(run, scratch_root, scratch_project):
 
     _, out, _ = run("status", vault=scratch_root)
     assert "canon_node   The Volcanic City-State ratified" in out
+
+
+def test_ratify_same_day_reuses_date_heading(run, scratch_root, scratch_project):
+    from datetime import date
+
+    log = scratch_project / "control/ratification/Ratification Log.md"
+    run("ratify", "--accept", "first entry", vault=scratch_root)
+    run("ratify", "--defer", "second entry", vault=scratch_root)
+    text = log.read_text(encoding="utf-8")
+    assert text.count(f"## {date.today().isoformat()}") == 1
+    assert "first entry" in text and "second entry" in text
 
 
 def test_ratify_requires_at_least_one_entry(run, scratch_root, scratch_project):

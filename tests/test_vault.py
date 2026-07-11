@@ -52,6 +52,14 @@ def test_links_alias_form(tmp_path):
     assert _parse(p).links() == ["Real Target"]
 
 
+def test_blank_placeholder_links_ignored(tmp_path):
+    p = tmp_path / "Templated.md"
+    p.write_text('---\npov: "[[ ]]"\n---\n\nBody with [[ ]] and [[Real]].\n', encoding="utf-8")
+    n = _parse(p)
+    assert n.links() == ["Real"]
+    assert n.links("pov") == []
+
+
 def test_by_type_and_one(vault):
     assert {n.name for n in vault.by_type("canon_node")} == {
         "Mara Vey", "The Mist", "The Volcanic City-State",

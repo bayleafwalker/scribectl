@@ -15,7 +15,7 @@ from __future__ import annotations
 from .vault import Vault, Note
 
 
-def _ledger_accepted(vault: Vault) -> set[str]:
+def ledger_accepted(vault: Vault) -> set[str]:
     led = vault.one("ratification_log")
     if not led:
         return set()
@@ -34,7 +34,9 @@ def canon_status(vault: Vault, note: Note, accepted: set[str]) -> str:
     facts = note.section("Ratified facts")
     has_facts = bool(facts and "_(none" not in facts and facts.strip())
     if note.name in accepted:
-        return "ratified"
+        # Ledger says Accepted but the node carries no facts: the two halves of
+        # ratification (paste the fact, append the receipt) have diverged.
+        return "ratified" if has_facts else "ratified_empty"
     if has_facts:
         return "seeded"
     return "stub"
@@ -45,26 +47,36 @@ def _drafts_for(vault: Vault, scene_name: str) -> list[Note]:
             if n.type == "draft" and scene_name in n.links()]
 
 
+def unresolved_scope(vault: Vault, note: Note) -> list[str]:
+    scope = note.links("canon_scope") + note.links("location") + note.links("characters")
+    return [l for l in dict.fromkeys(scope) if vault.resolve(l) is None]
+
+
 def scene_status(vault: Vault, note: Note) -> str:
     drafts = _drafts_for(vault, note.name)
-    scope = note.links("canon_scope") + note.links("location") + note.links("characters")
-    unresolved = [l for l in scope if vault.resolve(l) is None]
     reviews = [n for n in vault.notes.values()
                if n.type == "review_report" and note.name in n.links()]
     if not drafts:
-        return "ready_for_fill" if not unresolved else "blocked_unresolved_scope"
+        return "ready_for_fill" if not unresolved_scope(vault, note) else "blocked_unresolved_scope"
     if reviews:
         return "reviewed"
     return "has_draft"
 
 
-def project(vault: Vault) -> list[tuple[str, str, str]]:
-    """Return (type, name, derived_status) rows for the legible artifact types."""
-    accepted = _ledger_accepted(vault)
-    rows: list[tuple[str, str, str]] = []
+def project(vault: Vault) -> list[tuple[str, str, str, str]]:
+    """Return (type, name, derived_status, detail) rows for the legible artifact
+    types. detail says *why* for the states that need acting on: which scope
+    links are unresolved, or that a ledger-accepted node carries no facts."""
+    accepted = ledger_accepted(vault)
+    rows: list[tuple[str, str, str, str]] = []
     for n in sorted(vault.notes.values(), key=lambda x: (x.type, x.name)):
         if n.type == "canon_node":
-            rows.append((n.type, n.name, canon_status(vault, n, accepted)))
+            s = canon_status(vault, n, accepted)
+            detail = "ledger-accepted but no ratified facts in node" if s == "ratified_empty" else ""
+            rows.append((n.type, n.name, s, detail))
         elif n.type == "scene_card":
-            rows.append((n.type, n.name, scene_status(vault, n)))
+            s = scene_status(vault, n)
+            missing = unresolved_scope(vault, n) if s == "blocked_unresolved_scope" else []
+            detail = "missing: " + ", ".join(f"[[{l}]]" for l in missing) if missing else ""
+            rows.append((n.type, n.name, s, detail))
     return rows

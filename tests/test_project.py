@@ -6,7 +6,7 @@ from scribectl.core.vault import Vault
 
 
 def rows_dict(vault_path):
-    return {name: status for _, name, status in project(Vault.load(vault_path))}
+    return {name: status for _, name, status, _ in project(Vault.load(vault_path))}
 
 
 def test_fixture_baseline_states(fixture_root):
@@ -53,6 +53,44 @@ def test_ratification_promotes_canon_node(scratch_project):
         encoding="utf-8",
     )
     assert rows_dict(scratch_project)["The Volcanic City-State"] == "ratified"
+
+
+def test_ledger_accept_without_facts_reads_ratified_empty(scratch_project):
+    """The two halves of ratification diverging (receipt without paste) is surfaced."""
+    (scratch_project / "world/canon/Gate-Warden Guild.md").write_text(
+        "---\ntype: canon_node\n---\n\n# Gate-Warden Guild\n\n"
+        "## Ratified facts\n_(none ratified yet — node is a stub)_\n",
+        encoding="utf-8",
+    )
+    log = scratch_project / "control/ratification/Ratification Log.md"
+    log.write_text(
+        log.read_text(encoding="utf-8")
+        + "\n## 2026-07-10\n\n### Accepted\n"
+        '- "wardens keep the seals" → promoted to [[Gate-Warden Guild]] — test.\n',
+        encoding="utf-8",
+    )
+    assert rows_dict(scratch_project)["Gate-Warden Guild"] == "ratified_empty"
+
+
+def test_blocked_scene_detail_names_missing_links(scratch_project):
+    from scribectl.core.project import project
+    from scribectl.core.vault import Vault
+
+    rows = {name: detail for _, name, _, detail in project(Vault.load(scratch_project))}
+    assert rows["Scene 01-01"] == "missing: [[Lower Ashmarket]]"
+
+
+def test_blank_placeholder_links_do_not_block(scratch_project):
+    """`[[ ]]` template placeholders are not scope links."""
+    card = scratch_project / "structure/scenes/Scene 01-02.md"
+    card.write_text(
+        "---\ntype: scene_card\nbook: 1\nchapter: 1\nscene: 2\n"
+        'pov: "[[Mara Vey]]"\nlocation: "[[ ]]"\n'
+        'characters:\n  - "[[Mara Vey]]"\ncanon_scope:\n  - "[[The Mist]]"\n---\n\n'
+        "# Scene 1.2\n\n## Entry state\nx\n",
+        encoding="utf-8",
+    )
+    assert rows_dict(scratch_project)["Scene 01-02"] == "ready_for_fill"
 
 
 def test_rejected_section_does_not_promote(scratch_project):
