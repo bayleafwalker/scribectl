@@ -43,11 +43,12 @@ identical `status` bytes, identical pack sha `b1aa50b69a16`; ff.py retired.
    author's move and stays open.
 4. Confirm livesync behaves with engine-created files (packs, stubs) while
    another device has the vault open. This is a test, not an assumption.
-   — OPEN: livesync is installed+enabled but runs inside Obsidian, which
-   wasn't running during the engine writes. Test = open the vault here (it
-   will push the ~12 new files) with a second device online, then run
-   `status --write` + `ratify` again while both are open and watch for
-   conflicts on the ledgers.
+   — DONE 2026-07-11: initial push landed all 8 project files byte-identical
+   on the second device; with both Obsidians open, `status --write` + a
+   `ratify --defer` receipt append propagated in ~80s, sha-identical, zero
+   conflict artifacts, and the deferred entry flipped no stub state. Empty
+   scaffold dirs don't sync (livesync syncs files) — harmless. Untested:
+   deliberately simultaneous appends to the same ledger from both devices.
 
 ## Phase C — the vertical slice, for real
 
