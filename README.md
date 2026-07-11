@@ -20,9 +20,13 @@ docs/ARCHITECTURE.md      what gets built: package layout, ProjectConfig,
                           CLI surface, invariants, the agent boundary
 PLAN.md                   the order to build it in (phases A–E)
 scribectl/                the package: core/ (vault, timeline, contextpack,
-                          project), config.py (discovery), cli.py, templates/
+                          project), config.py (discovery), templateset.py
+                          (set.yaml manifests), cli.py, templates/ (fiction,
+                          gamedev)
 fixtures/fertile-flames/  the volcanic city-state test vault; its root note is
                           the scribe-project config spec
+fixtures/runosong/        the rhythm-game test vault: the gamedev set's canon
+                          + mechanic nodes and kind-parameterized output cards
 tests/                    contact tests — every core change runs here before
                           it touches the real vault
 fertile-flames-pipeline/  the retired Phase-0 substrate (docs only; parity
@@ -43,17 +47,20 @@ calls an LLM and never rewrites a note you edit by hand. Legacy notes in
 
 ## Status
 
-Design ratified 2026-07-10. Phase A (extraction) landed the same day: the
-package, discovery, and the full CLI surface (`projects`, `status [--write]`,
-`pack`, `ratify`, `adopt`, `init`) are test-driven green against the fixture,
-and the ff.py parity gate passed (identical status output, identical pack
-sha). Next: Phase B — land Fertile Flames in the real vault at
-`/media/Creative` via `scribectl init` + `adopt`.
+Design ratified 2026-07-10. Phases A–C landed 2026-07-10/11: extraction, the
+real-vault landing, and the full fill → review → ratify loop in the synced
+vault. Phase E landed 2026-07-11: template sets became data (`set.yaml`
+manifests) and the second set, `gamedev`, exists for Runosong — game canon
+and mechanics rulings feeding literary tie-ins (scenes, spoken fics, blog
+posts, research notes, auto-generated outputs), proven against
+`fixtures/runosong/` with fiction output byte-identical. Ratification UX
+(verdict inbox, `ratify --sweep`) is the open design track — see
+docs/RATIFICATION.md.
 
 ## Run it
 
 ```
 uv venv && uv pip install -e . --python .venv/bin/python
 SCRIBECTL_VAULT=$PWD/fixtures .venv/bin/scribectl status
-.venv/bin/python -m pytest -q          # 51 contact tests
+.venv/bin/python -m pytest -q          # 70 contact tests
 ```

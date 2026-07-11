@@ -16,12 +16,18 @@ from .config import DEFAULTS, DEFAULT_ROOTS, ProjectConfig, discover_projects, v
 from .core.contextpack import build_pack
 from .core.project import project as project_rows
 from .core.vault import Vault
-
-TEMPLATES = Path(__file__).parent / "templates"
+from .templateset import TemplateSet, list_sets, load_set
 
 
 class CLIError(Exception):
     pass
+
+
+def _ts(cfg: ProjectConfig) -> TemplateSet:
+    try:
+        return load_set(cfg.template_set)
+    except ValueError as e:
+        raise CLIError(f"{cfg.name}: {e}") from e
 
 
 # -- project selection --------------------------------------------------------
@@ -43,7 +49,7 @@ def _select(name: str | None = None, card: str | None = None) -> ProjectConfig:
         return inside[0]
     if card:
         holding = [p for p in projects
-                   if (n := Vault.load(p.root).resolve(card)) and n.type == "scene_card"]
+                   if (n := Vault.load(p.root).resolve(card)) and n.type == _ts(p).card_type]
         if len(holding) == 1:
             return holding[0]
     if len(projects) == 1:
@@ -66,14 +72,15 @@ def cmd_projects(args) -> int:
 
 def _status_table(rows) -> str:
     w = max((len(n) for _, n, _, _ in rows), default=10)
-    lines = [f"{'type':<12} {'name':<{w}} status", "-" * (14 + w + 8)]
-    lines += [f"{t:<12} {n:<{w}} {s}" + (f"  ({d})" if d else "") for t, n, s, d in rows]
+    tw = max([len(t) for t, _, _, _ in rows] + [12])
+    lines = [f"{'type':<{tw}} {'name':<{w}} status", "-" * (tw + 2 + w + 8)]
+    lines += [f"{t:<{tw}} {n:<{w}} {s}" + (f"  ({d})" if d else "") for t, n, s, d in rows]
     return "\n".join(lines)
 
 
 def cmd_status(args) -> int:
     cfg = _select(args.project)
-    rows = project_rows(Vault.load(cfg.root))
+    rows = project_rows(Vault.load(cfg.root), _ts(cfg))
     print(_status_table(rows))
     if args.write:
         dash = cfg.roots["control"] / "Status.md"
@@ -95,7 +102,7 @@ def cmd_status(args) -> int:
 def cmd_pack(args) -> int:
     cfg = _select(args.project, card=args.card)
     try:
-        pack = build_pack(Vault.load(cfg.root), args.card)
+        pack = build_pack(Vault.load(cfg.root), args.card, _ts(cfg))
     except ValueError as e:
         raise CLIError(str(e)) from e
     cfg.pack_output.mkdir(parents=True, exist_ok=True)
@@ -203,33 +210,21 @@ Project notes go here — scribectl reads only the frontmatter above.
 List legacy vault notes under `sources:` to mark them citable ore.
 """
 
-# template file in the set → where it lands in a fresh project
-INIT_LEDGERS = {
-    "timeline.md": "control/timeline/Timeline.md",
-    "ratification_log.md": "control/ratification/Ratification Log.md",
-    "voice_canon.md": "world/language/Prose Voice Canon.md",
-    "world_seed.md": "world/World Seed.md",
-}
-INIT_DIRS = [
-    "world/canon", "world/language", "structure/scenes", "body/drafts",
-    "control/timeline", "control/ratification", "control/context-packs",
-    "reviews/canon", "reviews/voice", "reviews/beta",
-]
-
-
 def cmd_init(args) -> int:
-    tset = TEMPLATES / args.set
-    if not tset.is_dir():
-        known = ", ".join(sorted(p.name for p in TEMPLATES.iterdir() if p.is_dir()))
-        raise CLIError(f"unknown template set {args.set!r} (available: {known})")
+    # Which dirs exist and which ledger templates get instantiated is the
+    # template set's manifest, not this module's opinion.
+    try:
+        ts = load_set(args.set)
+    except ValueError as e:
+        raise CLIError(str(e)) from e
     under = Path(args.under) if args.under else vault_roots()[0] / "30 Creative" / "Works"
     dest = under / args.name
     if dest.exists():
         raise CLIError(f"refusing to touch existing directory: {dest}")
-    for d in INIT_DIRS:
+    for d in ts.init_dirs:
         (dest / d).mkdir(parents=True)
-    for src, rel in INIT_LEDGERS.items():
-        (dest / rel).write_text((tset / src).read_text(encoding="utf-8"), encoding="utf-8")
+    for src, rel in ts.init_files.items():
+        (dest / rel).write_text((ts.dir / src).read_text(encoding="utf-8"), encoding="utf-8")
     note = dest / f"{args.name}.md"
     roots_yaml = "\n".join(f"  {k}: {v}" for k, v in DEFAULT_ROOTS.items())
     fields = {**DEFAULTS, "name": args.name, "template_set": args.set, "roots": roots_yaml}
@@ -271,7 +266,8 @@ def _parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("init", help="instantiate a project subtree + scribe-project note")
     p.add_argument("name")
-    p.add_argument("--set", default="fiction", help="template set (default: fiction)")
+    p.add_argument("--set", default="fiction",
+                   help=f"template set (default: fiction; available: {', '.join(list_sets())})")
     p.add_argument("--under", help="parent directory (default: <vault>/30 Creative/Works)")
     p.set_defaults(fn=cmd_init)
     return ap

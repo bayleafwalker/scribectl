@@ -3,10 +3,13 @@ from pathlib import Path
 
 from scribectl.core.project import project
 from scribectl.core.vault import Vault
+from scribectl.templateset import load_set
+
+FICTION = load_set("fiction")
 
 
 def rows_dict(vault_path):
-    return {name: status for _, name, status, _ in project(Vault.load(vault_path))}
+    return {name: status for _, name, status, _ in project(Vault.load(vault_path), FICTION)}
 
 
 def test_fixture_baseline_states(fixture_root):
@@ -73,10 +76,7 @@ def test_ledger_accept_without_facts_reads_ratified_empty(scratch_project):
 
 
 def test_blocked_scene_detail_names_missing_links(scratch_project):
-    from scribectl.core.project import project
-    from scribectl.core.vault import Vault
-
-    rows = {name: detail for _, name, _, detail in project(Vault.load(scratch_project))}
+    rows = {name: detail for _, name, _, detail in project(Vault.load(scratch_project), FICTION)}
     assert rows["Scene 01-01"] == "missing: [[Lower Ashmarket]]"
 
 

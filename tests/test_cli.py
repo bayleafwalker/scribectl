@@ -39,6 +39,8 @@ def test_projects_lists_discovered(run, fixture_root):
     assert "Fertile Flames" in out
     assert "fiction" in out
     assert str(fixture_root) in out
+    # The second fixture project rides the second template set.
+    assert "Runosong" in out and "gamedev" in out
 
 
 def test_projects_none_found(run, tmp_path):
@@ -57,9 +59,16 @@ def test_status_matches_ff_baseline(run, fixture_root):
 
 
 def test_status_infers_single_project(run, fixture_root):
-    code, out, _ = run("status", vault=fixture_root.parent)
+    # Scoped to the project dir itself: fixtures/ now holds two projects.
+    code, out, _ = run("status", vault=fixture_root)
     assert code == 0
     assert out == BASELINE_STATUS
+
+
+def test_status_ambiguous_across_projects_demands_p(run, fixture_root):
+    code, _, err = run("status", vault=fixture_root.parent)
+    assert code != 0
+    assert "ambiguous" in err and "Runosong" in err
 
 
 def test_status_unknown_project(run, fixture_root):

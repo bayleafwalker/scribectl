@@ -1,0 +1,33 @@
+# Engine-facing shape of the gamedev set: literary tie-ins for a game project.
+# Two fact-bearing node types (world lore + game mechanics) feed one card type
+# whose `kind` field spans scenes, spoken fics, blog posts, research notes,
+# and auto-generated outputs. See ARCHITECTURE.md, "Template sets".
+card_type: output_card
+card_heading: Output card
+node_types: [canon_node, mechanic_node]
+pull:
+  scope: [canon_scope, mechanics_scope, characters, location]   # order is pack order
+  actors: [characters, pov]
+  location: location
+# Sequenced tie-ins (episodes, scenes) carry these; unsequenced kinds
+# (blog_post, research_note, generated) omit them and see the whole timeline.
+position: [book, chapter, scene]
+init:
+  dirs:
+    - world/canon
+    - world/mechanics
+    - world/language
+    - structure/cards
+    - body/drafts
+    - control/timeline
+    - control/ratification
+    - control/context-packs
+    - reviews/canon
+    - reviews/voice
+    - reviews/mechanics
+    - reviews/beta
+  files:
+    timeline.md: control/timeline/Timeline.md
+    ratification_log.md: control/ratification/Ratification Log.md
+    voice_canon.md: world/language/Prose Voice Canon.md
+    world_seed.md: world/Design Seed.md

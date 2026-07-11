@@ -1,0 +1,28 @@
+# Engine-facing shape of the fiction set. The markdown files beside this
+# manifest are the artifact contracts; this declares what the assembler pulls
+# and what `init` instantiates. See ARCHITECTURE.md, "Template sets".
+card_type: scene_card
+card_heading: Scene card
+node_types: [canon_node]
+pull:
+  scope: [canon_scope, characters, location]   # order is pack order
+  actors: [characters, pov]
+  location: location
+position: [book, chapter, scene]
+init:
+  dirs:
+    - world/canon
+    - world/language
+    - structure/scenes
+    - body/drafts
+    - control/timeline
+    - control/ratification
+    - control/context-packs
+    - reviews/canon
+    - reviews/voice
+    - reviews/beta
+  files:
+    timeline.md: control/timeline/Timeline.md
+    ratification_log.md: control/ratification/Ratification Log.md
+    voice_canon.md: world/language/Prose Voice Canon.md
+    world_seed.md: world/World Seed.md

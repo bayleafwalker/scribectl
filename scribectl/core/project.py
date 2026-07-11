@@ -6,9 +6,12 @@ mutable state — the exact thing append-only models exist to refuse, and a stat
 field you flip by hand will lie the moment you're mid-flow.
 
 So status is *derived*, not stored. A note's real state is a function of the
-vault: does a draft file link back to the scene, did a clean canon review land,
-is the node listed as Accepted in the ratification ledger. This module is the
+vault: does a draft file link back to the card, did a clean review land, is the
+node listed as Accepted in the ratification ledger. This module is the
 projection. Nothing here writes.
+
+Which note types are cards and which are fact-bearing nodes comes from the
+project's TemplateSet; the derivation logic is identical across sets.
 """
 from __future__ import annotations
 
@@ -42,41 +45,42 @@ def canon_status(vault: Vault, note: Note, accepted: set[str]) -> str:
     return "stub"
 
 
-def _drafts_for(vault: Vault, scene_name: str) -> list[Note]:
+def _drafts_for(vault: Vault, card_name: str) -> list[Note]:
     return [n for n in vault.notes.values()
-            if n.type == "draft" and scene_name in n.links()]
+            if n.type == "draft" and card_name in n.links()]
 
 
-def unresolved_scope(vault: Vault, note: Note) -> list[str]:
-    scope = note.links("canon_scope") + note.links("location") + note.links("characters")
+def unresolved_scope(vault: Vault, note: Note, scope_fields) -> list[str]:
+    scope = [l for f in scope_fields for l in note.links(f)]
     return [l for l in dict.fromkeys(scope) if vault.resolve(l) is None]
 
 
-def scene_status(vault: Vault, note: Note) -> str:
+def card_status(vault: Vault, note: Note, scope_fields) -> str:
     drafts = _drafts_for(vault, note.name)
     reviews = [n for n in vault.notes.values()
                if n.type == "review_report" and note.name in n.links()]
     if not drafts:
-        return "ready_for_fill" if not unresolved_scope(vault, note) else "blocked_unresolved_scope"
+        return "ready_for_fill" if not unresolved_scope(vault, note, scope_fields) else "blocked_unresolved_scope"
     if reviews:
         return "reviewed"
     return "has_draft"
 
 
-def project(vault: Vault) -> list[tuple[str, str, str, str]]:
-    """Return (type, name, derived_status, detail) rows for the legible artifact
-    types. detail says *why* for the states that need acting on: which scope
-    links are unresolved, or that a ledger-accepted node carries no facts."""
+def project(vault: Vault, ts) -> list[tuple[str, str, str, str]]:
+    """Return (type, name, derived_status, detail) rows for the template set's
+    legible artifact types. detail says *why* for the states that need acting
+    on: which scope links are unresolved, or that a ledger-accepted node
+    carries no facts."""
     accepted = ledger_accepted(vault)
     rows: list[tuple[str, str, str, str]] = []
     for n in sorted(vault.notes.values(), key=lambda x: (x.type, x.name)):
-        if n.type == "canon_node":
+        if n.type in ts.node_types:
             s = canon_status(vault, n, accepted)
             detail = "ledger-accepted but no ratified facts in node" if s == "ratified_empty" else ""
             rows.append((n.type, n.name, s, detail))
-        elif n.type == "scene_card":
-            s = scene_status(vault, n)
-            missing = unresolved_scope(vault, n) if s == "blocked_unresolved_scope" else []
+        elif n.type == ts.card_type:
+            s = card_status(vault, n, ts.scope_fields)
+            missing = unresolved_scope(vault, n, ts.scope_fields) if s == "blocked_unresolved_scope" else []
             detail = "missing: " + ", ".join(f"[[{l}]]" for l in missing) if missing else ""
             rows.append((n.type, n.name, s, detail))
     return rows

@@ -24,7 +24,8 @@ def test_fixture_note_is_the_config_spec(fixture_root):
 
 def test_discover_finds_projects_under_a_root(fixture_root):
     projects = discover_projects([fixture_root.parent])
-    assert [p.name for p in projects] == ["Fertile Flames"]
+    assert [p.name for p in projects] == ["Fertile Flames", "Runosong"]
+    assert [p.template_set for p in projects] == ["fiction", "gamedev"]
 
 
 def test_discover_multiple_projects_sorted(scratch_root):

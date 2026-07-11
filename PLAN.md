@@ -73,12 +73,19 @@ like you, the architecture is real. If it doesn't, no orchestration saves it.
 - Wire `body_fill` / `review_canon` / `review_voice` / `refactor` into the
   `.agents/skills/` dispatch pattern (coordinator never authors).
 
-## Phase E — second project, second shape
+## Phase E — second project, second shape — LANDED 2026-07-11 (as gamedev, not essay)
 
-Only when a real non-fiction project exists: the `essay/` template set
-(section cards, claims/sources ledger, argument-dependency oracle) and its
-pull spec. Sunstolen as the second *fiction* project is the cheaper next
-stress test of multi-project discovery and can precede this.
+The real second project arrived as a game, not an essay: Runosong (the
+Kalevala rhythm-game design dialogue), whose literary tie-ins share one canon
+with its game-mechanics rulings. Landed: `templateset.py` + per-set `set.yaml`
+manifests (fiction's shape became data; init, the pull spec, and derived
+status are manifest-driven), the `gamedev/` set (canon + mechanic nodes,
+kind-parameterized output cards spanning scenes / spoken fics / blog posts /
+research notes / auto-generated outputs), the `fixtures/runosong/` vault, and
+contact tests incl. a second golden pack — fiction output byte-identical
+throughout. The `essay/` set remains unbuilt until a real non-fiction project
+demands it. Next real-vault step when wanted: `scribectl init Runosong --set
+gamedev` + adopt the design dialogue as a source.
 
 ## Deliberately NOT built
 

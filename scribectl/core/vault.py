@@ -47,10 +47,12 @@ class Note:
 
     def links(self, field_or_section: str | None = None) -> list[str]:
         """Wikilink targets. Scans the whole note, or a frontmatter list, or a section."""
+        # allow_unicode: escaped dumps would break [[links]] with non-ASCII
+        # names (Väki) before the regex ever sees them.
         if field_or_section is None:
-            text = yaml.safe_dump(self.meta) + "\n" + self.body
+            text = yaml.safe_dump(self.meta, allow_unicode=True) + "\n" + self.body
         elif field_or_section in self.meta:
-            text = yaml.safe_dump(self.meta[field_or_section])
+            text = yaml.safe_dump(self.meta[field_or_section], allow_unicode=True)
         else:
             text = self.section(field_or_section) or ""
         # Blank targets ([[ ]] template placeholders) are not links.

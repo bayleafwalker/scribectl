@@ -14,14 +14,19 @@ scribectl/
       contextpack.py   the assembler: minimal canon slice per card   ← center
       project.py       derived state (status computed, never stored)
     config.py          vault roots + project discovery (scribe-project notes)
+    templateset.py     set.yaml manifest loader — the shape of a project as data
     cli.py             the command surface
     templates/
-      fiction/         the eight artifact contracts (moved from ff)
-      <essay/ etc. — NOT until a second project demands it>
+      fiction/         the eight artifact contracts + set.yaml (moved from ff)
+      gamedev/         canon + mechanic nodes, kind-parameterized output cards
+                       (demanded by Runosong; see DESIGN.md)
+      <essay/ etc. — NOT until a third project demands it>
   fixtures/
     fertile-flames/    the volcanic city-state vault, moved from
                        fertile-flames-pipeline/vault/ — the test fixture
-  tests/               contact tests: status + pack green against the fixture
+    runosong/          the rhythm-game vault distilled from the Runosong
+                       design dialogue — the gamedev-set fixture
+  tests/               contact tests: status + pack green against the fixtures
 ```
 
 The four core modules are extracted from `fertile-flames-pipeline/pipeline/`
@@ -122,12 +127,23 @@ artifact's frontmatter can be verified against what was actually consumed.
 
 ## Template sets
 
-A template set = a directory of artifact contracts + a pull-spec vocabulary
-the assembler understands. `fiction/` ships the existing eight contracts with
-pull spec `actors` / `locations` / `scope` (what contextpack.py already
-resolves). A future `essay/` set would declare `sources` / `claims`. The
-assembler reads the card's frontmatter keys and pulls accordingly; template
-sets are data plus a small pull-spec registration, not subclasses.
+A template set = a directory of artifact contracts + one `set.yaml` manifest
+declaring the shape the engine needs: `card_type` (the fillable unit),
+`node_types` (which notes carry ratified facts), the pull spec (which
+frontmatter link fields the assembler gathers, which contribute timeline
+actors/location), `position` (the frontmatter ints ordering a card — a card
+carrying none sees the whole timeline), and the `init` layout. Sets are data
+plus this small registration, not subclasses; `templateset.py` loads the
+manifest and the CLI passes the resulting shape into `contextpack.py` /
+`project.py` as plain parameters — core/ never reads the manifests itself.
+
+`fiction/` declares scene cards over canon nodes with the
+`canon_scope`/`characters`/`location` pull. `gamedev/` declares output cards
+(`kind`: scene, spoken_fic, blog_post, research_note, generated; `mode` up to
+`auto_generate` from a `base` node) over canon nodes *and* mechanic nodes,
+adding `mechanics_scope` to the pull and a `reviews/mechanics` lane. Both
+node types brief identically into packs: one-line function + ratified facts,
+scaffolding excluded.
 
 ## Testing
 

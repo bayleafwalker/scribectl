@@ -94,24 +94,43 @@ because nothing downstream consumes it; it exists for eyeballs.
 
 ## Generalizing beyond fiction
 
-The artifact shapes map cleanly to non-fiction:
+The artifact shapes map cleanly beyond prose fiction:
 
-| Fiction | Non-fiction |
-| --- | --- |
-| scene card | section card |
-| canon node | claims / sources ledger |
-| timeline (chronology oracle) | argument-dependency / event chronology |
-| voice canon | voice canon (identical) |
-| review reports, ratification | identical |
+| Fiction | Gamedev (exists) | Non-fiction (future) |
+| --- | --- | --- |
+| scene card | output card (`kind`: scene, spoken_fic, blog_post, research_note, generated) | section card |
+| canon node | canon node + **mechanic node** (rulings are facts) | claims / sources ledger |
+| timeline (chronology oracle) | identical (`pre` = myth-time; B.C.S = content sequence) | argument-dependency / event chronology |
+| voice canon | voice canon (registers per kind, inline) | voice canon (identical) |
+| review reports, ratification | identical, + mechanics reviews | identical |
 
-The abstraction that makes this real: **pluggable template sets** plus a
-per-card *pull spec* in frontmatter telling the assembler what to gather
-(actors/locations for fiction; sources/claims for essays).
+The abstraction that makes this real: **pluggable template sets** — each set
+is a directory of artifact contracts plus a `set.yaml` manifest declaring the
+card type, the fact-bearing node types, the pull spec (which frontmatter
+fields the assembler gathers), and what `init` instantiates. The engine reads
+the shape as data; there are no per-set subclasses.
 
-**Discipline:** the fiction template set is the only one that exists until
-Fertile Flames survives one full fill → review → ratify loop in the real
-vault. The core extraction is safe now because the fixture keeps it honest;
-a second template set before a second project demands it is speculation.
+**Discipline, kept and paid:** the fiction set stayed the only one until
+Fertile Flames survived a full fill → review → ratify loop in the real vault
+(Phase C, closed 2026-07-11). The second set, `gamedev`, was then built for a
+real second project — Runosong, a rhythm-driven survival RPG whose literary
+tie-ins (spoken fics, devlog posts, research digests, auto-generated outputs
+grown from a `base` node) share one canon with its game-mechanics rulings.
+The same rule still holds for a third set: shapes are earned by projects,
+not predicted.
+
+Two gamedev-specific decisions worth stating:
+
+- **Mechanics are canon.** A `mechanic_node` carries ratified design rulings
+  in the same "Ratified facts" section a lore node uses, ratifies through the
+  same ledger, and ships into packs identically — a fic where magic works
+  differently than the game is canon rot in both directions. Tuning numbers
+  stay in a never-shipped "Tuning knobs" section: prose dramatizes rulings,
+  not knobs.
+- **Unpositioned cards see the whole timeline.** Sequenced tie-ins carry
+  book/chapter/scene and see strictly-prior events, as fiction does; a blog
+  post or research digest carries no position and everything recorded is
+  prior. The actor/location relevance filter still applies.
 
 ## Carried over unchanged from fertile-flames
 
