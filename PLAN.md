@@ -111,9 +111,11 @@ runnable coordinator, with the engine untouched (invariant 5 holds).
 5. Live smoke (operator-gated, like the Phase C slice): claude backend fills
    Scene 01-01 in a scratch vault; reviews fire; the writer judges the voice.
 6. Backlog beyond the slice: local writer model on the 3090
-   (`vllm-writer.service` + bake-off), watch mode, per-skill routing, codex
-   backend, candidate mining into the inbox, real-vault enablement, gamedev
-   set dispatch, agentops dispatch manifest.
+   (`vllm-writer.service` + bake-off), per-skill routing, codex backend,
+   real-vault enablement, gamedev set dispatch, agentops dispatch manifest.
+   Landed 2026-07-12: candidate mining into the inbox (`ratify --mine`,
+   engine-side — see RATIFICATION.md) and watch mode (`scribe-dispatch watch`,
+   livesync settle debounce, `--ticks 1` for timers).
 
 ## Deliberately NOT built
 

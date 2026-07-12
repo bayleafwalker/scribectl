@@ -127,8 +127,13 @@ the real vault.
 
 ## Deliberately NOT built (v1)
 
-- **No watch daemon.** `plan`/`run` are single passes you (or a timer, later)
-  invoke. Livesync debounce is a real problem to solve when watch mode is.
+- ~~**No watch daemon.**~~ Landed 2026-07-12: `scribe-dispatch watch` polls
+  every `--interval` (60s) and passes only when the vault has been quiet for
+  `--settle` (30s) — livesync delivers notes as bursts of file writes, and a
+  half-synced note must never dispatch. `--ticks 1` is the systemd-timer /
+  cron single shot (one debounced pass, exit 0 either way). Errors are not
+  survived: a dead watch is visible, one that silently skips failures is not.
+  The hard lines hold — watching adds repetition, never iteration.
 - **No candidate mining by the dispatcher.** Reviews list "Introduced
   candidates"; the *engine's* `scribectl ratify --mine` lifts them into the
   ratification Inbox as pending candidates (RATIFICATION.md build item 2,

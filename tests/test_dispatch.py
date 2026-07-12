@@ -171,6 +171,36 @@ def test_verdict_defaults_to_issues(fakes):
     assert "no verdict line here" in rest
 
 
+def test_watch_single_tick_runs_full_pass(run, scratch_project):
+    """`watch --ticks 1` is the timer/cron shape: one debounced pass."""
+    unblock(scratch_project)
+    code, out, _ = run("watch", "--ticks", "1", "--settle", "0")
+    assert code == 0
+    assert (scratch_project / "body/drafts/ch01-sc01-draft-a.md").is_file()
+    assert (scratch_project / "reviews/canon/ch01-sc01-draft-a — canon review.md").is_file()
+    assert (scratch_project / "reviews/voice/ch01-sc01-draft-a — voice review.md").is_file()
+
+
+def test_watch_debounces_livesync_bursts(run, scratch_project):
+    """A vault that changed inside the settle window never dispatches — a
+    half-synced note is not derived state."""
+    unblock(scratch_project)  # fresh write: the vault is mid-burst by definition
+    code, out, _ = run("watch", "--ticks", "1", "--settle", "3600")
+    assert code == 0
+    assert "waiting for livesync" in out
+    assert not any((scratch_project / "body/drafts").glob("*.md"))
+
+
+def test_watch_second_tick_goes_quiet(run, scratch_project):
+    """Tick 2 re-plans against the completed loop and dispatches nothing —
+    watching adds repetition, never iteration."""
+    unblock(scratch_project)
+    code, out, _ = run("watch", "--ticks", "2", "--interval", "0", "--settle", "0")
+    assert code == 0
+    assert len(list((scratch_project / "body/drafts").glob("*.md"))) == 1
+    assert out.count("dispatching body_fill") == 1
+
+
 def test_tampered_pack_fails_verification(run, scratch_project, tmp_path):
     unblock(scratch_project)
     code, _, _ = run("run")
