@@ -13,8 +13,10 @@ set -euo pipefail
 # Usage: bakeoff-writer.sh [model-id ...]   (default: the three candidates)
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# 2501 (not 3.2): the 3.2 tekken-tokenizer AWQ trips a decode assertion in
+# vllm 0.14.1 at engine init; 2501 is the same arch the devstral service runs.
 CANDIDATES=(
-  "jeffcookio/Mistral-Small-3.2-24B-Instruct-2506-awq-sym"
+  "stelterlab/Mistral-Small-24B-Instruct-2501-AWQ"
   "gaunernst/gemma-3-27b-it-int4-awq"
   "tacodevs/Cydonia-24B-v4.3-AWQ"
 )
@@ -47,6 +49,20 @@ for model in "${CANDIDATES[@]}"; do
   cp -r "$REPO/fixtures/fertile-flames" "$vault_parent/vault"
   export SCRIBECTL_VAULT="$vault_parent/vault"
 
+  # The pristine fixture ships Scene 01-01 blocked on unresolved scope; give
+  # Lower Ashmarket a ratified fact so the card derives ready_for_fill —
+  # the same unblock the contact tests perform.
+  cat >"$SCRIBECTL_VAULT/Works/Fertile Flames/world/canon/Lower Ashmarket.md" <<'NODE'
+---
+type: canon_node
+---
+
+# Lower Ashmarket
+
+## Ratified facts
+- The Ashmarket sits below the terrace line.
+NODE
+
   log "=== $model ==="
   stop_server
   WRITER_MODEL="$model" "$RUN_BIN" >"$out/server.log" 2>&1 &
@@ -75,11 +91,18 @@ for model in "${CANDIDATES[@]}"; do
   "$DISPATCH" run -p "Fertile Flames" --runner openai --base-url "$BASE_URL" --model "$model" \
     >"$out/fill.log" 2>&1 || { log "FAIL: fill pass — see $out/fill.log"; echo "$model: FILL FAILED" >>"$RESULTS/summary.txt"; stop_server; continue; }
 
+  proj="$SCRIBECTL_VAULT/Works/Fertile Flames"
+  if [[ -z "$(ls "$proj/body/drafts" 2>/dev/null)" ]]; then
+    log "FAIL: fill pass dispatched no draft — see $out/fill.log"
+    echo "$model: NO DRAFT LANDED" >>"$RESULTS/summary.txt"
+    stop_server
+    continue
+  fi
+
   log "Review pass (claude runner)"
   "$DISPATCH" run -p "Fertile Flames" --runner claude \
     >"$out/review.log" 2>&1 || log "WARN: review pass had errors — see $out/review.log"
 
-  proj="$SCRIBECTL_VAULT/Works/Fertile Flames"
   cp -r "$proj/body/drafts" "$out/drafts" 2>/dev/null || true
   cp -r "$proj/reviews" "$out/reviews" 2>/dev/null || true
 

@@ -14,6 +14,9 @@ fi
 MODEL="${WRITER_MODEL:?Set WRITER_MODEL (see ~/.config/vllm/writer.env)}"
 NAME="vllm-writer"
 PORT="${VLLM_PORT:-8080}"
+# auto, not half: Gemma 3 rejects float16 outright, and awq_marlin handles
+# bf16 fine on Ampere — let the model config decide.
+DTYPE="${WRITER_DTYPE:-auto}"
 MAX_LEN="${VLLM_MAX_LEN:-16384}"
 GPU_MEM="${GPU_MEM_UTIL:-0.85}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-1}"
@@ -26,7 +29,7 @@ log() {
 }
 
 log "Starting"
-log "Config: model=$MODEL image=$IMAGE port=$PORT max_len=$MAX_LEN gpu_mem=$GPU_MEM max_num_seqs=$MAX_NUM_SEQS max_batch_tokens=$MAX_BATCH_TOKENS"
+log "Config: model=$MODEL image=$IMAGE port=$PORT dtype=$DTYPE max_len=$MAX_LEN gpu_mem=$GPU_MEM max_num_seqs=$MAX_NUM_SEQS max_batch_tokens=$MAX_BATCH_TOKENS"
 
 HF_CACHE="${HOME}/.cache/huggingface"
 mkdir -p "$HF_CACHE"
@@ -65,7 +68,7 @@ exec docker run --name "$NAME" \
     --model "$MODEL" \
     --max-num-seqs "$MAX_NUM_SEQS" \
     --max-num-batched-tokens "$MAX_BATCH_TOKENS" \
-    --dtype half \
+    --dtype "$DTYPE" \
     --gpu-memory-utilization "$GPU_MEM" \
     --max-model-len "$MAX_LEN" \
     --host 0.0.0.0 --port 8080

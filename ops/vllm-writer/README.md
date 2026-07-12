@@ -21,8 +21,8 @@ ops/vllm-writer/bakeoff-writer.sh          # all three candidates
 ops/vllm-writer/bakeoff-writer.sh <model>  # one specific model
 ```
 
-Per candidate (all AWQ 4-bit, verified on HF 2026-07-12 — Mistral Small 3.2
-24B, Gemma 3 27B, Cydonia v4.3 as the writing finetune): serve the model,
+Per candidate (all AWQ 4-bit, verified on HF 2026-07-12 — Mistral Small 24B
+2501, Gemma 3 27B, Cydonia v4.3 as the writing finetune): serve the model,
 fill Scene 01-01 in a disposable fixture-vault copy via the `openai` runner,
 fire canon+voice reviews via the `claude` runner, collect draft + reports +
 logs under `bakeoff-results/<stamp>/<model>/`.
