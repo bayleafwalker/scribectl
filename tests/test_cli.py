@@ -448,7 +448,7 @@ def test_init_instantiates_project(run, scratch_root):
         "world/canon", "world/language/Prose Voice Canon.md", "world/World Seed.md",
         "structure/scenes", "body/drafts", "control/timeline/Timeline.md",
         "control/ratification/Ratification Log.md", "control/ratification/Inbox.md",
-        "control/context-packs",
+        "control/context-packs", "AGENTS.md",
         "reviews/canon", "reviews/voice", "reviews/beta",
     ]:
         assert (root / rel).exists(), rel
@@ -471,6 +471,30 @@ def test_init_unknown_template_set(run, scratch_root):
     code, _, err = run("init", "Essayish", "--set", "essay",
                        "--under", str(scratch_root / "Works"), vault=scratch_root)
     assert code != 0
+
+
+def test_init_drops_agent_guidance(run, scratch_root):
+    """init drops AGENTS.md at the project root — the house rules any console
+    agent opened inside the vault should read (#1089)."""
+    run("init", "Sunstolen", "--under", str(scratch_root / "Works"), vault=scratch_root)
+    guide = (scratch_root / "Works" / "Sunstolen" / "AGENTS.md").read_text(encoding="utf-8")
+    assert "Never ratify" in guide
+    assert "Candidates ride the inbox" in guide
+    assert "Designated dirs only" in guide
+    assert "Cite the pack sha" in guide
+    # AGENTS.md is plain guidance, not a fact-bearing note — status ignores it.
+    code, out, _ = run("status", "-p", "Sunstolen", vault=scratch_root)
+    assert code == 0 and "AGENTS" not in out
+
+
+def test_init_gamedev_agent_guidance_names_mechanics(run, scratch_root):
+    """The gamedev guidance is set-specific: it names mechanic nodes and the
+    mechanics review lane the fiction set doesn't have."""
+    run("init", "Runosong2", "--set", "gamedev",
+        "--under", str(scratch_root / "Works"), vault=scratch_root)
+    guide = (scratch_root / "Works" / "Runosong2" / "AGENTS.md").read_text(encoding="utf-8")
+    assert "mechanic_node" in guide
+    assert "reviews/canon|voice|mechanics|beta/" in guide
 
 
 # -- doctor -----------------------------------------------------------------

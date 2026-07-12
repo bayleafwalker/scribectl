@@ -30,3 +30,4 @@ init:
     ratification_inbox.md: control/ratification/Inbox.md
     voice_canon.md: world/language/Prose Voice Canon.md
     world_seed.md: world/World Seed.md
+    agents.md: AGENTS.md   # house rules for any console agent opened in the vault
