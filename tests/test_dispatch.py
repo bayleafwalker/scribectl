@@ -302,6 +302,78 @@ def test_gamedev_hand_draft_gets_mechanics_lane_by_default(run_gamedev, scratch_
         assert (project / f"reviews/{kind}/hand-episode — {kind} review.md").is_file(), kind
 
 
+def test_skip_unreachable_skips_fill_but_reviews_still_fire(monkeypatch, capsys,
+                                                           scratch_root, scratch_project, fakes):
+    """--skip-unreachable is the systemd-timer policy (item 1091): a down local
+    writer skips the fills routed to it — no crash — while reviews on the
+    frontier still land. A stopped writer is a state, not breakage."""
+    from scribedispatch import cli, runner as runner_mod
+
+    monkeypatch.setenv("SCRIBECTL_VAULT", str(scratch_root))
+    monkeypatch.setenv("SCRIBE_DISPATCH_FAKE_DIR", str(fakes))
+    monkeypatch.setattr(cli, "_config", lambda: {
+        "runner": "claude",
+        "skills": {"body_fill": {"runner": "openai",
+                                 "base_url": "http://127.0.0.1:8080",
+                                 "model": "local-writer"}}})
+
+    class DownWriter(runner_mod.FakeRunner):
+        name = "openai"
+        def reachable(self):
+            return False
+
+    def routed(name, model=None, base_url=None, fake_dir=None):
+        cls = DownWriter if name == "openai" else runner_mod.FakeRunner
+        return cls(fake_dir or str(fakes))
+
+    monkeypatch.setattr(cli, "make_runner", routed)
+    unblock(scratch_project)  # Scene 01-01 -> ready_for_fill (fill routes to the down writer)
+
+    # A second card that already has a hand-draft, so a review lane has
+    # something to fire on in the same pass the fill is skipped.
+    (scratch_project / "structure/scenes/Scene 01-02.md").write_text(
+        "---\ntype: scene_card\nbook: 1\nchapter: 1\nscene: 2\n"
+        'pov: "[[Mara Vey]]"\nlocation: "[[The Volcanic City-State]]"\n'
+        'characters:\n  - "[[Mara Vey]]"\ncanon_scope:\n  - "[[The Mist]]"\n'
+        "mode: body_fill\ntarget_words: 1000\n---\n\n# Scene 1.2\n", encoding="utf-8")
+    (scratch_project / "body/drafts/Scene 01-02 hand.md").write_text(
+        "---\ntype: draft\nscene: \"[[Scene 01-02]]\"\n---\n\nHand prose.\n", encoding="utf-8")
+
+    code = cli.main(["run", "--skip-unreachable"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "skipping body_fill for Scene 01-01" in out and "unreachable" in out
+    assert not (scratch_project / "body/drafts/ch01-sc01-draft-a.md").exists()
+    # Reviews (fake, reachable) fired on the hand-draft despite the down writer.
+    assert (scratch_project / "reviews/canon/Scene 01-02 hand — canon review.md").is_file()
+    assert (scratch_project / "reviews/voice/Scene 01-02 hand — voice review.md").is_file()
+
+
+def test_down_writer_without_skip_flag_crashes_loudly(monkeypatch, capsys,
+                                                      scratch_root, scratch_project, fakes):
+    """Without --skip-unreachable the pass fails loudly on a real generate
+    error — a dead watch is visible; the flag is what makes it degrade."""
+    from scribedispatch import cli, runner as runner_mod
+
+    monkeypatch.setenv("SCRIBECTL_VAULT", str(scratch_root))
+    monkeypatch.setenv("SCRIBE_DISPATCH_FAKE_DIR", str(fakes))
+    monkeypatch.setattr(cli, "_config", lambda: {"runner": "claude"})
+
+    class DeadRunner(runner_mod.FakeRunner):
+        name = "openai"
+        def reachable(self):
+            return False
+        def generate(self, skill, prompt):
+            from scribedispatch import DispatchError
+            raise DispatchError("endpoint refused connection")
+
+    monkeypatch.setattr(cli, "make_runner",
+                        lambda *a, **k: DeadRunner(k.get("fake_dir") or str(fakes)))
+    unblock(scratch_project)
+    code = cli.main(["run"])  # no --skip-unreachable
+    assert code == 2
+
+
 def test_per_skill_routing_splits_fill_and_reviews(monkeypatch, capsys,
                                                    scratch_root, scratch_project, fakes):
     """dispatch.yaml `skills:` map (backlog item 1076): fills route to the

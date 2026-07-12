@@ -1,0 +1,16 @@
+# Fires scribe-dispatch-watch.service on an interval (backlog item 1091).
+# OnUnitInactiveSec measures from when the last pass *finished*, so a slow
+# model call never overlaps the next tick. The service's own --settle window
+# is what actually guards against half-synced livesync bursts; this interval
+# is just "how often to look".
+[Unit]
+Description=Ambient scribe-dispatch watch (periodic single-shot)
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=3min
+# A missed window (laptop asleep) should not fire a burst on resume.
+Persistent=false
+
+[Install]
+WantedBy=timers.target

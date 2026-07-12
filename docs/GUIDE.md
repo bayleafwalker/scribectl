@@ -130,8 +130,24 @@ Watch polls every `--interval` (60s) and only acts once the vault has been
 mtime-quiet for `--settle` (30s), so a half-synced note never dispatches.
 It repeats, never iterates: a finished card is never re-drafted. It stops
 loudly on error — a dead watch is visible, a silently skipping one is not.
-Packaged systemd user units are #1091. With watch running, the writing day
-collapses to: write, glance at Status.md, tick the inbox.
+
+Fully ambient, no terminal held open — packaged systemd user units
+(`ops/scribe-dispatch/`, its README has the install):
+
+```
+cp ops/scribe-dispatch/scribe-dispatch-watch.{service,timer} ~/.config/systemd/user/
+cp ops/scribe-dispatch/watch.env ~/.config/scribectl/     # set WATCH_PROJECT
+systemctl --user enable --now scribe-dispatch-watch.timer
+```
+
+The timer fires one `--ticks 1 --skip-unreachable` pass every few minutes.
+`--skip-unreachable` is the policy decision baked in: **a stopped vllm-writer
+skips the fills routed to it and still fires the reviews on the frontier** —
+a down writer is a state, not breakage, so the unit does *not* auto-start the
+model. (The README shows the drop-in for those who'd rather it did, and the
+resource tradeoff — the 24 GB writer evicts the code model.) With the timer
+enabled, the writing day collapses to: write, glance at Status.md, tick the
+inbox.
 
 ## Sessions
 
@@ -237,7 +253,7 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 | trigger workflows from inside Obsidian | inbox checkboxes only | #1088 QuickAdd |
 | agent-in-vault house rules | repo docs only | #1089 guidance note |
 | VS Code one-keystroke tasks | type the commands | #1090 workspace template |
-| dispatch without a terminal open | run `watch` yourself | #1091 systemd units |
+| dispatch without a terminal open | `enable --now scribe-dispatch-watch.timer` | — (#1091 done) |
 | bulk-mine legacy ore | manual session | #1092/#1093 propose + reconciler |
 | ideation captured into the loop | inbox jots | #1094 brainstorm skill |
 | local/no-cost model fills | claude runner only | #1075/#1076 vllm + routing |

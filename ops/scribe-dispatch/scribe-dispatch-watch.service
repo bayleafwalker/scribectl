@@ -1,0 +1,26 @@
+# scribe-dispatch watch — one debounced dispatch pass (backlog item 1091).
+# Single-shot (--ticks 1): the .timer fires this on an interval; the unit does
+# one settle-gated pass and exits 0 whether or not anything dispatched. Pair
+# with scribe-dispatch-watch.timer.
+# Install: cp *.service *.timer to ~/.config/systemd/user/ and watch.env to
+#   ~/.config/scribectl/ ; systemctl --user daemon-reload ;
+#   systemctl --user enable --now scribe-dispatch-watch.timer
+[Unit]
+Description=Ambient scribe-dispatch: one debounced watch pass
+Documentation=file:%h/.config/scribectl/watch.env
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/scribectl/watch.env
+
+# --skip-unreachable is the policy: a stopped vllm-writer skips fills (routed
+# to the local endpoint) while reviews still fire on the frontier — a down
+# writer is a state, not breakage. This unit deliberately does NOT depend on
+# vllm-writer.service; to auto-start the writer instead, see README.md
+# ("Auto-start the writer?"). "${WATCH_PROJECT}" keeps a name with spaces one
+# argument.
+ExecStart=%h/.local/bin/scribe-dispatch watch --ticks 1 --skip-unreachable --settle 45 -p "${WATCH_PROJECT}"
+
+# One pass should never hang the timer cadence; a real model call can be slow,
+# so this is generous, not tight.
+TimeoutStartSec=1800

@@ -106,6 +106,10 @@ def _run_once(args, runners: "RunnerPool", chatty: bool = True) -> None:
         filled = False
         for d in dispatches:
             runner = runners.for_skill(d.skill)
+            if args.skip_unreachable and not runner.reachable():
+                print(f"skipping {d.skill} for {d.card} [{runner.name}] — "
+                      "runner unreachable (start it, or drop --skip-unreachable)")
+                continue
             print(f"dispatching {d.skill} for {d.card} [{runner.name}] — {d.reason}")
             path = execute(d, state, contracts, runner)
             print(f"  landed {path}")
@@ -200,6 +204,10 @@ def main(argv: list[str] | None = None) -> int:
                          "(livesync debounce; default: 30)")
     ap.add_argument("--ticks", type=int,
                     help="watch: exit after N polls (timer/cron single-shot: --ticks 1)")
+    ap.add_argument("--skip-unreachable", action="store_true",
+                    help="skip (don't crash on) a dispatch whose runner is down — "
+                         "ambient default so a stopped vllm-writer skips fills while "
+                         "reviews still fire on the frontier")
     args = ap.parse_args(argv)
 
     runners = RunnerPool(args, _config())

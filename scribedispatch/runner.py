@@ -27,6 +27,12 @@ class ClaudeRunner:
         self.model = model
         self.timeout = timeout
 
+    def reachable(self) -> bool:
+        # The CLI is local; a real auth/exec failure surfaces loudly at
+        # generate time. Probing it would cost a subprocess for no signal a
+        # failed dispatch doesn't already give (mirrors doctor's stance).
+        return True
+
     def generate(self, skill: str, prompt: str) -> str:
         cmd = ["claude", "-p", "--output-format", "text"]
         if self.model:
@@ -54,6 +60,17 @@ class OpenAIRunner:
         self.api_key = api_key
         self.temperature = temperature
         self.timeout = timeout
+
+    def reachable(self, timeout: float = 3.0) -> bool:
+        """A cheap liveness probe (GET /v1/models) — the local writer may be
+        stopped. Ambient watch uses this to skip fills gracefully rather than
+        crash when vllm-writer is down (a stopped writer is a state, not an
+        error)."""
+        try:
+            with urllib.request.urlopen(f"{self.base_url}/v1/models", timeout=timeout):
+                return True
+        except Exception:
+            return False
 
     def generate(self, skill: str, prompt: str) -> str:
         req = urllib.request.Request(
@@ -83,6 +100,9 @@ class FakeRunner:
 
     def __init__(self, responses_dir: str | Path):
         self.dir = Path(responses_dir)
+
+    def reachable(self) -> bool:
+        return True
 
     def generate(self, skill: str, prompt: str) -> str:
         p = self.dir / f"{skill}.md"
