@@ -87,6 +87,9 @@ scribectl ratify  [-p PROJECT]         append accepted/rejected/deferred
 scribectl adopt <legacy-note>          wrap a vault note as a canon-node STUB
                                        with open questions (discover-mode
                                        output, never final canon)
+scribectl capture <title>              land a raw transcript (stdin or --from)
+                                       as a dated source note under sources/ and
+                                       register it under the project's sources:
 ```
 
 `-p/--project` may be omitted when the argument (a card name, a path) resolves
@@ -95,8 +98,12 @@ to exactly one project, or when cwd is inside a project subtree.
 ## Core invariants (enforced, not documented-and-hoped)
 
 1. **Read-only over the vault** except designated outputs: `pack_output/`,
-   `control/Status.md`, ledger appends via `ratify`, stubs via `adopt`/`init`.
-   `core/` takes the vault as data; only `cli.py` holds write paths.
+   `control/Status.md`, ledger appends via `ratify`, stubs via `adopt`/`init`,
+   card + contract scaffolds via `new card`, and dated source notes under
+   `sources/` via `capture` — which also grows the scribe-project note's
+   `sources:` frontmatter list (the one config edit into a human-authored note,
+   never its body). `core/` takes the vault as data; only `cli.py` holds write
+   paths.
 2. **Status is derived, never stored.** No status enums in frontmatter,
    anywhere, including the generated dashboard's inputs.
 3. **Packs are frozen and hashed.** A pack's sha is the reproducibility

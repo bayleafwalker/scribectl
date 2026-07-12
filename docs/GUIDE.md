@@ -87,9 +87,11 @@ dashboard; reviews land as notes; candidates queue in
 
 Rewriting the fact text before ticking is encouraged: the rewrite *is* the
 ratified wording. For this surface to be fully hands-off something must run
-the mechanical passes for you — that is watch mode below, and the planned
-systemd timer (#1091). In-Obsidian buttons for "new card", "new node", "jot
-a candidate" are the QuickAdd configs, planned as #1088.
+the mechanical passes for you — that is watch mode below, packaged as the
+systemd timer (#1091). In-Obsidian buttons for "new card + contract", "new
+canon/mechanic node", and "jot an inbox candidate" ship as QuickAdd configs in
+`ops/obsidian/quickadd/` (#1088) — install them and the writer never meets a
+shell for the everyday captures.
 
 ### Obsidian + a console beside it
 
@@ -103,9 +105,10 @@ modes of console:
   and say things like "sweep the inbox and tell me what's still unrouted" or
   "pack everything ready and run fills, then summarize the reviews." The
   agent runs the same audited commands; the trust rules hold because they
-  are enforced by the engine, not by the agent's manners. A standing
-  guidance note the agent finds in the vault (rules of the house, per
-  project) is planned as #1089.
+  are enforced by the engine, not by the agent's manners. `scribectl init`
+  drops an `AGENTS.md` at the project root — the standing house rules the
+  agent finds in the vault (never ratify, candidates via the inbox, cite pack
+  shas, designated dirs only), authored per template set (#1089).
 
 This is where governance sessions live: mine, sweep, route unrouted
 candidates, retire stubs.
@@ -115,9 +118,10 @@ candidates, retire stubs.
 Open the vault folder — it is just Markdown — with integrated terminals
 running `scribe-dispatch watch` and an agent session. You write in the
 editor; fills and reviews land beside you; the inbox is a file you edit.
-A workspace/tasks template (one-keystroke status/pack/sweep/watch) is
-planned as #1090. There will be no editor extension: the CLI is the whole
-API, on purpose.
+A workspace + tasks template (one-keystroke status/next/pack/plan/run/sweep/
+watch) ships in `ops/vscode/` (#1090) — copy the `.code-workspace` into a
+project or drop `tasks.json` in `.vscode/`. There is no editor extension and
+won't be: the CLI is the whole API, on purpose.
 
 ### Ambient — watch mode
 
@@ -176,22 +180,27 @@ scribectl init "Runosong" --set gamedev       # game canon + literary tie-ins
 ```
 
 You get the subtree (world/structure/body/control/reviews), the
-scribe-project config note, an empty timeline, ledger, and inbox. List any
-legacy notes that should count as source ore under `sources:` in the config
-note's frontmatter.
+scribe-project config note, an empty timeline, ledger, and inbox, and an
+`AGENTS.md` of house rules for any console agent opened inside the vault
+(#1089). Feed it source ore with `scribectl capture` (below); legacy notes
+already in the vault go under `sources:` in the config note's frontmatter.
 
 ### Feed it raw material
 
-Two moves, today:
+Two moves:
 
 - `scribectl adopt "<legacy note>"` wraps an existing vault note as a canon
   *stub with open questions* — the note itself is never touched; facts get
   ratified out of it through the ledger.
-- Paste raw ore (a design dialogue, a brainstorm transcript) into a note
-  yourself, then list it under `sources:`. Do this *at the time* — the
-  Runosong design dialogue was never saved and only its distillate survives.
-  `scribectl capture` (pipe a transcript in, get a dated, registered source
-  note out) is planned as #1087 so this stops depending on discipline.
+- `scribectl capture "<title>"` pipes a raw design dialogue or brainstorm
+  transcript into a dated `type: source` note under the project's `sources/`
+  dir and registers its wikilink under the project note's `sources:` — raw ore
+  survives without depending on discipline (the Runosong design dialogue was
+  never saved; only its distillate did). Read it from stdin
+  (`scribectl capture "Ashfall Session" < talk.md`) or `--from FILE`; `--kind`
+  tags it (dialogue|brainstorm|transcript|notes). The transcript lands
+  verbatim and the project note's body is never touched — only its `sources:`
+  list grows.
 
 ### Bulk fill — turning ore into candidates and cards into drafts
 
@@ -254,10 +263,10 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 | commands on PATH, env health check | `uv tool install` once; `scribectl doctor` | — (#1084 done) |
 | "what do I do next" | `scribectl next` (digest, also atop Status.md) | — (#1085 done) |
 | new card ready for dispatch | `scribectl new card <name>` | — (#1086 done) |
-| raw transcripts preserved | paste + `sources:` by discipline | #1087 `capture` |
-| trigger workflows from inside Obsidian | inbox checkboxes only | #1088 QuickAdd |
-| agent-in-vault house rules | repo docs only | #1089 guidance note |
-| VS Code one-keystroke tasks | type the commands | #1090 workspace template |
+| raw transcripts preserved | `scribectl capture "<title>"` (dated + registered) | — (#1087 done) |
+| trigger captures from inside Obsidian | QuickAdd buttons (`ops/obsidian/`) | — (#1088 done) |
+| agent-in-vault house rules | `AGENTS.md` dropped by `init` | — (#1089 done) |
+| VS Code one-keystroke tasks | workspace + tasks (`ops/vscode/`) | — (#1090 done) |
 | dispatch without a terminal open | `enable --now scribe-dispatch-watch.timer` | — (#1091 done) |
 | bulk-mine legacy ore | manual session | #1092/#1093 propose + reconciler |
 | ideation captured into the loop | inbox jots | #1094 brainstorm skill |
