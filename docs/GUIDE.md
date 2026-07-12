@@ -35,22 +35,35 @@ These are enforced by the machine, not promised by prose:
 
 ## Setup, per device
 
-From the repo (`uv venv && uv pip install -e . --python .venv/bin/python`);
-the commands are `.venv/bin/scribectl` and `.venv/bin/scribe-dispatch`. The
-engine finds the vault at `/media/Creative` by default (`SCRIBECTL_VAULT`
-overrides — the fixtures use this). Dispatch defaults to the `claude` runner
-(the authenticated `claude` CLI); `--runner/--model/--base-url`, env, or
-`~/.config/scribectl/dispatch.yaml` change that per machine.
+One command:
 
-Planned to get smoother: a proper PATH install plus `scribectl doctor`
-(#1084), so a fresh device is one command and a health check instead of this
-paragraph.
+```
+uv tool install --editable /projects/dev/scribectl
+```
 
-**Where dispatch may run today:** against fixtures and scratch vaults only.
-The real vault opens to dispatch after the live-smoke voice verdict (sprint
-item 1074, then 1080). The *engine* commands — `status`, `pack`, `ratify`,
-`adopt`, `init` — are already live in the real vault; it is only the
-agent-running layer that waits at the gate.
+That puts `scribectl` and `scribe-dispatch` on PATH (`~/.local/bin`);
+`--editable` means a `git pull` in the repo updates the tools in place, no
+reinstall. Then health-check the device:
+
+```
+scribectl doctor
+```
+
+Doctor checks commands on PATH, vault roots (default `/media/Creative`;
+`SCRIBECTL_VAULT` overrides — the fixtures use this), each project's
+designated dirs and ledgers, and every dispatch route's runner — including
+whether vllm-writer is up, now that fills route to it. `FAIL` lines flip the
+exit code; warnings don't. Doctor only probes, never repairs.
+
+Dispatch defaults to the `claude` runner (the authenticated `claude` CLI);
+`--runner/--model/--base-url`, env, or `~/.config/scribectl/dispatch.yaml`
+change that per machine — the per-skill `skills:` map in that file is what
+routes fills to the local writer and reviews to the frontier.
+
+**Where dispatch runs:** everywhere, including the real vault — the
+live-smoke voice gate (1074) passed and real-vault dispatch was enabled
+(1080) on 2026-07-12. Idempotency held on production: a plan/run against
+fully-reviewed cards is a clean no-op.
 
 ## Pick your surface
 
@@ -204,7 +217,7 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 
 | you want | today | planned |
 | --- | --- | --- |
-| commands on PATH, env health check | `.venv/bin/…` by hand | #1084 doctor + install |
+| commands on PATH, env health check | `uv tool install` once; `scribectl doctor` | — (#1084 done) |
 | "what do I do next" | read Status.md | #1085 `scribectl next` |
 | new card ready for dispatch | copy templates by hand | #1086 `new card` |
 | raw transcripts preserved | paste + `sources:` by discipline | #1087 `capture` |

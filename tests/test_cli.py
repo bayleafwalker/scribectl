@@ -471,3 +471,64 @@ def test_init_unknown_template_set(run, scratch_root):
     code, _, err = run("init", "Essayish", "--set", "essay",
                        "--under", str(scratch_root / "Works"), vault=scratch_root)
     assert code != 0
+
+
+# -- doctor -----------------------------------------------------------------
+
+@pytest.fixture
+def doctor_env(monkeypatch, tmp_path):
+    """Deterministic doctor surroundings: fake HOME (no real dispatch config),
+    commands 'installed', no dispatch env pins leaking from the real shell."""
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setattr("scribectl.doctor.shutil.which", lambda cmd: f"/fake/bin/{cmd}")
+    for var in ("SCRIBE_DISPATCH_RUNNER", "SCRIBE_DISPATCH_MODEL", "SCRIBE_DISPATCH_BASE_URL"):
+        monkeypatch.delenv(var, raising=False)
+    return home
+
+
+def test_doctor_healthy_on_fixture(run, fixture_root, doctor_env):
+    code, out, _ = run("doctor", vault=fixture_root)
+    assert code == 0
+    assert "scribectl on PATH" in out and "scribe-dispatch on PATH" in out
+    assert "vault root" in out and "$SCRIBECTL_VAULT" in out
+    assert 'project "Fertile Flames"' in out
+    assert "designated dirs present" in out
+    assert "routes to claude" in out          # no dispatch config in fake HOME
+    assert "runner claude" in out
+    assert "doctor: healthy" in out
+
+
+def test_doctor_missing_vault_root_fails(run, tmp_path, doctor_env):
+    code, out, _ = run("doctor", vault=tmp_path / "nope")
+    assert code == 1
+    assert "FAIL" in out and "does not exist" in out
+    assert "problems found" in out
+
+
+def test_doctor_reports_openai_route_down_as_warn(run, fixture_root, doctor_env):
+    cfg = doctor_env / ".config" / "scribectl"
+    cfg.mkdir(parents=True)
+    (cfg / "dispatch.yaml").write_text(
+        "runner: claude\n"
+        "skills:\n"
+        "  body_fill:\n"
+        "    runner: openai\n"
+        "    base_url: http://127.0.0.1:9\n"
+        "    model: local-writer\n",
+        encoding="utf-8")
+    code, out, _ = run("doctor", vault=fixture_root)
+    assert code == 0  # a down local writer is a state, not breakage
+    assert "runner openai (body_fill)" in out
+    assert "down" in out and "vllm-writer" in out
+    # reviews still route to claude and group onto one line
+    assert "review_canon" in out and "runner claude" in out
+
+
+def test_doctor_warns_when_commands_off_path(run, fixture_root, doctor_env, monkeypatch):
+    monkeypatch.setattr("scribectl.doctor.shutil.which", lambda cmd: None)
+    code, out, _ = run("doctor", vault=fixture_root)
+    assert code == 1  # claude CLI missing FAILs (default runner unusable)
+    assert "scribectl not on PATH" in out and "uv tool install" in out
+    assert "claude CLI not on PATH" in out

@@ -21,6 +21,7 @@ from pathlib import Path
 
 from .config import DEFAULTS, DEFAULT_ROOTS, ProjectConfig, discover_projects, vault_roots
 from .core.contextpack import build_pack
+from .doctor import run_doctor
 from .core.inbox import append_bullets, mine, parse_inbox, receipt, remove_candidates
 from .core.project import card_artifacts, project as project_rows
 from .core.vault import Vault
@@ -403,6 +404,9 @@ def _parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("projects", help="list discovered projects").set_defaults(fn=cmd_projects)
+
+    sub.add_parser("doctor", help="environment health check: PATH, vault, projects, runners") \
+        .set_defaults(fn=lambda args: run_doctor())
 
     p = sub.add_parser("status", help="derived state of every node + card")
     p.add_argument("-p", "--project")
