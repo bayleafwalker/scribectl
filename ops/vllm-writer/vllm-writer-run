@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# vllm-writer launcher: vllm-devstral-run with the model lifted into env.
+# Under systemd, writer.env is the EnvironmentFile; run standalone it falls
+# back to sourcing it, with already-exported vars winning.
+if [[ -z "${WRITER_MODEL:-}" && -f "${HOME}/.config/vllm/writer.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "${HOME}/.config/vllm/writer.env"
+  set +a
+fi
+
+MODEL="${WRITER_MODEL:?Set WRITER_MODEL (see ~/.config/vllm/writer.env)}"
+NAME="vllm-writer"
+PORT="${VLLM_PORT:-8080}"
+MAX_LEN="${VLLM_MAX_LEN:-16384}"
+GPU_MEM="${GPU_MEM_UTIL:-0.85}"
+MAX_NUM_SEQS="${MAX_NUM_SEQS:-1}"
+MAX_BATCH_TOKENS="${MAX_BATCH_TOKENS:-2048}"
+
+IMAGE="vllm/vllm-openai:v0.14.1-x86_64-cu130"
+
+log() {
+  printf '%s [vllm-writer] %s\n' "$(date --iso-8601=seconds)" "$*" >&2
+}
+
+log "Starting"
+log "Config: model=$MODEL image=$IMAGE port=$PORT max_len=$MAX_LEN gpu_mem=$GPU_MEM max_num_seqs=$MAX_NUM_SEQS max_batch_tokens=$MAX_BATCH_TOKENS"
+
+HF_CACHE="${HOME}/.cache/huggingface"
+mkdir -p "$HF_CACHE"
+if [[ ! -w "$HF_CACHE" ]]; then
+  log "WARNING: HF cache is not writable: $HF_CACHE"
+  HF_CACHE="${HOME}/.cache/huggingface-local"
+  mkdir -p "$HF_CACHE"
+  log "Using writable fallback HF cache: $HF_CACHE"
+fi
+
+if command -v nvidia-smi >/dev/null 2>&1; then
+  GPU_LINE="$(nvidia-smi --query-gpu=name,memory.total,memory.used,driver_version --format=csv,noheader,nounits | head -n 1 || true)"
+  [[ -n "$GPU_LINE" ]] && log "GPU: $GPU_LINE"
+fi
+
+if ss -ltn "( sport = :${PORT} )" 2>/dev/null | grep -q ":${PORT}\\b"; then
+  log "WARNING: host port ${PORT} already appears in use before docker run"
+fi
+
+# Best effort cleanup (idempotent)
+log "Removing stale container if present: $NAME"
+docker rm -f "$NAME" >/dev/null 2>&1 || true
+
+# No tool-call parser flags: this endpoint serves prose completions only.
+log "Launching container"
+exec docker run --name "$NAME" \
+  --runtime nvidia --gpus all \
+  --ipc=host --shm-size=2g \
+  -p 127.0.0.1:${PORT}:8080 \
+  -v "${HF_CACHE}:/root/.cache/huggingface" \
+  -e NVIDIA_VISIBLE_DEVICES=all \
+  -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+  -e CUDA_VISIBLE_DEVICES=0 \
+  -e HUGGING_FACE_HUB_TOKEN \
+  "$IMAGE" \
+    --model "$MODEL" \
+    --max-num-seqs "$MAX_NUM_SEQS" \
+    --max-num-batched-tokens "$MAX_BATCH_TOKENS" \
+    --dtype half \
+    --gpu-memory-utilization "$GPU_MEM" \
+    --max-model-len "$MAX_LEN" \
+    --host 0.0.0.0 --port 8080

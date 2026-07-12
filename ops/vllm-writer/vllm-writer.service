@@ -1,0 +1,28 @@
+# vllm-writer: local writing model on the RTX 3090 (backlog item 1075).
+# Same shape as vllm-devstral.service; the model is WRITER_MODEL in writer.env
+# so the bake-off winner is a one-line config change, not a unit edit.
+# Install: cp to ~/.config/systemd/user/ && systemctl --user daemon-reload
+[Unit]
+Description=Local writing model (AWQ) via vLLM OpenAI API (Docker)
+Wants=network-online.target
+After=network-online.target
+# One model fits the 24 GB budget at a time.
+Conflicts=vllm-devstral.service
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/vllm/writer.env
+
+# Run attached so logs go into journald
+ExecStart=%h/.local/bin/vllm-writer-run
+
+# Ensure stop actually stops the container (don't just kill the client)
+ExecStop=/usr/bin/docker stop -t 60 vllm-writer
+ExecStopPost=-/usr/bin/docker rm -f vllm-writer
+
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=75
+
+[Install]
+WantedBy=default.target

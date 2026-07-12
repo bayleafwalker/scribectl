@@ -2,7 +2,7 @@ SPRINT: 2026-S01-forge-core-overture  [active]
 Goal:   Extract fertile-flames pipeline into the scribectl package and land Fertile Flames in the real vault (PLAN.md phases A-B, C as gate)
 Dates:  2026-07-10 to 2026-07-24
 ID:     401
-Items:  17 total — 16 done, 0 active, 1 pending, 0 blocked
+Items:  17 total — 17 done, 0 active, 0 pending, 0 blocked
 
 --- Track: engine ---
   health: 4 items — 4 done (100%), 0 active, 0 pending, 0 blocked (0%)
@@ -29,11 +29,11 @@ Items:  17 total — 16 done, 0 active, 1 pending, 0 blocked
   [done    ] #1062  Run the vertical slice in the synced vault: pack -> body_fill -> rework -> reviews -> ratify  (assignee: -)
 
 --- Track: dispatch ---
-  health: 5 items — 4 done (80%), 0 active, 1 pending, 0 blocked (0%)
+  health: 5 items — 5 done (100%), 0 active, 0 pending, 0 blocked (0%)
   [done    ] #1070  Phase F.1: scribectl status --json — project header + rows + per-card drafts/reviews-by-lane (engine CLI as the dispatcher API)  (assignee: -)
   [done    ] #1071  Phase F.2: .agents/skills prompt contracts: body_fill, review_canon, review_voice (string.Template markdown; parsed output shape)  (assignee: -)
   [done    ] #1072  Phase F.3: scribedispatch package: policy + runner abstraction (claude CLI / openai-compat / fake) + sha-verified landing; scribe-dispatch plan|run  (assignee: -)
   [done    ] #1073  Phase F.4: contact tests: fake-runner end-to-end on disposable fixture vault; idempotent second pass; designated-dirs-only writes  (assignee: -)
-  [pending ] #1074  Phase F.5: live smoke (operator-gated): claude backend fills Scene 01-01 in a scratch vault; reviews fire; writer judges the voice  (assignee: -)
+  [done    ] #1074  Phase F.5: live smoke (operator-gated): claude backend fills Scene 01-01 in a scratch vault; reviews fire; writer judges the voice  (assignee: -)
 
-Rendered: 2026-07-12T08:04:35Z
+Rendered: 2026-07-12T12:35:44Z

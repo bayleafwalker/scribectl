@@ -147,10 +147,19 @@ the real vault.
   candidates"; the *engine's* `scribectl ratify --mine` lifts them into the
   ratification Inbox as pending candidates (RATIFICATION.md build item 2,
   landed 2026-07-12). The dispatcher itself still never touches the inbox.
-- **No real-vault dispatch** until the fixture loop and the live smoke both
-  hold. `/media/Creative` is production.
+- ~~**No real-vault dispatch** until the fixture loop and the live smoke both
+  hold.~~ Gate lifted 2026-07-12: the F.5 smoke draft passed the operator's
+  voice verdict (canon + voice lanes clean), and the first real-vault
+  plan/run pass came back a clean no-op — the Phase C card reads as fully
+  reviewed, so idempotency held on production ground. `/media/Creative` is
+  still production: machine policy lives in `~/.config/scribectl/dispatch.yaml`
+  (runner: claude), and every hard line above applies with no fixture net.
 - **No agent-on-agent loops, no retries-with-feedback.** A bad draft is
   information for the writer, not fuel for the coordinator.
-- **No actionq/cockpit integration yet.** When dispatch proves out, a
-  `scribectl.dispatch.json` manifest makes runs visible in the agentops
-  cockpit — observability, not a dependency.
+- ~~**No actionq/cockpit integration yet.**~~ Landed 2026-07-12, once dispatch
+  proved out: `scribectl.dispatch.json` (repo root; staged copy in
+  `agentops/templates/dispatch/examples/`) registers the repo at adoption
+  level `observable` — the cockpit's `/cockpit/api/dispatch-manifests` serves
+  it, all actionq action classes are `enabled: false`, and the manifest's
+  own out_of_scope lines restate the hard lines. Observability, not a
+  dependency: actionq never drives fills or reviews.

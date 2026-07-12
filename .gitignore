@@ -15,3 +15,6 @@ sprint-*.json
 __pycache__/
 *.egg-info/
 .venv/
+
+# bake-off artifacts (drafts + reviews + server logs; operator reads, then deletes)
+ops/vllm-writer/bakeoff-results/
