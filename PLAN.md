@@ -119,6 +119,41 @@ runnable coordinator, with the engine untouched (invariant 5 holds).
    (kind-blind fill + per-set review lanes incl. `review_mechanics`, proven
    on the runosong fixture — the live project still needs `init`).
 
+## Phase G — writing surfaces (writer UX)
+
+Design intent: docs/GUIDE.md (the user-facing doc). The loop works; this
+phase makes it *inhabitable* from every chair the writer actually sits in —
+Obsidian alone, Obsidian + console (raw ctl or an agent driving it), VS Code
+with backends in integrated terminals, or fully ambient under watch. The
+judgments carried from the Phase C/F session notes: the vault is the primary
+UI and every decision surface is a note; the writer never meets shell
+quoting; one-motion beats two-step (the two-step disconnect was the top
+observed failure mode); status's real function is "where the next ten
+minutes go"; raw ore must be captured at the moment it exists.
+
+Backlog (sprint 403), in rough value order:
+
+1. #1084 install story + `scribectl doctor` — PATH on both devices, env
+   health check. Prereq for every other surface.
+2. #1085 `scribectl next` — the next-actions digest, printed and pinned
+   atop Status.md.
+3. #1086 `scribectl new card` — card + dispatch contract in one motion
+   (contract authoring stays human; the ceremony doesn't).
+4. #1087 `scribectl capture` — transcripts/dialogues into dated, registered
+   source notes (the Runosong raw-dialogue loss, generalized away).
+5. #1092/#1093 mining packs + `propose` + reconciler (RATIFICATION.md items
+   3–4) — bulk ore refinement feeding the inbox; the reconciler stays gated
+   on ≥2 mined sources.
+6. #1094 `brainstorm` skill — ideation sessions land as quarantined
+   proposals riding the mine path; never canon, never cited.
+7. #1088 QuickAdd configs, #1089 vault-side agent guidance note,
+   #1090 VS Code workspace/tasks template, #1091 systemd watch units —
+   the per-surface packaging; each is small once 1–4 exist.
+
+Still no Obsidian plugin, no editor extension, no Dataview: surfaces are
+generated notes, checkboxes, and the CLI — the pieces that can't drift from
+the engine.
+
 ## Deliberately NOT built
 
 Added at the scribectl level:

@@ -13,6 +13,9 @@ amending it.
 ## Layout
 
 ```
+docs/GUIDE.md             the writer's guide: surfaces (Obsidian / console /
+                          VS Code / ambient watch), session recipes, and
+                          what's real today vs. backlogged
 docs/DESIGN.md            why it's shaped this way: the vault-integration
                           decision, the livesync write rules, plugin roles,
                           the fiction→non-fiction generalization
