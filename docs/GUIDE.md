@@ -153,15 +153,20 @@ inbox.
 
 ### Start a writing session
 
-1. `scribectl status --write` — the dashboard tells you where the next ten
-   minutes go: what's blocked and on which link, what's ready, what has
-   unconsumed reviews, whether the inbox holds undecided candidates.
+1. `scribectl next` — the next-actions digest: exactly where the next ten
+   minutes go, in the order to act. Cards to author (scaffolds and
+   scope-blocked), cards ready to fill (and whether they have a contract),
+   drafts a review flagged for rework, undecided and unrouted inbox
+   candidates, review reports waiting to be mined. A quiet project says
+   "Nothing waiting — write." `scribectl next --write` also pins the digest
+   atop `control/Status.md` (which then leads with it, table below).
 2. Start watch (or an agent console) if you want fills landing while you
    work; skip it for a pure prose day.
 3. Write.
 
-A single `scribectl next` that prints exactly the "next ten minutes" list —
-and pins it atop Status.md — is planned as #1085.
+`scribectl status` is still the full derived-state table (every node and
+card); `next` is the filtered, ordered "what's waiting on me" view over the
+same state.
 
 ### Start a new project
 
@@ -247,7 +252,7 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 | you want | today | planned |
 | --- | --- | --- |
 | commands on PATH, env health check | `uv tool install` once; `scribectl doctor` | — (#1084 done) |
-| "what do I do next" | read Status.md | #1085 `scribectl next` |
+| "what do I do next" | `scribectl next` (digest, also atop Status.md) | — (#1085 done) |
 | new card ready for dispatch | `scribectl new card <name>` | — (#1086 done) |
 | raw transcripts preserved | paste + `sources:` by discipline | #1087 `capture` |
 | trigger workflows from inside Obsidian | inbox checkboxes only | #1088 QuickAdd |

@@ -583,3 +583,42 @@ def test_new_card_rejects_slashy_name(run, scratch_root):
                        vault=scratch_root)
     assert code != 0
     assert "name" in err.lower()
+
+
+# -- next -------------------------------------------------------------------
+
+def test_next_prints_digest(run, fixture_root):
+    code, out, _ = run("next", "-p", "Fertile Flames", vault=fixture_root.parent)
+    assert code == 0
+    assert "# Next — Fertile Flames" in out
+    # The bare fixture: Scene 01-01 blocked on scope.
+    assert "blocked: resolve [[Lower Ashmarket]]" in out
+
+
+def test_next_lists_ready_card_with_contract(run, runosong_root):
+    code, out, _ = run("next", "-p", "Runosong", vault=runosong_root.parent)
+    assert code == 0
+    # The gamedev fixture: one ready card carrying a contract.
+    assert "Episode 1-01 — has a contract" in out
+
+
+def test_next_write_pins_digest_atop_status(run, scratch_root, scratch_project):
+    code, out, _ = run("next", "--write", vault=scratch_root)
+    assert code == 0
+    dash = (scratch_project / "control" / "Status.md").read_text(encoding="utf-8")
+    # Digest leads; the derived-state table follows the horizontal rule.
+    assert dash.index("# Next —") < dash.index("# Status —")
+    assert "| type | name | status | detail |" in dash
+    assert "Scene 01-01" in dash
+
+
+def test_status_write_still_leads_with_digest(run, scratch_root, scratch_project):
+    """status --write and next --write produce the same Status.md — the digest
+    is pinned atop the table either way, so the two never diverge."""
+    run("status", "--write", vault=scratch_root)
+    dash = (scratch_project / "control" / "Status.md").read_text(encoding="utf-8")
+    assert "# Next —" in dash and "# Status —" in dash
+    assert dash.index("# Next —") < dash.index("# Status —")
+    # Still a pure cache: the derived rows the console prints are unchanged.
+    code, out, _ = run("status", vault=scratch_root)
+    assert out == BASELINE_STATUS
