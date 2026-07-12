@@ -174,12 +174,25 @@ Two moves, today:
 
 ### Bulk fill — turning ore into candidates and cards into drafts
 
-Card-side, real today (fixtures/scratch until the gate): every
-`ready_for_fill` card with a contract gets packed and drafted by
-`scribe-dispatch run`; landed drafts get their review lanes (canon + voice;
-gamedev adds mechanics) filled automatically. Writing the *contract* is
-authoring intent, so it stays yours — a one-motion
-`scribectl new card` that scaffolds card + contract together is #1086.
+Card-side: every `ready_for_fill` card with a contract gets packed and
+drafted by `scribe-dispatch run`; landed drafts get their review lanes
+(canon + voice; gamedev adds mechanics) filled automatically. Scaffold the
+pair in one motion:
+
+```
+scribectl new card "Scene 02-01"                 # fiction: card + contract
+scribectl new card "Episode 2-01" -p Runosong    # gamedev: output card + contract
+```
+
+You get the card (in the set's card dir) and its `body_fill` dispatch
+contract (in `control/contracts/`, targeting the card, `output_target`
+pre-wired). The card lands with its `[[ ]]` scope placeholders intact, so it
+derives a new **`awaiting_scope`** state — dispatch skips it, and ambient
+watch will *not* fill an empty scaffold. Author the card in Obsidian (fill or
+delete the placeholders); the first real scope link flips it to
+`ready_for_fill` (or `blocked_unresolved_scope` if a link doesn't resolve
+yet). Writing the contract's Task/Scope/Output prose stays yours — the
+ceremony is automated, the intent isn't.
 
 Node-side, designed but not built (#1092, #1093): `scribectl propose` will
 mine a legacy source through a frozen mining pack into quarantined proposal
@@ -219,7 +232,7 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 | --- | --- | --- |
 | commands on PATH, env health check | `uv tool install` once; `scribectl doctor` | — (#1084 done) |
 | "what do I do next" | read Status.md | #1085 `scribectl next` |
-| new card ready for dispatch | copy templates by hand | #1086 `new card` |
+| new card ready for dispatch | `scribectl new card <name>` | — (#1086 done) |
 | raw transcripts preserved | paste + `sources:` by discipline | #1087 `capture` |
 | trigger workflows from inside Obsidian | inbox checkboxes only | #1088 QuickAdd |
 | agent-in-vault house rules | repo docs only | #1089 guidance note |

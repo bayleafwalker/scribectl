@@ -58,6 +58,9 @@ def plan(state: dict, contracts: dict[str, dict],
         contract = contract_for(contracts, root, card)
         if s == "blocked_unresolved_scope":
             notes.append(f"{card}: blocked ({row['detail']}) — resolve scope first")
+        elif s == "awaiting_scope":
+            notes.append(f"{card}: scaffolded but unauthored (scope placeholders "
+                         "unfilled) — author the card first")
         elif s == "ready_for_fill":
             if contract is None or contract.get("mode") != "body_fill":
                 notes.append(f"{card}: ready_for_fill but no body_fill contract — "

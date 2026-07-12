@@ -9,6 +9,9 @@ pull:
   actors: [characters, pov]
   location: location
 position: [book, chapter, scene]
+new:
+  card_template: scene_card.md
+  card_dir: structure/scenes
 init:
   dirs:
     - world/canon

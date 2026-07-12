@@ -93,6 +93,37 @@ def test_blank_placeholder_links_do_not_block(scratch_project):
     assert rows_dict(scratch_project)["Scene 01-02"] == "ready_for_fill"
 
 
+def test_pristine_scaffold_is_awaiting_scope(scratch_project):
+    """A `new card` scaffold — every scope field a blank placeholder — must
+    NOT derive ready_for_fill, or ambient watch would fill an empty card."""
+    card = scratch_project / "structure/scenes/Scene 09-09.md"
+    card.write_text(
+        "---\ntype: scene_card\nbook: 0\nchapter: 0\nscene: 0\n"
+        'pov: "[[ ]]"\nlocation: "[[ ]]"\n'
+        'characters:\n  - "[[ ]]"\ncanon_scope:\n  - "[[ ]]"\n'
+        "mode: body_fill\ntarget_words: 1000\n---\n\n"
+        "# Scene 9.9\n\n## Entry state\n<Where things stand.>\n",
+        encoding="utf-8",
+    )
+    assert rows_dict(scratch_project)["Scene 09-09"] == "awaiting_scope"
+
+
+def test_one_real_scope_link_leaves_awaiting_scope(scratch_project):
+    """The first authored scope link means the card is being written; a blank
+    placeholder still sitting in another field is back to 'no link here'."""
+    card = scratch_project / "structure/scenes/Scene 09-10.md"
+    card.write_text(
+        "---\ntype: scene_card\nbook: 1\nchapter: 9\nscene: 10\n"
+        'pov: "[[ ]]"\nlocation: "[[ ]]"\n'
+        'characters:\n  - "[[ ]]"\ncanon_scope:\n  - "[[The Mist]]"\n'
+        "mode: body_fill\ntarget_words: 1000\n---\n\n# Scene 9.10\n",
+        encoding="utf-8",
+    )
+    # The Mist resolves; every other scope field is a blank placeholder →
+    # authored, not a scaffold, and nothing unresolved → ready_for_fill.
+    assert rows_dict(scratch_project)["Scene 09-10"] == "ready_for_fill"
+
+
 def test_rejected_section_does_not_promote(scratch_project):
     log = scratch_project / "control/ratification/Ratification Log.md"
     log.write_text(

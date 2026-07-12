@@ -15,7 +15,11 @@ project's TemplateSet; the derivation logic is identical across sets.
 """
 from __future__ import annotations
 
+import re
+
 from .vault import Vault, Note
+
+BLANK_LINK = re.compile(r"\[\[\s*\]\]")
 
 
 def ledger_accepted(vault: Vault) -> set[str]:
@@ -55,11 +59,29 @@ def unresolved_scope(vault: Vault, note: Note, scope_fields) -> list[str]:
     return [l for l in dict.fromkeys(scope) if vault.resolve(l) is None]
 
 
+def placeholder_scope(vault: Vault, note: Note, scope_fields) -> bool:
+    """A pristine `new card` scaffold: still carries a blank `[[ ]]` scope
+    placeholder AND has no authored scope link anywhere. Without this guard a
+    fresh scaffold derives ready_for_fill (blank links are dropped by links())
+    and ambient watch would fill an empty card the moment `new card` returns.
+
+    The guard is deliberately narrow — the first real scope link the writer
+    adds means the card is authored, and any placeholders still sitting in
+    *other* fields go back to meaning 'no link here' (a deliberately-blank
+    location on an otherwise-filled card stays ready_for_fill)."""
+    has_placeholder = any(BLANK_LINK.search(str(note.meta[f]))
+                          for f in scope_fields if f in note.meta)
+    has_real_link = any(note.links(f) for f in scope_fields if f in note.meta)
+    return has_placeholder and not has_real_link
+
+
 def card_status(vault: Vault, note: Note, scope_fields) -> str:
     drafts = _drafts_for(vault, note.name)
     reviews = [n for n in vault.notes.values()
                if n.type == "review_report" and note.name in n.links()]
     if not drafts:
+        if placeholder_scope(vault, note, scope_fields):
+            return "awaiting_scope"
         return "ready_for_fill" if not unresolved_scope(vault, note, scope_fields) else "blocked_unresolved_scope"
     if reviews:
         return "reviewed"
@@ -97,5 +119,7 @@ def project(vault: Vault, ts) -> list[tuple[str, str, str, str]]:
             s = card_status(vault, n, ts.scope_fields)
             missing = unresolved_scope(vault, n, ts.scope_fields) if s == "blocked_unresolved_scope" else []
             detail = "missing: " + ", ".join(f"[[{l}]]" for l in missing) if missing else ""
+            if s == "awaiting_scope":
+                detail = "scope placeholders ([[ ]]) unfilled — author the card"
             rows.append((n.type, n.name, s, detail))
     return rows

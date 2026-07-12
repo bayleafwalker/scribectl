@@ -150,6 +150,28 @@ def test_ready_card_without_contract_is_skipped(run, scratch_project):
     assert not any((scratch_project / "body/drafts").glob("*.md"))
 
 
+def test_scaffolded_card_awaiting_scope_dispatches_nothing(run, scratch_project):
+    """A `new card` scaffold (all scope fields blank placeholders) must be
+    skipped, not filled — the whole point of the awaiting_scope guard."""
+    (scratch_project / "structure/scenes/Scene 08-01.md").write_text(
+        "---\ntype: scene_card\nbook: 0\nchapter: 0\nscene: 0\n"
+        'pov: "[[ ]]"\nlocation: "[[ ]]"\n'
+        'characters:\n  - "[[ ]]"\ncanon_scope:\n  - "[[ ]]"\n'
+        "mode: body_fill\ntarget_words: 1000\n---\n\n# Scene 8.1\n",
+        encoding="utf-8")
+    (scratch_project / "control/contracts/fill-scene-08-01.md").write_text(
+        "---\ntype: contract\ncontract_id: fill-scene-08-01\n"
+        'target: "[[Scene 08-01]]"\nmode: body_fill\n---\n\n# Contract\n',
+        encoding="utf-8")
+    code, out, _ = run("plan", "--card", "Scene 08-01")
+    assert code == 0
+    assert "scaffolded but unauthored" in out
+    assert "would dispatch" not in out
+    code, out, _ = run("run", "--card", "Scene 08-01")
+    assert code == 0
+    assert not any((scratch_project / "body/drafts").glob("*.md"))
+
+
 def test_manual_draft_still_gets_reviews(run, scratch_project):
     """Reviews fire on drafts, not on paperwork — a hand-landed draft with no
     pack receipt is reviewed against the oracle alone."""

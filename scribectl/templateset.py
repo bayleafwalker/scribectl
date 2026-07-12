@@ -34,6 +34,8 @@ class TemplateSet:
                                       # a card carrying none sees the whole timeline
     init_dirs: tuple[str, ...]
     init_files: dict[str, str]        # template file in the set → project-relative dest
+    card_template: str                # what `new card` instantiates …
+    card_dir: str                     # … and where it lands, project-relative
 
     @property
     def dir(self) -> Path:
@@ -63,4 +65,6 @@ def load_set(name: str) -> TemplateSet:
         position_fields=tuple(m.get("position", [])),
         init_dirs=tuple(m.get("init", {}).get("dirs", [])),
         init_files=dict(m.get("init", {}).get("files", {})),
+        card_template=m["new"]["card_template"],
+        card_dir=m["new"]["card_dir"],
     )

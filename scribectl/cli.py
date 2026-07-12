@@ -3,7 +3,8 @@
 core/ takes the vault as data and never writes. This module is the only place
 that holds write paths, and they are exactly the designated outputs:
 pack_output/ (pack), control/Status.md (status --write), ledger appends
-(ratify), stubs (adopt, init), the verdict inbox (ratify --sweep clears
+(ratify), stubs (adopt, init), card + contract scaffolds (new card), the
+verdict inbox (ratify --sweep clears
 decided candidates), and — the one sanctioned append into a human note — a
 swept fact landing in its node's `## Ratified facts`. That write is the
 writer's own verdict executed: append-only, into exactly one section,
@@ -396,6 +397,59 @@ def cmd_init(args) -> int:
     return 0
 
 
+def _fill_contract(template: str, name: str, slug: str) -> str:
+    """Wire the set's contract template to a card: the frontmatter placeholders
+    become real values line by line; the Task/Scope/Output prose stays the
+    writer's to author — contracts are intent, only the ceremony is automated."""
+    out = []
+    for line in template.splitlines():
+        if line.startswith("contract_id:"):
+            line = f"contract_id: fill-{slug}"
+        elif line.startswith("target:"):
+            line = f'target: "[[{name}]]"'
+        elif line.startswith("mode:"):
+            line = "mode: body_fill"
+        elif line.startswith("agent_profile:"):
+            line = "agent_profile: prose_drafter"
+        elif line.startswith("output_target:"):
+            line = f'output_target: "/body/drafts/{slug}-draft-a.md"'
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
+def cmd_new_card(args) -> int:
+    """Card + its body_fill dispatch contract in one motion (#1086). The card
+    lands with template placeholders intact, so it derives awaiting_scope —
+    never dispatched until the writer authors the scope (see project.py)."""
+    cfg = _select(args.project)
+    ts = _ts(cfg)
+    name = args.name.strip()
+    if not name or "/" in name:
+        raise CLIError("card name must be a plain note name (no slashes)")
+    slug = "-".join(name.lower().split())
+    card_path = cfg.root / ts.card_dir / f"{name}.md"
+    contract_path = cfg.root / "control" / "contracts" / f"fill-{slug}.md"
+    for p in (card_path, contract_path):
+        if p.exists():
+            raise CLIError(f"refusing to overwrite existing note: {p}")
+    card_lines = (ts.dir / ts.card_template).read_text(encoding="utf-8").splitlines()
+    for i, line in enumerate(card_lines):
+        if line.startswith("# "):
+            card_lines[i] = f"# {name}"
+            break
+    card_path.parent.mkdir(parents=True, exist_ok=True)
+    card_path.write_text("\n".join(card_lines) + "\n", encoding="utf-8")
+    contract_path.parent.mkdir(parents=True, exist_ok=True)
+    contract_path.write_text(
+        _fill_contract((ts.dir / "contract.md").read_text(encoding="utf-8"), name, slug),
+        encoding="utf-8")
+    print(f"created {card_path}")
+    print(f"created {contract_path}  (target [[{name}]], mode body_fill)")
+    print("author the card in Obsidian — it stays awaiting_scope (never dispatched) "
+          "until the [[ ]] placeholders are filled in or removed")
+    return 0
+
+
 # -- entry ---------------------------------------------------------------------
 
 def _parser() -> argparse.ArgumentParser:
@@ -438,6 +492,13 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("note", help="note name (searched under vault roots) or path")
     p.add_argument("-p", "--project")
     p.set_defaults(fn=cmd_adopt)
+
+    p = sub.add_parser("new", help="scaffold artifacts in one motion")
+    nsub = p.add_subparsers(dest="what", required=True)
+    c = nsub.add_parser("card", help="card + its body_fill dispatch contract")
+    c.add_argument("name", help="note name; also the contract's target")
+    c.add_argument("-p", "--project")
+    c.set_defaults(fn=cmd_new_card)
 
     p = sub.add_parser("init", help="instantiate a project subtree + scribe-project note")
     p.add_argument("name")

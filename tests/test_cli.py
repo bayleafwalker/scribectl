@@ -532,3 +532,54 @@ def test_doctor_warns_when_commands_off_path(run, fixture_root, doctor_env, monk
     assert code == 1  # claude CLI missing FAILs (default runner unusable)
     assert "scribectl not on PATH" in out and "uv tool install" in out
     assert "claude CLI not on PATH" in out
+
+
+# -- new card ---------------------------------------------------------------
+
+def test_new_card_scaffolds_card_and_contract(run, scratch_root, scratch_project):
+    code, out, _ = run("new", "card", "Scene 07-01", "-p", "Fertile Flames",
+                       vault=scratch_root)
+    assert code == 0
+    card = scratch_project / "structure/scenes/Scene 07-01.md"
+    contract = scratch_project / "control/contracts/fill-scene-07-01.md"
+    assert card.is_file() and contract.is_file()
+    assert "created" in out and "awaiting_scope" in out
+
+    ctext = contract.read_text(encoding="utf-8")
+    assert 'target: "[[Scene 07-01]]"' in ctext
+    assert "mode: body_fill" in ctext
+    assert "contract_id: fill-scene-07-01" in ctext
+    assert "output_target: \"/body/drafts/scene-07-01-draft-a.md\"" in ctext
+    # The Task/Scope/Output prose is left for the writer — intent stays human.
+    assert "## Task" in ctext
+
+    # The card's H1 is its name; the scaffold parks at awaiting_scope.
+    assert "# Scene 07-01" in card.read_text(encoding="utf-8")
+    code, sout, _ = run("status", "-p", "Fertile Flames", vault=scratch_root)
+    assert "Scene 07-01" in sout and "awaiting_scope" in sout
+
+
+def test_new_card_refuses_to_overwrite(run, scratch_root):
+    run("new", "card", "Scene 07-02", "-p", "Fertile Flames", vault=scratch_root)
+    code, _, err = run("new", "card", "Scene 07-02", "-p", "Fertile Flames",
+                       vault=scratch_root)
+    assert code != 0
+    assert "overwrite" in err.lower()
+
+
+def test_new_card_gamedev_uses_output_card_and_cards_dir(run, scratch_runosong):
+    code, out, _ = run("new", "card", "Episode 2-01", "-p", "Runosong",
+                       vault=scratch_runosong)
+    assert code == 0
+    proj = scratch_runosong / "Works" / "Runosong"
+    card = proj / "structure/cards/Episode 2-01.md"
+    assert card.is_file()
+    assert "type: output_card" in card.read_text(encoding="utf-8")
+    assert (proj / "control/contracts/fill-episode-2-01.md").is_file()
+
+
+def test_new_card_rejects_slashy_name(run, scratch_root):
+    code, _, err = run("new", "card", "bad/name", "-p", "Fertile Flames",
+                       vault=scratch_root)
+    assert code != 0
+    assert "name" in err.lower()

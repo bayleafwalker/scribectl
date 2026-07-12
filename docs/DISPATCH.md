@@ -58,6 +58,7 @@ Derived state is the only trigger; nothing is stored, nothing is scheduled.
 
 | card state              | action |
 |-------------------------|--------|
+| `awaiting_scope`        | nothing (report it) — a `scribectl new card` scaffold whose `[[ ]]` scope placeholders are still unfilled; never fill an unauthored card |
 | `blocked_unresolved_scope` | nothing (report it) |
 | `ready_for_fill`        | freeze pack (`scribectl pack`), run `body_fill`, land draft at the contract's `output_target` |
 | `has_draft`             | run each review in the contract's `review_after` whose report is missing for that draft |

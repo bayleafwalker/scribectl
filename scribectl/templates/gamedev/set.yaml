@@ -12,6 +12,9 @@ pull:
 # Sequenced tie-ins (episodes, scenes) carry these; unsequenced kinds
 # (blog_post, research_note, generated) omit them and see the whole timeline.
 position: [book, chapter, scene]
+new:
+  card_template: output_card.md
+  card_dir: structure/cards
 init:
   dirs:
     - world/canon
