@@ -48,11 +48,13 @@ for model in "${CANDIDATES[@]}"; do
   vault_parent="$(mktemp -d)"
   cp -r "$REPO/fixtures/fertile-flames" "$vault_parent/vault"
   export SCRIBECTL_VAULT="$vault_parent/vault"
+  # The fixture root IS the project (no Works/ nesting like init-created vaults).
+  proj="$SCRIBECTL_VAULT"
 
   # The pristine fixture ships Scene 01-01 blocked on unresolved scope; give
   # Lower Ashmarket a ratified fact so the card derives ready_for_fill —
   # the same unblock the contact tests perform.
-  cat >"$SCRIBECTL_VAULT/Works/Fertile Flames/world/canon/Lower Ashmarket.md" <<'NODE'
+  cat >"$proj/world/canon/Lower Ashmarket.md" <<'NODE'
 ---
 type: canon_node
 ---
@@ -91,12 +93,20 @@ NODE
   "$DISPATCH" run -p "Fertile Flames" --runner openai --base-url "$BASE_URL" --model "$model" \
     >"$out/fill.log" 2>&1 || { log "FAIL: fill pass — see $out/fill.log"; echo "$model: FILL FAILED" >>"$RESULTS/summary.txt"; stop_server; continue; }
 
-  proj="$SCRIBECTL_VAULT/Works/Fertile Flames"
   if [[ -z "$(ls "$proj/body/drafts" 2>/dev/null)" ]]; then
     log "FAIL: fill pass dispatched no draft — see $out/fill.log"
     echo "$model: NO DRAFT LANDED" >>"$RESULTS/summary.txt"
     stop_server
     continue
+  fi
+
+  # The fill run also fired the review lanes — with the local model reviewing
+  # its own prose. Keep those as a curiosity, then clear them so the claude
+  # pass re-fires the lanes as the frontier reviews the operator triages by.
+  if compgen -G "$proj/reviews/*/*.md" >/dev/null; then
+    mkdir -p "$out/reviews-local"
+    cp "$proj"/reviews/*/*.md "$out/reviews-local/" 2>/dev/null || true
+    rm -f "$proj"/reviews/*/*.md
   fi
 
   log "Review pass (claude runner)"
