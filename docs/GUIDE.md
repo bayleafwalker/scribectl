@@ -224,12 +224,27 @@ delete the placeholders); the first real scope link flips it to
 yet). Writing the contract's Task/Scope/Output prose stays yours — the
 ceremony is automated, the intent isn't.
 
-Node-side, designed but not built (#1092, #1093): `scribectl propose` will
-mine a legacy source through a frozen mining pack into quarantined proposal
-notes — candidate facts with quotes, confidence, and conflict flags —
-feeding the same inbox. N agents can mine N sources in parallel; a
-reconciler flags where they disagree before you ever look. Until then,
-mining the 35k-word saga stub is a manual session.
+Node-side (#1092):
+
+```
+scribectl propose --into "Fertile Flames Saga" --source "Fertile Flames Saga"
+```
+
+freezes a **mining pack** (the extraction analog of the context pack: the
+source ore, the target node's open questions and already-ratified facts, every
+other ratified fact in the project, and the world seed's hard constraints —
+sha-stamped, never hand-edited) and scaffolds a quarantined `fact_proposal`
+under `control/proposals/`. An agent reads the pack and fills in candidate
+facts — each with a quote, a confidence, and a `conflicts:` line naming what it
+rubs against. Then `scribectl ratify --mine` lifts those candidates into the
+same inbox as review candidates (routed to the node, provenance carried
+verbatim: `from source, mining pack sha, via proposal`), where your checkbox is
+still the only verdict. Agents never touch `world/canon/` — an unswept proposal
+has exactly the standing of the ore it was mined from, and no context pack cites
+it. Status advertises the queue: a stub node reads `stub (3 candidates pending)`
+and the proposal itself rows as `open` until its facts are swept. Proposal files
+are one-per-run and append-never, so N agents can mine N sources with zero write
+contention; a reconciler (#1093) flags where they disagree before you look.
 
 ### Brainstorm / ideation
 
@@ -268,7 +283,7 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 | agent-in-vault house rules | `AGENTS.md` dropped by `init` | — (#1089 done) |
 | VS Code one-keystroke tasks | workspace + tasks (`ops/vscode/`) | — (#1090 done) |
 | dispatch without a terminal open | `enable --now scribe-dispatch-watch.timer` | — (#1091 done) |
-| bulk-mine legacy ore | manual session | #1092/#1093 propose + reconciler |
+| bulk-mine legacy ore into candidates | `scribectl propose --into <node> --source <ore>` → agent fills → `ratify --mine` | #1093 reconciler (#1092 done) |
 | ideation captured into the loop | inbox jots | #1094 brainstorm skill |
 | local/no-cost model fills | claude runner only | #1075/#1076 vllm + routing |
 | dispatch in the real vault | engine only | after 1074 verdict → #1080 |

@@ -12,6 +12,7 @@ scribectl/
       vault.py         note / frontmatter / wikilink / section parsing
       timeline.py      append-only chronology — the oracle review_canon checks
       contextpack.py   the assembler: minimal canon slice per card   ← center
+      miningpack.py    the extraction analog: what an agent mines a source with
       project.py       derived state (status computed, never stored)
     config.py          vault roots + project discovery (scribe-project notes)
     templateset.py     set.yaml manifest loader — the shape of a project as data
@@ -81,6 +82,10 @@ scribectl status  [-p PROJECT]         derived state of every node + card
 scribectl status --write               also emit control/Status.md (generated
                                        dashboard; a cache, read back by nothing)
 scribectl pack <card> [-p PROJECT]     assemble + freeze a hashed context pack
+scribectl propose --into <node>        freeze a mining pack (extraction analog
+          --source <ore>               of the context pack) + scaffold a
+                                       quarantined fact_proposal; agents fill
+                                       candidates that ratify --mine queues
 scribectl ratify  [-p PROJECT]         append accepted/rejected/deferred
                                        inventions to the ratification log
                                        (sole writer of that file — see DESIGN)
@@ -98,12 +103,13 @@ to exactly one project, or when cwd is inside a project subtree.
 ## Core invariants (enforced, not documented-and-hoped)
 
 1. **Read-only over the vault** except designated outputs: `pack_output/`,
-   `control/Status.md`, ledger appends via `ratify`, stubs via `adopt`/`init`,
-   card + contract scaffolds via `new card`, and dated source notes under
-   `sources/` via `capture` — which also grows the scribe-project note's
-   `sources:` frontmatter list (the one config edit into a human-authored note,
-   never its body). `core/` takes the vault as data; only `cli.py` holds write
-   paths.
+   `control/mining-packs/` + a quarantined `control/proposals/` scaffold via
+   `propose`, `control/Status.md`, ledger appends via `ratify`, stubs via
+   `adopt`/`init`, card + contract scaffolds via `new card`, and dated source
+   notes under `sources/` via `capture` — which also grows the scribe-project
+   note's `sources:` frontmatter list (the one config edit into a human-authored
+   note, never its body). `core/` takes the vault as data; only `cli.py` holds
+   write paths.
 2. **Status is derived, never stored.** No status enums in frontmatter,
    anywhere, including the generated dashboard's inputs.
 3. **Packs are frozen and hashed.** A pack's sha is the reproducibility

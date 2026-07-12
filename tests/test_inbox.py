@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from scribectl.core.inbox import (append_bullets, mine, mine_report,
+from scribectl.core.inbox import (append_bullets, mine, mine_proposal, mine_report,
                                   parse_inbox, receipt, remove_candidates)
 from scribectl.core.vault import Note, Vault
 
@@ -183,3 +183,68 @@ def test_mine_skips_reports_already_linked():
     assert mine(vault, inboxed, "") == ([], [])
     ledgered = '### Accepted\n- "x" → [[Y]] (via [[ch01-sc01-draft-a — canon review]])\n'
     assert mine(vault, "", ledgered) == ([], [])
+
+
+# -- fact-proposal mining (docs/RATIFICATION.md, build item 3) ----------------
+
+PROPOSAL_BODY = """\
+# Fact proposal — Ilmi ← Design Seed
+
+## Candidate facts
+- "Ilmi learned the beat digging ditches to work songs"
+      quote: "learns the beat digging ditches to work songs"
+      confidence: high
+      conflicts: none
+- "Cast feedback is diegetic music, never a UI popup" → [[Freeform Casting Evaluation]]
+      confidence: high
+- "<candidate fact — a checkable claim>"
+      quote: "<the supporting span>"
+- none
+"""
+
+
+def _proposal(name="Ilmi — Design Seed — 2026-07-12", body=PROPOSAL_BODY, **meta):
+    m = {"type": "fact_proposal", "target": "[[Ilmi]]", "source": "[[Design Seed]]",
+         "mining_pack_sha": "abaeea6dc3ac", **meta}
+    return Note(path=Path(f"control/proposals/{name}.md"), meta=m, body=body)
+
+
+PPROV = ("(from [[Design Seed]], mining pack abaeea6dc3ac, "
+         "via [[Ilmi — Design Seed — 2026-07-12]])")
+
+
+def test_mine_proposal_routes_to_target_and_honors_overrides():
+    blocks = mine_proposal(_proposal())
+    # `- none` and the template placeholder never become candidates; the
+    # indented quote/confidence/conflicts lines stay in the proposal.
+    assert blocks == [
+        f'- [ ] "Ilmi learned the beat digging ditches to work songs" → [[Ilmi]]\n      {PPROV}',
+        f'- [ ] "Cast feedback is diegetic music, never a UI popup" → [[Freeform Casting Evaluation]]\n      {PPROV}',
+    ]
+    # Round-trips through the inbox grammar as pending, provenance intact.
+    cands, problems = parse_inbox("\n".join(blocks) + "\n")
+    assert [c.verdict for c in cands] == ["pending", "pending"]
+    assert cands[0].target == "Ilmi"          # defaulted to the proposal's target
+    assert cands[1].target == "Freeform Casting Evaluation"  # explicit override kept
+    assert cands[0].provenance == PPROV and problems == []
+
+
+def test_mine_proposal_without_candidates_or_provenance():
+    assert mine_proposal(_proposal(body="## Notes\n- nothing here\n")) == []
+    # Missing sha and source drop out of provenance, leaving just the via-link.
+    bare = _proposal(body='## Candidate facts\n- "A fact"\n')
+    bare.meta.pop("source"), bare.meta.update(mining_pack_sha="none")
+    assert mine_proposal(bare) == [
+        '- [ ] "A fact" → [[Ilmi]]\n      (via [[Ilmi — Design Seed — 2026-07-12]])']
+
+
+def test_mine_covers_reports_and_proposals_and_stays_idempotent():
+    vault = Vault(root=Path("."), notes={"r": _report(), "p": _proposal()})
+    blocks, names = mine(vault, "", "")
+    assert set(names) == {"ch01-sc01-draft-a — canon review",
+                          "Ilmi — Design Seed — 2026-07-12"}
+    assert len(blocks) == 4  # 2 from the report, 2 from the proposal
+    # A proposal wikilinked from the ledger (swept) is skipped, same as a report.
+    ledgered = '### Accepted\n- "x" → [[Ilmi]] (via [[Ilmi — Design Seed — 2026-07-12]])\n'
+    _, names2 = mine(vault, "", ledgered)
+    assert names2 == ["ch01-sc01-draft-a — canon review"]

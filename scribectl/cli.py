@@ -2,7 +2,8 @@
 
 core/ takes the vault as data and never writes. This module is the only place
 that holds write paths, and they are exactly the designated outputs:
-pack_output/ (pack), control/Status.md (status/next --write), ledger appends
+pack_output/ (pack), control/mining-packs/ + a quarantined control/proposals/
+scaffold (propose), control/Status.md (status/next --write), ledger appends
 (ratify), stubs (adopt, init), card + contract scaffolds (new card), dated
 source notes under sources/ (capture), the verdict inbox (ratify --sweep clears
 decided candidates), and — the one sanctioned append into a human note — a
@@ -23,6 +24,7 @@ from pathlib import Path
 
 from .config import DEFAULTS, DEFAULT_ROOTS, ProjectConfig, discover_projects, vault_roots
 from .core.contextpack import build_pack
+from .core.miningpack import build_mining_pack
 from .core.digest import build_digest, render_digest
 from .doctor import run_doctor
 from .core.inbox import append_bullets, mine, parse_inbox, receipt, remove_candidates
@@ -195,6 +197,77 @@ def cmd_pack(args) -> int:
     return 0
 
 
+PROPOSAL_NOTE = """\
+---
+type: fact_proposal
+target: "[[{node}]]"
+source: "[[{source}]]"
+mining_pack_sha: {sha}
+created: {today}
+---
+
+# Fact proposal — {node} ← {source}
+
+Agent output, quarantined. Mined from [[{source}]] against mining pack `{sha}`
+(under control/mining-packs/). Nothing here is canon and no context pack cites
+it — an unswept proposal has exactly the standing of the ore it was mined from.
+Fill in the candidate facts below, then `scribectl ratify --mine` queues them
+into the ratification inbox, where the writer's checkbox is the only verdict.
+
+## Candidate facts
+<!-- One bullet per candidate, worded as it should read in canon. It routes to
+     [[{node}]] by default; add `→ [[Other Node]]` only if it belongs elsewhere.
+     Indent supporting detail (quote / confidence / conflicts) — that stays in
+     this proposal; the inbox gets only the fact and a link back here. -->
+- "<candidate fact — a checkable claim>"
+      quote: "<the supporting span from the source>"
+      confidence: <high|medium|low>
+      conflicts: <none | the ratified fact or timeline event it rubs against>
+"""
+
+
+def cmd_propose(args) -> int:
+    """Freeze a mining pack and scaffold a quarantined fact proposal (#1092,
+    docs/RATIFICATION.md build item 3). The pack is the ore an agent mines; the
+    proposal is where it writes candidate facts. Agents never touch world/canon/
+    — candidates ride the mine → inbox → sweep path, and only the writer's
+    checkbox ever ratifies."""
+    cfg = _select(args.project)
+    ts = _ts(cfg)
+    try:
+        mp = build_mining_pack(Vault.load(cfg.root), args.into, args.source, ts)
+    except ValueError as e:
+        raise CLIError(str(e)) from e
+
+    mp_dir = cfg.roots["control"] / "mining-packs"
+    slug = lambda s: s.replace(" ", "-")
+    # sha in the filename: regenerating a pack never clobbers the frozen one a
+    # proposal already cites — freeze-to-audit survives iteration (as with pack).
+    mp_path = mp_dir / f"{slug(args.into)}-{slug(args.source)}-{mp.sha}-mining.md"
+
+    today = date.today().isoformat()
+    prop_path = cfg.roots["control"] / "proposals" / f"{args.into} — {args.source} — {today}.md"
+    if prop_path.exists():
+        raise CLIError(f"refusing to overwrite existing proposal: {prop_path}")
+
+    mp_dir.mkdir(parents=True, exist_ok=True)
+    if mp_path.exists():
+        print(f"unchanged {mp_path}  (sha {mp.sha} already frozen)")
+    else:
+        mp_path.write_text(mp.markdown, encoding="utf-8")
+        print(f"wrote {mp_path}  (sha {mp.sha}, {len(mp.markdown)} bytes)")
+
+    prop_path.parent.mkdir(parents=True, exist_ok=True)
+    prop_path.write_text(
+        PROPOSAL_NOTE.format(node=args.into, source=args.source, sha=mp.sha, today=today),
+        encoding="utf-8")
+    print(f"created {prop_path}  (fact_proposal → [[{args.into}]])")
+    print("read the mining pack, fill the candidates, then `scribectl ratify --mine`")
+    for warn in mp.warnings:
+        print(f"scribectl: warning: {warn}", file=sys.stderr)
+    return 0
+
+
 def _append_ledger(ledger: Path, groups: list[tuple[str, list[str]]]) -> int:
     """Append one dated block of verdict entries; returns the entry count."""
     if not ledger.is_file():
@@ -230,10 +303,15 @@ def _mine(cfg: ProjectConfig, dry_run: bool, standalone: bool = False) -> int:
     blocks, names = mine(vault, base, ledger_text)
     if not blocks:
         if standalone:
-            print("nothing to mine (no unqueued review-report candidates)")
+            print("nothing to mine (no unqueued review-report or proposal candidates)")
         return 0
+    reports = sum(1 for n in names
+                  if (a := vault.resolve(n)) and a.type == "review_report")
+    proposals = len(names) - reports
+    kinds = [f"{c} {label}{'s' if c != 1 else ''}"
+             for c, label in ((reports, "review report"), (proposals, "fact proposal")) if c]
     what = (f"{len(blocks)} candidate{'s' if len(blocks) != 1 else ''} from "
-            f"{len(names)} review report{'s' if len(names) != 1 else ''}")
+            + " and ".join(kinds))
     if dry_run:
         print(f"dry run — would queue {what} into {inbox.name}:\n")
         print("\n".join(blocks) + "\n")
@@ -594,6 +672,15 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("-p", "--project")
     p.set_defaults(fn=cmd_pack)
 
+    p = sub.add_parser("propose",
+                       help="freeze a mining pack + scaffold a quarantined fact proposal")
+    p.add_argument("--into", required=True, metavar="NODE",
+                   help="target fact-bearing node the mined facts route to")
+    p.add_argument("--source", required=True, metavar="SOURCE",
+                   help="note whose body is the ore to mine")
+    p.add_argument("-p", "--project")
+    p.set_defaults(fn=cmd_propose)
+
     p = sub.add_parser("ratify", help="append invention verdicts to the ratification log")
     p.add_argument("-p", "--project")
     p.add_argument("--accept", action="append", default=[], metavar="ENTRY")
@@ -603,7 +690,7 @@ def _parser() -> argparse.ArgumentParser:
                    help="execute the checkbox verdicts in the ratification inbox "
                         "(mines new review-report candidates first)")
     p.add_argument("--mine", action="store_true",
-                   help="queue review-report 'Introduced candidates' into the inbox as pending")
+                   help="queue review-report and fact-proposal candidates into the inbox as pending")
     p.add_argument("--dry-run", action="store_true",
                    help="with --sweep/--mine: print what would land where, write nothing")
     p.set_defaults(fn=cmd_ratify)

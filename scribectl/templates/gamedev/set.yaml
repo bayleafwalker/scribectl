@@ -25,6 +25,8 @@ init:
     - control/timeline
     - control/ratification
     - control/context-packs
+    - control/mining-packs
+    - control/proposals
     - reviews/canon
     - reviews/voice
     - reviews/mechanics

@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import re
 
-from .vault import Vault, Note
+from .inbox import mine_proposal, parse_inbox
+from .vault import Vault, Note, WIKILINK
 
 BLANK_LINK = re.compile(r"\[\[\s*\]\]")
 
@@ -35,6 +36,41 @@ def ledger_accepted(vault: Vault) -> set[str]:
         elif capture:
             accepted.update(line.strip("[] ") for line in __import__("re").findall(r"\[\[([^\]|]+)", line))
     return accepted
+
+
+def ledger_links(vault: Vault) -> set[str]:
+    """Every wikilink target in the ratification log. A proposal named here has
+    reached a verdict (its `via [[proposal]]` marker rode a receipt into the
+    ledger), which is exactly what 'swept' means."""
+    led = vault.one("ratification_log")
+    if not led:
+        return set()
+    return {t.strip() for t in WIKILINK.findall(led.body) if t.strip()}
+
+
+def proposal_status(note: Note, linked_in_ledger: set[str]) -> str:
+    """A fact_proposal is `swept` once its candidates have receipts (it is
+    wikilinked from the ledger), else `open` — still awaiting the writer
+    (docs/RATIFICATION.md, "Derived state, extended")."""
+    return "swept" if note.name in linked_in_ledger else "open"
+
+
+def open_proposal_candidates(vault: Vault, node_name: str, linked_in_ledger: set[str]) -> int:
+    """Candidate facts sitting in open (unswept) proposals that *route* to this
+    node — the 'N candidates pending' a stub advertises so status points the
+    writer at the proposal queue instead of a dead end. Counting follows each
+    candidate's actual route, so a candidate that overrides its proposal's
+    target lands against the node it truly names."""
+    total = 0
+    for p in vault.by_type("fact_proposal"):
+        if proposal_status(p, linked_in_ledger) != "open":
+            continue
+        blocks = mine_proposal(p)
+        if not blocks:
+            continue
+        cands, _ = parse_inbox("\n".join(blocks) + "\n")
+        total += sum(1 for c in cands if c.target == node_name)
+    return total
 
 
 def canon_status(vault: Vault, note: Note, accepted: set[str]) -> str:
@@ -106,14 +142,26 @@ def card_artifacts(vault: Vault, card_name: str) -> dict:
 def project(vault: Vault, ts) -> list[tuple[str, str, str, str]]:
     """Return (type, name, derived_status, detail) rows for the template set's
     legible artifact types. detail says *why* for the states that need acting
-    on: which scope links are unresolved, or that a ledger-accepted node
-    carries no facts."""
+    on: which scope links are unresolved, that a ledger-accepted node carries no
+    facts, or that a node has proposal candidates waiting in the queue."""
     accepted = ledger_accepted(vault)
+    in_ledger = ledger_links(vault)
     rows: list[tuple[str, str, str, str]] = []
     for n in sorted(vault.notes.values(), key=lambda x: (x.type, x.name)):
         if n.type in ts.node_types:
             s = canon_status(vault, n, accepted)
             detail = "ledger-accepted but no ratified facts in node" if s == "ratified_empty" else ""
+            pending = open_proposal_candidates(vault, n.name, in_ledger)
+            if pending:
+                note = f"{pending} candidate{'s' if pending != 1 else ''} pending"
+                detail = f"{detail}; {note}" if detail else note
+            rows.append((n.type, n.name, s, detail))
+        elif n.type == "fact_proposal":
+            s = proposal_status(n, in_ledger)
+            target = next(iter(n.links("target")), "")
+            k = len(mine_proposal(n))
+            detail = (f"{k} candidate{'s' if k != 1 else ''} → [[{target}]]"
+                      if s == "open" and target else "")
             rows.append((n.type, n.name, s, detail))
         elif n.type == ts.card_type:
             s = card_status(vault, n, ts.scope_fields)

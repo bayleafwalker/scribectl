@@ -133,3 +133,54 @@ def test_rejected_section_does_not_promote(scratch_project):
         encoding="utf-8",
     )
     assert rows_dict(scratch_project)["Mara Vey"] == "seeded"
+
+
+# -- fact proposals (docs/RATIFICATION.md, "Derived state, extended") ----------
+
+PROPOSAL_NAME = "The Mist — World Seed — 2026-07-12"
+
+
+def _write_proposal(scratch_project):
+    prop = scratch_project / f"control/proposals/{PROPOSAL_NAME}.md"
+    prop.parent.mkdir(parents=True, exist_ok=True)
+    prop.write_text(
+        '---\ntype: fact_proposal\ntarget: "[[The Mist]]"\n'
+        'source: "[[World Seed]]"\nmining_pack_sha: abc123abc123\n---\n\n'
+        "## Candidate facts\n"
+        '- "The Mist thickens at solstice"\n      confidence: high\n'
+        '- "Curfew bells ring in thirds" → [[The Volcanic City-State]]\n',
+        encoding="utf-8")
+
+
+def _rows(scratch_project):
+    return {name: (status, detail)
+            for _, name, status, detail in project(Vault.load(scratch_project), FICTION)}
+
+
+def test_open_proposal_row_and_node_pending_detail(scratch_project):
+    _write_proposal(scratch_project)
+    rows = _rows(scratch_project)
+    # The proposal is a legible row: open, with its candidate count and target.
+    assert rows[PROPOSAL_NAME][0] == "open"
+    assert "2 candidates → [[The Mist]]" in rows[PROPOSAL_NAME][1]
+    # Nodes advertise pending candidates by each candidate's *actual* route —
+    # the overridden one counts against the node it truly names.
+    assert "1 candidate pending" in rows["The Mist"][1]
+    assert "1 candidate pending" in rows["The Volcanic City-State"][1]
+
+
+def test_swept_proposal_drops_out_of_pending(scratch_project):
+    _write_proposal(scratch_project)
+    log = scratch_project / "control/ratification/Ratification Log.md"
+    log.write_text(
+        log.read_text(encoding="utf-8")
+        + f'\n## 2026-07-12\n\n### Accepted\n- "x" → promoted to [[The Mist]] '
+          f"(via [[{PROPOSAL_NAME}]])\n",
+        encoding="utf-8")
+    rows = _rows(scratch_project)
+    # Once its via-link reaches the ledger the proposal is swept, and no node
+    # still advertises its candidates.
+    assert rows[PROPOSAL_NAME][0] == "swept"
+    assert rows[PROPOSAL_NAME][1] == ""
+    assert "candidate" not in rows["The Mist"][1]
+    assert "candidate" not in rows["The Volcanic City-State"][1]

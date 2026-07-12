@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 
 from .inbox import mine, parse_inbox
 from .project import card_status, ledger_accepted, canon_status, _drafts_for, unresolved_scope
-from .vault import Note, Vault
+from .vault import Note, Vault, WIKILINK
 
 
 @dataclass
@@ -98,9 +98,13 @@ def build_digest(vault: Vault, ts, inbox_text: str, ledger_text: str) -> Digest:
     d.unmined_reports = len(names)
     d.unmined_candidates = len(blocks)
 
-    # Open proposals (fact_proposal notes) are #1092 machinery; zero until it
-    # lands, and the section renders only when some exist — no fabrication.
-    d.open_proposals = len(vault.by_type("fact_proposal"))
+    # Open proposals (fact_proposal notes, docs/RATIFICATION.md build item 3):
+    # a proposal wikilinked from the ledger is swept and drops out; only the
+    # ones still awaiting the writer's verdict count. The section renders only
+    # when some exist — no fabrication.
+    in_ledger = {t.strip() for t in WIKILINK.findall(ledger_text) if t.strip()}
+    d.open_proposals = sum(1 for p in vault.by_type("fact_proposal")
+                           if p.name not in in_ledger)
     return d
 
 
@@ -142,8 +146,8 @@ def render_digest(d: Digest, project_name: str) -> str:
     if d.unmined_reports:
         section("Mine", [f"- {d.unmined_candidates} candidate"
                         f"{'s' if d.unmined_candidates != 1 else ''} in "
-                        f"{d.unmined_reports} un-mined review report"
-                        f"{'s' if d.unmined_reports != 1 else ''} → `scribectl ratify --mine`"])
+                        f"{d.unmined_reports} un-mined report"
+                        f"{'s' if d.unmined_reports != 1 else ''}/proposal → `scribectl ratify --mine`"])
     section("Governance",
             [f"- {n} — ledger-accepted but the node carries no ratified facts "
              f"(ratified_empty)" for n in d.ratified_empty])

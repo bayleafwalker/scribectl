@@ -399,6 +399,61 @@ def test_sweep_mines_before_executing(run, scratch_root, scratch_project, inbox,
     assert "nothing to mine" in out
 
 
+# -- propose ------------------------------------------------------------------
+
+def test_propose_freezes_pack_and_scaffolds_proposal(run, scratch_runosong):
+    code, out, err = run("propose", "--into", "Ilmi", "--source", "Design Seed",
+                         vault=scratch_runosong)
+    assert code == 0 and err == ""
+    proj = scratch_runosong / "Works" / "Runosong"
+    packs = list((proj / "control/mining-packs").glob("*mining.md"))
+    props = list((proj / "control/proposals").glob("*.md"))
+    assert len(packs) == 1 and len(props) == 1
+    ptext = props[0].read_text(encoding="utf-8")
+    assert "type: fact_proposal" in ptext
+    assert 'target: "[[Ilmi]]"' in ptext and 'source: "[[Design Seed]]"' in ptext
+    assert "## Candidate facts" in ptext
+    # The proposal cites the frozen pack's sha — the provenance chain's first link.
+    sha = packs[0].stem.split("-")[-2]  # <node>-<source>-<sha>-mining
+    assert f"mining_pack_sha: {sha}" in ptext
+    assert "mining-pack-sha:" in packs[0].read_text(encoding="utf-8")
+    assert "read the mining pack" in out
+
+
+def test_propose_refuses_duplicate_and_bad_args(run, scratch_runosong):
+    assert run("propose", "--into", "Ilmi", "--source", "Design Seed",
+               vault=scratch_runosong)[0] == 0
+    # Same node + source + day → same proposal path, refused (never clobbered).
+    code, _, err = run("propose", "--into", "Ilmi", "--source", "Design Seed",
+                       vault=scratch_runosong)
+    assert code != 0 and "exist" in err.lower()
+    # A card is not a fact-bearing node; a missing source has no ore.
+    assert run("propose", "--into", "Episode 1-01", "--source", "Design Seed",
+               vault=scratch_runosong)[0] != 0
+    assert run("propose", "--into", "Ilmi", "--source", "Nope",
+               vault=scratch_runosong)[0] != 0
+
+
+def test_propose_candidates_ride_the_mine_path(run, scratch_runosong):
+    proj = scratch_runosong / "Works" / "Runosong"
+    assert run("propose", "--into", "Ilmi", "--source", "Design Seed",
+               vault=scratch_runosong)[0] == 0
+    prop = next(iter((proj / "control/proposals").glob("*.md")))
+    head = prop.read_text(encoding="utf-8").split("## Candidate facts")[0]
+    prop.write_text(head + '## Candidate facts\n'
+                    '- "Ilmi dug ditches to work songs before any magic"\n'
+                    '      confidence: high\n', encoding="utf-8")
+    code, out, _ = run("ratify", "--mine", vault=scratch_runosong)
+    assert code == 0 and "1 candidate from 1 fact proposal" in out
+    inbox = (proj / "control/ratification/Inbox.md").read_text(encoding="utf-8")
+    assert '- [ ] "Ilmi dug ditches to work songs before any magic" → [[Ilmi]]' in inbox
+    assert "via [[" in inbox and "mining pack" in inbox
+    # Status now shows the proposal open and the node with a pending candidate.
+    _, sout, _ = run("status", vault=scratch_runosong)
+    assert "fact_proposal" in sout and "open" in sout
+    assert "candidate pending" in sout
+
+
 # -- adopt ------------------------------------------------------------------
 
 def test_adopt_wraps_legacy_note_as_stub(run, scratch_root, scratch_project):

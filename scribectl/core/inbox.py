@@ -35,6 +35,9 @@ VERDICTS = {"x": "accept", "-": "reject", ">": "defer", " ": "pending"}
 # Review reports quarantine inventions under this heading (exact tail wording
 # varies by template set, so match on the prefix).
 CANDIDATE_SECTION = "introduced candidates"
+# Fact proposals (docs/RATIFICATION.md, "The propose stage") list agent-mined
+# candidates under this heading; all route to the proposal's target node.
+PROPOSAL_SECTION = "candidate facts"
 
 
 @dataclass(frozen=True)
@@ -150,22 +153,79 @@ def mine_report(note) -> list[str]:
     return blocks
 
 
-def mine(vault, inbox_text: str, ledger_text: str) -> tuple[list[str], list[str]]:
-    """(candidate blocks to append to the inbox, names of reports mined).
+def _proposal_provenance(note) -> str:
+    """The provenance line a mined proposal candidate carries. Same shape as a
+    report's, so the receipt chain reads uniformly: source ore, the frozen
+    mining pack sha, and the `via [[proposal]]` mined-already marker."""
+    bits = []
+    source = next(iter(note.links("source")), "")
+    if source:
+        bits.append(f"from [[{source}]]")
+    sha = str(note.meta.get("mining_pack_sha") or "")
+    if sha and sha != "none":
+        bits.append(f"mining pack {sha}")
+    bits.append(f"via [[{note.name}]]")
+    return "(" + ", ".join(bits) + ")"
 
-    A report already wikilinked from the inbox or the ledger was mined before
-    and is skipped — idempotency by artifact content, nothing stored."""
+
+def mine_proposal(note) -> list[str]:
+    """Inbox-grammar candidate blocks lifted from one fact proposal's
+    `## Candidate facts` section (docs/RATIFICATION.md, build item 3).
+
+    A proposal targets one node, so a candidate with no arrow of its own routes
+    to the proposal's `target`; a candidate that names its own `→ [[node]]`
+    keeps it (agents sometimes spot a fact that belongs elsewhere). Everything
+    lands pending — the proposal is agent output, only the writer decides. The
+    indented quote/confidence/conflicts lines stay in the proposal (the
+    via-link points the writer back to them); they never ride into the inbox."""
+    title = next((t for t in note.section_titles()
+                  if t.lower().startswith(PROPOSAL_SECTION)), None)
+    if title is None:
+        return []
+    prov = _proposal_provenance(note)
+    default_target = next(iter(note.links("target")), "")
+    blocks: list[str] = []
+    for line in (note.section(title) or "").splitlines():
+        if not line.startswith("- "):
+            continue  # indented quote/confidence/conflicts lines are proposal-local
+        text = line[2:].strip()
+        if not text or text.rstrip(".").lower() == "none" or "<" in text:
+            continue
+        parts = ARROW.split(text)
+        targets = [t for t in WIKILINK.findall(parts[-1]) if t.strip()] if len(parts) > 1 else []
+        if targets:
+            lead = " → ".join(parts[:-1])
+            fact = _quoted_span(lead) or _strip_quotes(lead)
+            blocks.append(f'- [ ] "{fact}" → [[{targets[0].strip()}]]\n      {prov}')
+        elif default_target:
+            fact = _quoted_span(text) or _strip_quotes(text)
+            blocks.append(f'- [ ] "{fact}" → [[{default_target}]]\n      {prov}')
+        else:
+            fact = _quoted_span(text) or _strip_quotes(text)
+            blocks.append(f'- [ ] "{fact}"\n      {prov}')
+    return blocks
+
+
+def mine(vault, inbox_text: str, ledger_text: str) -> tuple[list[str], list[str]]:
+    """(candidate blocks to append to the inbox, names of artifacts mined).
+
+    Both review reports and fact proposals propose canon; each is mined by its
+    own extractor into the same pending inbox grammar. An artifact already
+    wikilinked from the inbox or the ledger was mined before and is skipped —
+    idempotency by artifact content, nothing stored."""
     seen = {t.strip() for text in (inbox_text, ledger_text)
             for t in WIKILINK.findall(text) if t.strip()}
     blocks: list[str] = []
     names: list[str] = []
-    for r in sorted(vault.by_type("review_report"), key=lambda n: n.name):
-        if r.name in seen:
-            continue
-        got = mine_report(r)
-        if got:
-            blocks += got
-            names.append(r.name)
+    for artifact_type, extract in (("review_report", mine_report),
+                                   ("fact_proposal", mine_proposal)):
+        for a in sorted(vault.by_type(artifact_type), key=lambda n: n.name):
+            if a.name in seen:
+                continue
+            got = extract(a)
+            if got:
+                blocks += got
+                names.append(a.name)
     return blocks, names
 
 

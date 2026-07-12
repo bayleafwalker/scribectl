@@ -2,9 +2,10 @@
 
 **Status:** proposal, 2026-07-11. Grounded in the first real-vault Phase C run
 (Fertile Flames, scene `What Aune Brings Back`). Implemented so far: the fixes
-listed at the end, and build-order item 1 — the verdict inbox and
-`ratify --sweep` (same day; see the note on `[ ]` vs `[>]` below). Items 2–4
-remain design.
+listed at the end, and build-order items 1–3 — the verdict inbox and
+`ratify --sweep`, review-report `--mine`, and mining packs + `propose` +
+`fact_proposal` derived state (see the DONE notes on each below). Item 4 (the
+reconciler) remains design, gated on ≥2 sources actually being mined.
 
 ## What the run taught about ratification
 
@@ -187,4 +188,19 @@ longer seeds a phantom event into every pack.
    contract); an unrouted bullet is queued without an arrow and nags as a
    sweep problem until the writer routes it. Nothing is ever mined as decided.
 3. Mining packs + `propose` + `fact_proposal` status rows.
+   — DONE 2026-07-12: `core/miningpack.py` freezes the extraction pack (source
+   ore + the target node's open questions and own facts + every other ratified
+   fact in the project + the world seed's hard constraints; sha-stamped, same
+   regenerate-to-mine / freeze-to-audit discipline as the context pack).
+   `scribectl propose --into <node> --source <ore>` freezes that pack and
+   scaffolds a quarantined `control/proposals/<node> — <source> — <date>.md`
+   (`type: fact_proposal`) carrying the pack sha; an agent fills candidate facts
+   (quote / confidence / conflicts). `ratify --mine` now lifts `## Candidate
+   facts` too (via `core/inbox.py: mine_proposal`), routing each to the
+   proposal's target unless it overrides `→ [[node]]`, provenance
+   `(from [[source]], mining pack sha, via [[proposal]])` — the via-link is the
+   mined-once marker, same idempotency as reports. Derived state: proposals row
+   `open` until their via-link reaches the ledger (`swept`); a node advertises
+   `N candidates pending` counted by each candidate's actual route. Agents never
+   touch `world/canon/`; an unswept proposal is no more citable than its ore.
 4. Reconciler pass, only once ≥2 sources are actually being mined.
