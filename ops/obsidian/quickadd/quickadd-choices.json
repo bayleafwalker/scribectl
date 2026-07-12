@@ -1,0 +1,38 @@
+{
+  "_note": "The exact settings for the four scribectl QuickAdd choices, as data. QuickAdd's import schema shifts between plugin versions, so treat this as the source of truth to recreate the choices from (the README has the same settings as human tables). Paths are vault-relative; adjust folders per project (fiction uses structure/scenes, gamedev uses structure/cards).",
+  "choices": [
+    {
+      "name": "Jot inbox candidate",
+      "type": "Capture",
+      "captureTo": "control/ratification/Inbox.md",
+      "prepend": false,
+      "format": {
+        "enabled": true,
+        "format": "- [ ] \"{{VALUE:fact}}\" → [[{{VALUE:target node}}]]\n"
+      },
+      "_does": "Appends one pending, routed candidate to the ratification inbox. Native: no shell, no template file. The sweep decides nothing you haven't ticked."
+    },
+    {
+      "name": "New canon node",
+      "type": "Template",
+      "templatePath": "ops/obsidian/quickadd/templates/canon-node.qa.md",
+      "folder": "world/canon",
+      "fileNameFormat": "{{VALUE:name}}",
+      "_does": "Creates a canon_node from the template, H1 set to the name; you fill domain/importance and the ratified-facts placeholder. Native."
+    },
+    {
+      "name": "New mechanic node",
+      "type": "Template",
+      "templatePath": "ops/obsidian/quickadd/templates/mechanic-node.qa.md",
+      "folder": "world/mechanics",
+      "fileNameFormat": "{{VALUE:name}}",
+      "_does": "gamedev set only: creates a mechanic_node from the template. Native."
+    },
+    {
+      "name": "New card + contract",
+      "type": "Macro",
+      "userScript": "ops/obsidian/quickadd/scripts/new-card.js",
+      "_does": "Runs `scribectl new card <name>` via the user script — the tested engine scaffolds the card + body_fill contract and parks it at awaiting_scope. Button-triggered; the shell is under the hood. Set the script's 'Project directory' and 'scribectl path' options."
+    }
+  ]
+}
