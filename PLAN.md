@@ -90,10 +90,32 @@ throughout. The `essay/` set remains unbuilt until a real non-fiction project
 demands it. Next real-vault step when wanted: `scribectl init Runosong --set
 gamedev` + adopt the design dialogue as a source.
 
+## Phase F — automatic agentic mode (dispatch)
+
+Design: `docs/DISPATCH.md`. The Phase D bullet "wire body_fill / review_canon /
+review_voice into the `.agents/skills/` dispatch pattern" grown into a
+runnable coordinator, with the engine untouched (invariant 5 holds).
+
+1. `scribectl status --json` — machine-readable derived state: project header
+   (root, config paths) + rows + per-card drafts/reviews-by-lane. The engine
+   CLI is the dispatcher's whole API.
+2. `.agents/skills/` prompt contracts: `body_fill`, `review_canon`,
+   `review_voice` (string.Template markdown; output shape the dispatcher parses).
+3. `scribedispatch/` sibling package — policy (fill on `ready_for_fill`,
+   missing reviews on `has_draft`/`reviewed`, never ratify/edit/iterate),
+   runner abstraction (`claude` CLI / `openai`-compatible local vLLM / `fake`),
+   sha-verified artifact landing; `scribe-dispatch plan|run`.
+4. Contact tests: fake-runner end-to-end against a disposable fixture copy;
+   idempotent second pass; nothing outside designated dirs moves.
+5. Live smoke (operator-gated, like the Phase C slice): claude backend fills
+   Scene 01-01 in a scratch vault; reviews fire; the writer judges the voice.
+6. Backlog beyond the slice: local writer model on the 3090
+   (`vllm-writer.service` + bake-off), watch mode, per-skill routing, codex
+   backend, candidate mining into the inbox, real-vault enablement, gamedev
+   set dispatch, agentops dispatch manifest.
+
 ## Deliberately NOT built
 
-Everything on the fertile-flames list still holds (no status enums, no stub
-farms, no autonomous iteration, no auto-canon-from-prose, no writers-room).
 Added at the scribectl level:
 
 - **No Obsidian plugin.** The engine lives in a CLI agents can invoke;

@@ -14,6 +14,7 @@ rewrites what a human wrote.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import date
 from pathlib import Path
@@ -21,7 +22,7 @@ from pathlib import Path
 from .config import DEFAULTS, DEFAULT_ROOTS, ProjectConfig, discover_projects, vault_roots
 from .core.contextpack import build_pack
 from .core.inbox import append_bullets, parse_inbox, receipt, remove_candidates
-from .core.project import project as project_rows
+from .core.project import card_artifacts, project as project_rows
 from .core.vault import Vault
 from .templateset import TemplateSet, list_sets, load_set
 
@@ -85,10 +86,44 @@ def _status_table(rows) -> str:
     return "\n".join(lines)
 
 
+def _status_json(cfg: ProjectConfig, vault: Vault, ts: TemplateSet, rows) -> str:
+    """Machine-readable derived state — the dispatch layer's entire view of a
+    project (docs/DISPATCH.md). Paths are absolute; card rows carry their
+    drafts and reviews-by-kind so the dispatcher never re-derives state."""
+    out = {
+        "project": {
+            "name": cfg.name,
+            "root": str(cfg.root),
+            "template_set": cfg.template_set,
+            "card_type": ts.card_type,
+            "paths": {
+                "voice_canon": str(cfg.voice_canon),
+                "timeline": str(cfg.timeline),
+                "ratification_log": str(cfg.ratification_log),
+                "ratification_inbox": str(cfg.ratification_inbox),
+                "pack_output": str(cfg.pack_output),
+                "roots": {k: str(v) for k, v in cfg.roots.items()},
+            },
+        },
+        "rows": [],
+    }
+    for t, n, s, d in rows:
+        row = {"type": t, "name": n, "status": s, "detail": d}
+        if t == ts.card_type:
+            row.update(card_artifacts(vault, n))
+        out["rows"].append(row)
+    return json.dumps(out, ensure_ascii=False, indent=2)
+
+
 def cmd_status(args) -> int:
     cfg = _select(args.project)
-    rows = project_rows(Vault.load(cfg.root), _ts(cfg))
-    print(_status_table(rows))
+    vault = Vault.load(cfg.root)
+    ts = _ts(cfg)
+    rows = project_rows(vault, ts)
+    if args.json:
+        print(_status_json(cfg, vault, ts, rows))
+    else:
+        print(_status_table(rows))
     if args.write:
         dash = cfg.roots["control"] / "Status.md"
         body = [
@@ -337,6 +372,8 @@ def _parser() -> argparse.ArgumentParser:
     p = sub.add_parser("status", help="derived state of every node + card")
     p.add_argument("-p", "--project")
     p.add_argument("--write", action="store_true", help="also emit control/Status.md")
+    p.add_argument("--json", action="store_true",
+                   help="machine-readable state: project header + rows with per-card drafts/reviews")
     p.set_defaults(fn=cmd_status)
 
     p = sub.add_parser("pack", help="assemble + freeze a hashed context pack")

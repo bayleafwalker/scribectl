@@ -66,6 +66,21 @@ def card_status(vault: Vault, note: Note, scope_fields) -> str:
     return "has_draft"
 
 
+def card_artifacts(vault: Vault, card_name: str) -> dict:
+    """Drafts linking back to the card, and review reports by kind (with the
+    draft each one reviewed). This is the dispatch layer's what-still-fires
+    question, answered here so derived state keeps one implementation."""
+    reviews = [n for n in vault.notes.values()
+               if n.type == "review_report" and card_name in n.links()]
+    return {
+        "drafts": sorted(d.name for d in _drafts_for(vault, card_name)),
+        "reviews": sorted(({"name": r.name,
+                            "kind": str(r.meta.get("kind", "")),
+                            "draft": next(iter(r.links("draft")), "")}
+                           for r in reviews), key=lambda r: r["name"]),
+    }
+
+
 def project(vault: Vault, ts) -> list[tuple[str, str, str, str]]:
     """Return (type, name, derived_status, detail) rows for the template set's
     legible artifact types. detail says *why* for the states that need acting

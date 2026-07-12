@@ -1,0 +1,181 @@
+"""Contact tests for the automatic agentic mode (docs/DISPATCH.md).
+
+Fake runner, disposable fixture copy, zero network. Write discipline under
+test throughout: dispatch lands NEW files in designated dirs only, stamps
+pack-sha receipts, refuses overwrites, and a completed loop dispatches
+nothing on the next pass.
+"""
+import hashlib
+from pathlib import Path
+
+import pytest
+
+from scribedispatch.cli import main
+from scribedispatch.landing import parse_verdict
+from scribedispatch.vaultio import verify_pack
+from scribedispatch import DispatchError
+
+FILL_RESPONSE = """\
+# A Routine That Lies
+
+The queue for the ash-census had wrapped twice around the Lower Ashmarket
+by the time the sirens tested themselves.
+
+## Introduced candidates
+- "The ash-census is conducted quarterly" — new civic procedure
+
+## Uncertainties
+- none
+"""
+
+CANON_RESPONSE = """\
+verdict: clean
+
+## Findings
+- none
+
+## Introduced candidates seen in draft
+- "The ash-census is conducted quarterly" — appears in neither timeline nor pack
+"""
+
+VOICE_RESPONSE = """\
+verdict: issues
+
+## Findings
+- "sirens tested themselves" — personification the voice canon forbids
+
+## Strongest passage
+- "wrapped twice around the Lower Ashmarket" — concrete, civic, unhurried.
+"""
+
+
+@pytest.fixture
+def fakes(tmp_path) -> Path:
+    d = tmp_path / "fake-responses"
+    d.mkdir()
+    (d / "body_fill.md").write_text(FILL_RESPONSE, encoding="utf-8")
+    (d / "review_canon.md").write_text(CANON_RESPONSE, encoding="utf-8")
+    (d / "review_voice.md").write_text(VOICE_RESPONSE, encoding="utf-8")
+    return d
+
+
+@pytest.fixture
+def run(monkeypatch, capsys, scratch_root, fakes):
+    monkeypatch.setenv("SCRIBECTL_VAULT", str(scratch_root))
+    monkeypatch.setenv("SCRIBE_DISPATCH_FAKE_DIR", str(fakes))
+
+    def _run(*argv):
+        code = main([*argv, "--runner", "fake"])
+        captured = capsys.readouterr()
+        return code, captured.out, captured.err
+
+    return _run
+
+
+def unblock(project: Path) -> None:
+    (project / "world/canon/Lower Ashmarket.md").write_text(
+        "---\ntype: canon_node\n---\n\n# Lower Ashmarket\n\n## Ratified facts\n"
+        "- The Ashmarket sits below the terrace line.\n", encoding="utf-8")
+
+
+def snapshot(project: Path, exclude: tuple[str, ...]) -> dict[str, str]:
+    return {str(p.relative_to(project)): hashlib.md5(p.read_bytes()).hexdigest()
+            for p in project.rglob("*") if p.is_file()
+            and not any(str(p.relative_to(project)).startswith(e) for e in exclude)}
+
+
+def test_blocked_card_dispatches_nothing(run):
+    code, out, _ = run("plan")
+    assert code == 0
+    assert "blocked" in out and "nothing to dispatch" in out
+
+
+def test_full_loop_fill_then_reviews_then_quiet(run, scratch_project):
+    unblock(scratch_project)
+    before = snapshot(scratch_project,
+                      exclude=("body/drafts", "reviews", "control/context-packs"))
+
+    code, out, _ = run("plan")
+    assert code == 0 and "would dispatch body_fill for Scene 01-01" in out
+
+    code, out, _ = run("run")
+    assert code == 0
+
+    # The draft landed at the contract's output_target with the sha receipt.
+    draft = scratch_project / "body/drafts/ch01-sc01-draft-a.md"
+    text = draft.read_text(encoding="utf-8")
+    assert "type: draft" in text and 'card: "[[Scene 01-01]]"' in text
+    packs = list((scratch_project / "control/context-packs").glob("*-context.md"))
+    assert len(packs) == 1
+    sha = verify_pack(packs[0])
+    assert f"pack_sha: {sha}" in text
+    assert "ash-census" in text
+
+    # Reviews fired in the same run, one per lane, verdicts parsed.
+    canon = scratch_project / "reviews/canon/ch01-sc01-draft-a — canon review.md"
+    voice = scratch_project / "reviews/voice/ch01-sc01-draft-a — voice review.md"
+    assert "verdict: clean" in canon.read_text(encoding="utf-8")
+    assert "verdict: issues" in voice.read_text(encoding="utf-8")
+    assert f"pack_sha: {sha}" in canon.read_text(encoding="utf-8")
+
+    # A completed loop goes quiet: idempotent second pass.
+    code, out, _ = run("run")
+    assert code == 0
+    assert "nothing to dispatch" in out and "fully reviewed" in out
+
+    # Nothing outside the designated dirs moved.
+    after = snapshot(scratch_project,
+                     exclude=("body/drafts", "reviews", "control/context-packs"))
+    assert after == before
+
+
+def test_ready_card_without_contract_is_skipped(run, scratch_project):
+    unblock(scratch_project)
+    (scratch_project / "control/contracts/fill-scene-01-01.md").unlink()
+    code, out, _ = run("run")
+    assert code == 0
+    assert "no body_fill contract" in out and "nothing to dispatch" in out
+    assert not any((scratch_project / "body/drafts").glob("*.md"))
+
+
+def test_manual_draft_still_gets_reviews(run, scratch_project):
+    """Reviews fire on drafts, not on paperwork — a hand-landed draft with no
+    pack receipt is reviewed against the oracle alone."""
+    unblock(scratch_project)
+    (scratch_project / "body/drafts/hand-draft.md").write_text(
+        "---\ntype: draft\nscene: \"[[Scene 01-01]]\"\n---\n\nHand-written prose.\n",
+        encoding="utf-8")
+    code, out, _ = run("run")
+    assert code == 0
+    assert (scratch_project / "reviews/canon/hand-draft — canon review.md").is_file()
+    assert (scratch_project / "reviews/voice/hand-draft — voice review.md").is_file()
+    # No fill fired: the card already has a draft.
+    assert not (scratch_project / "body/drafts/ch01-sc01-draft-a.md").exists()
+
+
+def test_refuses_to_overwrite_existing_draft(run, scratch_project):
+    """If the contract's output_target already exists but doesn't link the
+    card (say, a stray file), landing refuses rather than clobbers."""
+    unblock(scratch_project)
+    target = scratch_project / "body/drafts/ch01-sc01-draft-a.md"
+    target.write_text("a human wrote this\n", encoding="utf-8")
+    code, _, err = run("run")
+    assert code == 2
+    assert "refusing to overwrite" in err
+    assert target.read_text(encoding="utf-8") == "a human wrote this\n"
+
+
+def test_verdict_defaults_to_issues(fakes):
+    verdict, rest = parse_verdict("no verdict line here\n\n## Findings\n- none\n")
+    assert verdict == "issues"
+    assert "no verdict line here" in rest
+
+
+def test_tampered_pack_fails_verification(run, scratch_project, tmp_path):
+    unblock(scratch_project)
+    code, _, _ = run("run")
+    assert code == 0
+    pack = next((scratch_project / "control/context-packs").glob("*-context.md"))
+    pack.write_text(pack.read_text(encoding="utf-8") + "\ntampered\n", encoding="utf-8")
+    with pytest.raises(DispatchError, match="does not match its pack-sha"):
+        verify_pack(pack)

@@ -89,6 +89,36 @@ def test_status_write_emits_dashboard(run, scratch_root, scratch_project):
     assert out == BASELINE_STATUS
 
 
+def test_status_json_carries_project_header_and_card_artifacts(run, scratch_root, scratch_project):
+    """The dispatcher's whole view of a project (docs/DISPATCH.md): paths it
+    may read, rows it acts on, per-card drafts and reviews-by-kind."""
+    import json
+
+    (scratch_project / "body/drafts/Scene 01-01 draft v1.md").write_text(
+        "---\ntype: draft\nscene: \"[[Scene 01-01]]\"\n---\n\nProse here.\n",
+        encoding="utf-8")
+    (scratch_project / "reviews/canon/Scene 01-01 canon review.md").write_text(
+        "---\ntype: review_report\nkind: canon\ntarget: \"[[Scene 01-01]]\"\n"
+        "draft: \"[[Scene 01-01 draft v1]]\"\nverdict: clean\n---\n\n# canon review\n",
+        encoding="utf-8")
+    code, out, _ = run("status", "--json", vault=scratch_root)
+    assert code == 0
+    data = json.loads(out)
+    assert data["project"]["name"] == "Fertile Flames"
+    assert data["project"]["card_type"] == "scene_card"
+    assert Path(data["project"]["paths"]["voice_canon"]).is_file()
+    assert Path(data["project"]["paths"]["timeline"]).is_file()
+    card = next(r for r in data["rows"] if r["type"] == "scene_card")
+    assert card["status"] == "reviewed"
+    assert card["drafts"] == ["Scene 01-01 draft v1"]
+    assert card["reviews"] == [{"name": "Scene 01-01 canon review",
+                                "kind": "canon",
+                                "draft": "Scene 01-01 draft v1"}]
+    # Node rows stay lean: no artifact keys.
+    node = next(r for r in data["rows"] if r["type"] == "canon_node")
+    assert "drafts" not in node
+
+
 # -- pack -------------------------------------------------------------------
 
 def test_pack_writes_frozen_pack(run, scratch_root, scratch_project):

@@ -66,6 +66,7 @@ after the Phase C slice holds.
 | `vault` | landing projects in `/media/Creative/`, livesync verification |
 | `slice` | the Phase C vertical slice — the sprint's acceptance gate |
 | `expansion` | (backlog) second project, second template set |
+| `dispatch` | automatic agentic mode: `scribedispatch/`, `.agents/skills/`, runners (see `docs/DISPATCH.md`) |
 
 ## Claim policy
 
@@ -104,6 +105,8 @@ after the Phase C slice holds.
 - **Never write to `/media/Creative/` from this repo's tooling until Phase B
   items are claimed and active.** The real vault is production.
 - No LLM client in the engine package, ever (ARCHITECTURE.md invariant 5).
+  Runners live in `scribedispatch/`, which talks to the engine only through
+  the `scribectl` CLI and never ratifies, edits, or iterates (docs/DISPATCH.md).
 - No status enums in vault frontmatter; status is derived (`project.py`).
 - Don't edit `docs/sprint/current.md` by hand — it's `sprintctl render` output.
 - Don't start Phase D/E backlog items while Phase C is unproven.
