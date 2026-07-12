@@ -56,3 +56,39 @@ def test_quickadd_card_script_parses():
     js = QUICKADD / "scripts" / "new-card.js"
     r = subprocess.run(["node", "--check", str(js)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
+
+
+# -- 1090 VS Code -----------------------------------------------------------
+
+EXPECTED_TASKS = {
+    "scribectl: next", "scribectl: status", "scribectl: doctor",
+    "scribectl: pack card", "scribe-dispatch: plan", "scribe-dispatch: run",
+    "scribectl: sweep (dry-run)", "scribe-dispatch: watch",
+}
+
+
+def _labels(tasks_block: dict) -> set[str]:
+    return {t["label"] for t in tasks_block["tasks"]}
+
+
+def test_vscode_tasks_json_is_valid_and_complete():
+    data = json.loads((VSCODE / "tasks.json").read_text(encoding="utf-8"))
+    assert data["version"] == "2.0.0"
+    assert _labels(data) == EXPECTED_TASKS
+
+
+def test_vscode_workspace_embeds_the_same_tasks():
+    """The workspace file and tasks.json must not drift — one loop, two ways in."""
+    ws = json.loads((VSCODE / "scribectl.code-workspace").read_text(encoding="utf-8"))
+    assert _labels(ws["tasks"]) == EXPECTED_TASKS
+    assert ws["folders"] == [{"path": "."}]
+
+
+def test_vscode_sweep_task_is_dry_run_only():
+    """Ratification is a human keystroke: no shipped task executes a real sweep."""
+    for path in ("tasks.json", "scribectl.code-workspace"):
+        raw = (VSCODE / path).read_text(encoding="utf-8")
+        data = json.loads(raw)
+        tasks = data["tasks"] if path.endswith(".json") else data["tasks"]["tasks"]
+        sweeps = [t for t in tasks if "sweep" in t["label"]]
+        assert sweeps and all("--dry-run" in t["args"] for t in sweeps)

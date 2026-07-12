@@ -1,0 +1,110 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.associations": {
+      "*.md": "markdown"
+    },
+    "search.exclude": {
+      "**/control/context-packs": true,
+      "**/control/Status.md": true
+    },
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "options": {
+      "cwd": "${workspaceFolder}"
+    },
+    "presentation": {
+      "reveal": "always",
+      "panel": "shared",
+      "clear": true
+    },
+    "tasks": [
+      {
+        "label": "scribectl: next",
+        "detail": "Where the next ten minutes go — the next-actions digest.",
+        "type": "shell",
+        "command": "scribectl",
+        "args": ["next"],
+        "group": { "kind": "build", "isDefault": true },
+        "problemMatcher": []
+      },
+      {
+        "label": "scribectl: status",
+        "detail": "Derived state of every node and card.",
+        "type": "shell",
+        "command": "scribectl",
+        "args": ["status"],
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "scribectl: doctor",
+        "detail": "Environment health check: PATH, vault, projects, runners.",
+        "type": "shell",
+        "command": "scribectl",
+        "args": ["doctor"],
+        "group": "test",
+        "problemMatcher": []
+      },
+      {
+        "label": "scribectl: pack card",
+        "detail": "Assemble + freeze a hashed context pack for one card.",
+        "type": "shell",
+        "command": "scribectl",
+        "args": ["pack", "${input:card}"],
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "scribe-dispatch: plan",
+        "detail": "The dry look — what fill/reviews would fire, touching nothing.",
+        "type": "shell",
+        "command": "scribe-dispatch",
+        "args": ["plan"],
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "scribe-dispatch: run",
+        "detail": "Fill ready cards and land their review lanes.",
+        "type": "shell",
+        "command": "scribe-dispatch",
+        "args": ["run", "--skip-unreachable"],
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "scribectl: sweep (dry-run)",
+        "detail": "Show what your ticked inbox verdicts would ratify — writes nothing.",
+        "type": "shell",
+        "command": "scribectl",
+        "args": ["ratify", "--sweep", "--dry-run"],
+        "group": "test",
+        "problemMatcher": []
+      },
+      {
+        "label": "scribe-dispatch: watch",
+        "detail": "Ambient poll loop: fills and reviews land while you write (Ctrl+C to stop).",
+        "type": "shell",
+        "command": "scribe-dispatch",
+        "args": ["watch", "--skip-unreachable"],
+        "isBackground": true,
+        "presentation": { "reveal": "always", "panel": "dedicated", "clear": false },
+        "problemMatcher": []
+      }
+    ],
+    "inputs": [
+      {
+        "id": "card",
+        "type": "promptString",
+        "description": "Card name to pack (e.g. Scene 02-01)"
+      }
+    ]
+  }
+}
