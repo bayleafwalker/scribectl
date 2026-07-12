@@ -585,6 +585,98 @@ def test_new_card_rejects_slashy_name(run, scratch_root):
     assert "name" in err.lower()
 
 
+# -- capture ----------------------------------------------------------------
+
+def test_capture_from_file_lands_source_and_registers(run, tmp_path, scratch_root, scratch_project):
+    from datetime import date
+
+    transcript = tmp_path / "dialogue.txt"
+    transcript.write_text("A: what's the world?\nB: volcanic, terraced.\n", encoding="utf-8")
+    note = scratch_project / "Fertile Flames.md"
+    body_before = note.read_text(encoding="utf-8").split("\n---\n", 1)[1]
+
+    code, out, err = run("capture", "Ashfall Session", "-p", "Fertile Flames",
+                         "--from", str(transcript), vault=scratch_root)
+    assert code == 0 and err == ""
+
+    stem = f"{date.today().isoformat()} Ashfall Session"
+    src = scratch_project / "sources" / f"{stem}.md"
+    assert src.is_file()
+    text = src.read_text(encoding="utf-8")
+    assert "type: source" in text and "kind: dialogue" in text
+    assert "# Ashfall Session" in text
+    assert "B: volcanic, terraced." in text          # transcript verbatim
+
+    # Registered under sources:, and the human body is byte-for-byte untouched.
+    after = note.read_text(encoding="utf-8")
+    assert f'- "[[{stem}]]"' in after
+    assert '- "[[Fertile Flames Saga]]"' in after     # prior source kept
+    assert after.split("\n---\n", 1)[1] == body_before
+    assert f"registered [[{stem}]]" in out
+
+    # The source note is not a project, card, or node — discovery is unchanged.
+    code, sout, _ = run("status", "-p", "Fertile Flames", vault=scratch_root)
+    assert code == 0 and "source" not in sout
+
+
+def test_capture_from_stdin(run, monkeypatch, scratch_root, scratch_project):
+    import io
+    from datetime import date
+
+    monkeypatch.setattr("sys.stdin", io.StringIO("piped ore\n"))
+    code, out, _ = run("capture", "Piped Note", "-p", "Fertile Flames", vault=scratch_root)
+    assert code == 0
+    src = scratch_project / "sources" / f"{date.today().isoformat()} Piped Note.md"
+    assert src.is_file() and "piped ore" in src.read_text(encoding="utf-8")
+    assert 'origin: "stdin"' in src.read_text(encoding="utf-8")
+
+
+def test_capture_into_empty_sources_builds_block(run, scratch_root, tmp_path):
+    """A freshly init'd project carries `sources: []`; capture converts it to a
+    block list without disturbing any other frontmatter key."""
+    from datetime import date
+
+    run("init", "Sunstolen", "--under", str(scratch_root / "Works"), vault=scratch_root)
+    transcript = tmp_path / "seed.md"
+    transcript.write_text("first ore for a new world\n", encoding="utf-8")
+    code, _, _ = run("capture", "Origin Chat", "-p", "Sunstolen",
+                     "--from", str(transcript), vault=scratch_root)
+    assert code == 0
+    note = (scratch_root / "Works" / "Sunstolen" / "Sunstolen.md").read_text(encoding="utf-8")
+    stem = f"{date.today().isoformat()} Origin Chat"
+    assert "sources: []" not in note
+    assert f'sources:\n  - "[[{stem}]]"' in note
+    # Other keys survive the surgical rewrite.
+    assert "type: scribe-project" in note and "pack_output:" in note
+
+
+def test_capture_refuses_overwrite(run, tmp_path, scratch_root):
+    transcript = tmp_path / "t.md"
+    transcript.write_text("ore\n", encoding="utf-8")
+    assert run("capture", "Dup", "-p", "Fertile Flames",
+               "--from", str(transcript), vault=scratch_root)[0] == 0
+    code, _, err = run("capture", "Dup", "-p", "Fertile Flames",
+                       "--from", str(transcript), vault=scratch_root)
+    assert code != 0 and "overwrite" in err.lower()
+
+
+def test_capture_empty_input_errors(run, tmp_path, scratch_root, scratch_project):
+    empty = tmp_path / "empty.md"
+    empty.write_text("   \n", encoding="utf-8")
+    code, _, err = run("capture", "Nothing", "-p", "Fertile Flames",
+                       "--from", str(empty), vault=scratch_root)
+    assert code != 0 and "empty" in err.lower()
+    assert not (scratch_project / "sources").exists()
+
+
+def test_capture_rejects_slashy_title(run, tmp_path, scratch_root):
+    transcript = tmp_path / "t.md"
+    transcript.write_text("ore\n", encoding="utf-8")
+    code, _, err = run("capture", "bad/title", "-p", "Fertile Flames",
+                       "--from", str(transcript), vault=scratch_root)
+    assert code != 0 and "title" in err.lower()
+
+
 # -- next -------------------------------------------------------------------
 
 def test_next_prints_digest(run, fixture_root):

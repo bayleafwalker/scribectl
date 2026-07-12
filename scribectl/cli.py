@@ -3,14 +3,15 @@
 core/ takes the vault as data and never writes. This module is the only place
 that holds write paths, and they are exactly the designated outputs:
 pack_output/ (pack), control/Status.md (status/next --write), ledger appends
-(ratify), stubs (adopt, init), card + contract scaffolds (new card), the
-verdict inbox (ratify --sweep clears
+(ratify), stubs (adopt, init), card + contract scaffolds (new card), dated
+source notes under sources/ (capture), the verdict inbox (ratify --sweep clears
 decided candidates), and — the one sanctioned append into a human note — a
 swept fact landing in its node's `## Ratified facts`. That write is the
 writer's own verdict executed: append-only, into exactly one section,
 receipt-logged, byte-traceable to a checkbox the writer ticked
 (docs/RATIFICATION.md, "the write-discipline question"). Nothing here ever
-rewrites what a human wrote.
+rewrites what a human wrote — `capture` grows the scribe-project note's
+`sources:` frontmatter list, never its body.
 """
 from __future__ import annotations
 
@@ -481,6 +482,88 @@ def cmd_new_card(args) -> int:
     return 0
 
 
+SOURCE_NOTE = """\
+---
+type: source
+kind: {kind}
+captured: {today}
+origin: "{origin}"
+---
+
+# {title}
+
+{body}"""
+
+
+def _register_source(note_path: Path, existing: list[str], link: str) -> bool:
+    """Grow the scribe-project note's `sources:` frontmatter list by one link,
+    preserving the note body byte-for-byte. This is the only config edit
+    scribectl makes to a human-authored note; it rebuilds exactly the
+    `sources:` block (an empty `sources: []` becomes a block list) and touches
+    nothing else. Returns False when the link is already registered."""
+    if link in existing:
+        return False
+    raw = note_path.read_text(encoding="utf-8")
+    if not raw.startswith("---") or (end := raw.find("\n---", 3)) == -1:
+        raise CLIError(f"{note_path.name}: cannot register source — no closed frontmatter")
+    head, inner, tail = raw[:3], raw[3:end], raw[end:]
+    lines = inner.split("\n")
+    block = ["sources:"] + [f'  - "{s}"' for s in existing + [link]]
+    start = next((i for i, l in enumerate(lines) if l.startswith("sources:")), None)
+    if start is None:
+        lines = lines + block
+    else:
+        j = start + 1  # consume the existing block list (indented, non-blank)
+        while j < len(lines) and lines[j][:1] in (" ", "\t") and lines[j].strip():
+            j += 1
+        lines[start:j] = block
+    note_path.write_text(head + "\n".join(lines) + tail, encoding="utf-8")
+    return True
+
+
+def cmd_capture(args) -> int:
+    """Land raw ore — a design dialogue, a brainstorm transcript — as a dated
+    source note and register it under the project's `sources:` (#1087). The
+    transcript is written verbatim; the project note's body is never touched,
+    only its `sources:` list grows. Raw ore stops depending on the writer's
+    discipline to survive (the Runosong raw-dialogue gap, generalized)."""
+    cfg = _select(args.project)
+    title = args.title.strip()
+    if not title or "/" in title:
+        raise CLIError("capture title must be a plain note name (no slashes)")
+    if args.src_file:
+        src = Path(args.src_file)
+        if not src.is_file():
+            raise CLIError(f"no such file: {src}")
+        text = src.read_text(encoding="utf-8")
+        origin = str(src)
+    else:
+        if sys.stdin.isatty():
+            raise CLIError("no transcript to capture — pipe one in "
+                           "(`scribectl capture <title> < transcript.md`) or pass --from FILE")
+        text = sys.stdin.read()
+        origin = "stdin"
+    if not text.strip():
+        raise CLIError("nothing to capture — the transcript is empty")
+    today = date.today().isoformat()
+    stem = f"{today} {title}"
+    dest = cfg.root / "sources" / f"{stem}.md"
+    if dest.exists():
+        raise CLIError(f"refusing to overwrite existing note: {dest}")
+    body = text if text.endswith("\n") else text + "\n"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(SOURCE_NOTE.format(kind=args.kind, today=today, origin=origin,
+                                       title=title, body=body), encoding="utf-8")
+    link = f"[[{stem}]]"
+    registered = _register_source(cfg.note_path, cfg.sources, link)
+    print(f"captured {len(text)} chars → {dest}")
+    if registered:
+        print(f"registered {link} under sources: in {cfg.note_path.name}")
+    else:
+        print(f"{link} already under sources: in {cfg.note_path.name} (note written, registration unchanged)")
+    return 0
+
+
 # -- entry ---------------------------------------------------------------------
 
 def _parser() -> argparse.ArgumentParser:
@@ -529,6 +612,17 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("note", help="note name (searched under vault roots) or path")
     p.add_argument("-p", "--project")
     p.set_defaults(fn=cmd_adopt)
+
+    p = sub.add_parser("capture",
+                       help="land a raw transcript as a dated, registered source note")
+    p.add_argument("title", help="source note title (dated automatically)")
+    p.add_argument("-p", "--project")
+    p.add_argument("--from", dest="src_file", metavar="FILE",
+                   help="read the transcript from FILE (default: stdin)")
+    p.add_argument("--kind", default="dialogue",
+                   choices=["dialogue", "brainstorm", "transcript", "notes"],
+                   help="what the ore is — a frontmatter tag (default: dialogue)")
+    p.set_defaults(fn=cmd_capture)
 
     p = sub.add_parser("new", help="scaffold artifacts in one motion")
     nsub = p.add_subparsers(dest="what", required=True)
