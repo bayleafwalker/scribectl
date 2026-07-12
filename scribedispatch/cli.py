@@ -65,6 +65,10 @@ def execute(d: Dispatch, state: dict, contracts: dict, runner, model: str | None
                                pack_text=pack_text,
                                timeline_text=_read(Path(proj["paths"]["timeline"]),
                                                    "(no timeline)"), **common)
+    elif d.kind == "mechanics":
+        # The pack briefs the in-scope mechanic nodes — it IS the rulebook.
+        prompt = skills.render("review_mechanics", pack_path=str(pack_path or "none"),
+                               pack_text=pack_text, **common)
     else:
         prompt = skills.render("review_voice",
                                voice_canon_text=_read(Path(proj["paths"]["voice_canon"]),

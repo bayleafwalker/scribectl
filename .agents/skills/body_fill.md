@@ -8,10 +8,12 @@ not a fact.
 
 # Task
 
-Draft the scene described by the card below, honoring its contract. Use ONLY
-the context pack and the card — no outside knowledge of this world exists.
-Match the voice exemplars in the pack. Hit the card's beats in order; respect
-its "Do not" list absolutely.
+Draft the piece described by the card below, honoring its contract. The
+card's `kind` names the form it takes — a scene, a spoken-fic episode for
+the ear, a blog post, a research note — and its Brief, beats, and length
+target say what that form must do. Use ONLY the context pack and the card —
+no outside knowledge of this world exists. Match the voice exemplars in the
+pack. Hit the card's beats in order; respect its "Do not" list absolutely.
 
 # Card: $card_name
 

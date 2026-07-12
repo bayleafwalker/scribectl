@@ -14,8 +14,12 @@ from pathlib import Path
 from .vaultio import contract_for
 
 DEFAULT_REVIEW_KINDS = ("canon", "voice")
+# Gamedev tie-ins get the mechanics lane by default: a fic where magic works
+# differently than the game is canon rot in both directions.
+SET_REVIEW_KINDS = {"gamedev": ("canon", "voice", "mechanics")}
 _REVIEW_ALIASES = {"canon_check": "canon", "voice_check": "voice",
-                   "canon": "canon", "voice": "voice"}
+                   "mechanics_check": "mechanics",
+                   "canon": "canon", "voice": "voice", "mechanics": "mechanics"}
 
 
 @dataclass
@@ -27,14 +31,15 @@ class Dispatch:
     kind: str | None = None   # reviews: canon | voice
 
 
-def review_kinds(contract: dict | None) -> tuple[str, ...]:
+def review_kinds(contract: dict | None,
+                 default: tuple[str, ...] = DEFAULT_REVIEW_KINDS) -> tuple[str, ...]:
     """The contract's review_after decides the lanes; a card whose draft
-    arrived without a contract still gets the default pair — reviews fire on
-    drafts, not on paperwork."""
+    arrived without a contract still gets the set's default lanes — reviews
+    fire on drafts, not on paperwork."""
     if not contract or not contract.get("review_after"):
-        return DEFAULT_REVIEW_KINDS
+        return default
     kinds = [_REVIEW_ALIASES[k] for k in contract["review_after"] if k in _REVIEW_ALIASES]
-    return tuple(dict.fromkeys(kinds)) or DEFAULT_REVIEW_KINDS
+    return tuple(dict.fromkeys(kinds)) or default
 
 
 def plan(state: dict, contracts: dict[str, dict],
@@ -42,6 +47,8 @@ def plan(state: dict, contracts: dict[str, dict],
     """(dispatches, notes) — notes explain every card NOT dispatched."""
     root = Path(state["project"]["root"])
     card_type = state["project"]["card_type"]
+    default_kinds = SET_REVIEW_KINDS.get(state["project"].get("template_set", ""),
+                                         DEFAULT_REVIEW_KINDS)
     dispatches: list[Dispatch] = []
     notes: list[str] = []
     for row in state["rows"]:
@@ -60,11 +67,12 @@ def plan(state: dict, contracts: dict[str, dict],
         elif s in ("has_draft", "reviewed"):
             present = {r["kind"] for r in row["reviews"]}
             draft = row["drafts"][-1]
-            for kind in review_kinds(contract):
+            kinds = review_kinds(contract, default_kinds)
+            for kind in kinds:
                 if kind not in present:
                     dispatches.append(Dispatch(f"review_{kind}", card,
                                                f"draft lacks {kind} review",
                                                draft=draft, kind=kind))
-            if all(k in present for k in review_kinds(contract)):
+            if all(k in present for k in kinds):
                 notes.append(f"{card}: fully reviewed — the rest is the writer's")
     return dispatches, notes

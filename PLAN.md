@@ -112,10 +112,12 @@ runnable coordinator, with the engine untouched (invariant 5 holds).
    Scene 01-01 in a scratch vault; reviews fire; the writer judges the voice.
 6. Backlog beyond the slice: local writer model on the 3090
    (`vllm-writer.service` + bake-off), per-skill routing, codex backend,
-   real-vault enablement, gamedev set dispatch, agentops dispatch manifest.
+   real-vault enablement, agentops dispatch manifest.
    Landed 2026-07-12: candidate mining into the inbox (`ratify --mine`,
-   engine-side — see RATIFICATION.md) and watch mode (`scribe-dispatch watch`,
-   livesync settle debounce, `--ticks 1` for timers).
+   engine-side — see RATIFICATION.md); watch mode (`scribe-dispatch watch`,
+   livesync settle debounce, `--ticks 1` for timers); gamedev set dispatch
+   (kind-blind fill + per-set review lanes incl. `review_mechanics`, proven
+   on the runosong fixture — the live project still needs `init`).
 
 ## Deliberately NOT built
 

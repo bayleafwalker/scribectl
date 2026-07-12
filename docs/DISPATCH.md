@@ -42,7 +42,8 @@ scribedispatch/          sibling package in this repo (second wheel package,
   landing.py             engine's read/write contract is also the dispatcher's
   cli.py
 .agents/skills/          the prompt contracts (body_fill.md, review_canon.md,
-                         review_voice.md) — data, versioned with the repo
+                         review_voice.md, review_mechanics.md) — data,
+                         versioned with the repo
 ```
 
 Why a sibling package and not `scribectl/`: invariant 5 ("no LLM client in the
@@ -107,6 +108,14 @@ shape the dispatcher parses:
 | `body_fill`    | frozen pack + card + contract        | `body/drafts/<output_target>` — `type: draft`, links card, `pack_sha` |
 | `review_canon` | draft + timeline + pack              | `reviews/canon/<draft>-canon-review.md` — `type: review_report`, `kind: canon` |
 | `review_voice` | draft + voice canon + pack           | `reviews/voice/<draft>-voice-review.md` — `type: review_report`, `kind: voice` |
+| `review_mechanics` | draft + pack (the mechanic-node briefs are the rulebook) | `reviews/mechanics/<draft>-mechanics-review.md` — `type: review_report`, `kind: mechanics` |
+
+Review lanes default per template set (`policy.SET_REVIEW_KINDS`): fiction
+gets canon + voice, gamedev adds mechanics — a fic where magic works
+differently than the game is canon rot in both directions. A contract's
+`review_after` narrows or reorders the lanes; `body_fill` is kind-blind (the
+card's `kind` names the form — scene, spoken fic, blog post — and the skill
+contract tells the agent to honor it).
 
 The dispatcher writes the frontmatter itself (deterministic: type, kind,
 links, `pack_sha`, `agent`, `model`, `generated`); the agent supplies only the

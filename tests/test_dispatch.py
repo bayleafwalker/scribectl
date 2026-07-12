@@ -48,6 +48,17 @@ verdict: issues
 - "wrapped twice around the Lower Ashmarket" — concrete, civic, unhurried.
 """
 
+MECHANICS_RESPONSE = """\
+verdict: issues
+
+## Findings
+- "she counts to four and the meadow answers" — Polymetric Difficulty rules
+  the world pulse is 5/4
+
+## Introduced candidates seen in draft
+- "Resting the empty beats is itself part of the cast" → [[Freeform Casting Evaluation]]
+"""
+
 
 @pytest.fixture
 def fakes(tmp_path) -> Path:
@@ -56,6 +67,7 @@ def fakes(tmp_path) -> Path:
     (d / "body_fill.md").write_text(FILL_RESPONSE, encoding="utf-8")
     (d / "review_canon.md").write_text(CANON_RESPONSE, encoding="utf-8")
     (d / "review_voice.md").write_text(VOICE_RESPONSE, encoding="utf-8")
+    (d / "review_mechanics.md").write_text(MECHANICS_RESPONSE, encoding="utf-8")
     return d
 
 
@@ -209,3 +221,60 @@ def test_tampered_pack_fails_verification(run, scratch_project, tmp_path):
     pack.write_text(pack.read_text(encoding="utf-8") + "\ntampered\n", encoding="utf-8")
     with pytest.raises(DispatchError, match="does not match its pack-sha"):
         verify_pack(pack)
+
+
+# -- gamedev set: kind-parameterized cards + the mechanics lane ---------------
+
+@pytest.fixture
+def run_gamedev(monkeypatch, capsys, scratch_runosong, fakes):
+    monkeypatch.setenv("SCRIBECTL_VAULT", str(scratch_runosong))
+    monkeypatch.setenv("SCRIBE_DISPATCH_FAKE_DIR", str(fakes))
+
+    def _run(*argv):
+        code = main([*argv, "--runner", "fake"])
+        captured = capsys.readouterr()
+        return code, captured.out, captured.err
+
+    return _run
+
+
+def test_gamedev_full_loop_fills_kind_and_fires_mechanics(run_gamedev, scratch_runosong):
+    project = scratch_runosong / "Works" / "Runosong"
+
+    code, out, _ = run_gamedev("plan")
+    assert code == 0
+    # The spoken_fic card fills; the blog card is blocked on unresolved scope.
+    assert "would dispatch body_fill for Episode 1-01" in out
+    assert "Why Our World Beats in Five: blocked" in out
+
+    code, out, _ = run_gamedev("run")
+    assert code == 0
+    draft = project / "body/drafts/ep01-01-draft-a.md"
+    assert 'card: "[[Episode 1-01]]"' in draft.read_text(encoding="utf-8")
+
+    # All three gamedev lanes fired on the landed draft.
+    for kind in ("canon", "voice", "mechanics"):
+        report = project / f"reviews/{kind}/ep01-01-draft-a — {kind} review.md"
+        assert report.is_file(), kind
+    mech = (project / "reviews/mechanics/ep01-01-draft-a — mechanics review.md").read_text(encoding="utf-8")
+    assert "verdict: issues" in mech and "kind: mechanics" in mech
+    assert "Polymetric Difficulty" in mech
+
+    code, out, _ = run_gamedev("run")
+    assert code == 0
+    assert "nothing to dispatch" in out and "fully reviewed" in out
+
+
+def test_gamedev_hand_draft_gets_mechanics_lane_by_default(run_gamedev, scratch_runosong):
+    """No contract, hand-landed draft: the gamedev set's default lanes still
+    include mechanics — a fic where magic works differently than the game is
+    canon rot in both directions."""
+    project = scratch_runosong / "Works" / "Runosong"
+    (project / "control/contracts/fill-episode-1-01.md").unlink()
+    (project / "body/drafts/hand-episode.md").write_text(
+        '---\ntype: draft\ncard: "[[Episode 1-01]]"\n---\n\nHand-written episode.\n',
+        encoding="utf-8")
+    code, _, _ = run_gamedev("run")
+    assert code == 0
+    for kind in ("canon", "voice", "mechanics"):
+        assert (project / f"reviews/{kind}/hand-episode — {kind} review.md").is_file(), kind
