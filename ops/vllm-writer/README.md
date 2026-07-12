@@ -36,8 +36,12 @@ download ~15 GB per model into the shared HF cache.
 
 ```
 systemctl --user start vllm-writer     # or enable, or a timer
-scribe-dispatch run --runner openai --base-url http://127.0.0.1:8080
+scribe-dispatch run                    # skills map routes fills here (item 1076)
 ```
 
-Per-skill routing (frontier reviews + local fills in one pass) is backlog
-item 1076 and unblocks once this backend is real.
+Per-skill routing landed 2026-07-12: the `skills:` map in
+`~/.config/scribectl/dispatch.yaml` sends `body_fill` to this endpoint and
+leaves reviews on the frontier default — one `run`, both backends.
+Winner: `gaunernst/gemma-3-27b-it-int4-awq` (operator verdict; Mistral 2501
+was the runner-up, Cydonia disqualified on a broken chat-template serving
+path in the quant).

@@ -1,12 +1,12 @@
 SPRINT: 2026-S00-cairn-backlog  [planned]
 Goal:   Backlog cairn: Phase D/E/F items waiting for their gates
 ID:     403
-Items:  20 total — 5 done, 0 active, 15 pending, 0 blocked
+Items:  20 total — 7 done, 0 active, 13 pending, 0 blocked
 
 --- Track: dispatch ---
-  health: 10 items — 5 done (50%), 0 active, 5 pending, 0 blocked (0%)
-  [pending ] #1075  Local writer backend: vllm-writer.service + writer.env on the RTX 3090 (reuse vllm-devstral pattern); model bake-off (Mistral Small 24B / Gemma 3 27B / writing finetunes) judged via review_voice against the Prose Voice Canon  (assignee: -)
-  [pending ] #1076  Per-skill runner routing in dispatch.yaml (e.g. frontier reviews + local fills) — after two real backends exist  (assignee: -)
+  health: 10 items — 7 done (70%), 0 active, 3 pending, 0 blocked (0%)
+  [done    ] #1075  Local writer backend: vllm-writer.service + writer.env on the RTX 3090 (reuse vllm-devstral pattern); model bake-off (Mistral Small 24B / Gemma 3 27B / writing finetunes) judged via review_voice against the Prose Voice Canon  (assignee: -)
+  [done    ] #1076  Per-skill runner routing in dispatch.yaml (e.g. frontier reviews + local fills) — after two real backends exist  (assignee: -)
   [pending ] #1077  codex CLI backend for scribedispatch (runner abstraction already vendor-neutral) — when codex is installed  (assignee: -)
   [done    ] #1078  Watch mode: scribe-dispatch watch or systemd timer; livesync debounce so half-synced notes never dispatch  (assignee: -)
   [done    ] #1079  Candidate mining: parse 'Introduced candidates' from landed review reports into the ratification Inbox as pending candidates (RATIFICATION.md reconciler track)  (assignee: -)
@@ -32,4 +32,4 @@ Items:  20 total — 5 done, 0 active, 15 pending, 0 blocked
   [pending ] #1092  Mining packs + scribectl propose + fact_proposal status rows (RATIFICATION.md build item 3): freeze-and-hash extraction packs; agents mine legacy ore into quarantined proposals; candidates land in the inbox  (assignee: -)
   [pending ] #1093  Reconciler pass (RATIFICATION.md build item 4): read sibling proposals targeting the same node, emit a merge proposal flagging overlaps/contradictions — gated on >=2 sources actually being mined  (assignee: -)
 
-Rendered: 2026-07-12T12:35:44Z
+Rendered: 2026-07-12T15:19:06Z

@@ -85,16 +85,22 @@ One abstraction, `Runner.generate(prompt) -> text`, three backends:
 
 Backend choice is machine policy, not vault content: `--runner`/`--model`/
 `--base-url` flags, env (`SCRIBE_DISPATCH_RUNNER`…), then
-`~/.config/scribectl/dispatch.yaml`. Per-skill routing (frontier reviews +
-local fills, say) is a config map, backlog until two backends are real.
-`codex` joins as a fourth backend if/when the CLI is installed — the
-abstraction is the contract, not the vendor.
+`~/.config/scribectl/dispatch.yaml`. Per-skill routing landed 2026-07-12
+(item 1076, once two backends were real): a `skills:` map in dispatch.yaml
+routes each skill (frontier reviews + local fills is the shipped shape) with
+the top-level keys as fallback; an explicit `--runner` pins one backend for
+the whole pass. `codex` joins as a fourth backend if/when the CLI is
+installed — the abstraction is the contract, not the vendor.
 
 The local track reuses the proven `vllm-devstral.service` pattern (user unit +
 env file, AWQ 4-bit, 24 GB budget) with a *writing* model — Devstral is a code
-model. Candidate bake-off (Mistral Small 24B, Gemma 3 27B, writing finetunes)
-is judged the only way that matters: `review_voice` reports against the Prose
-Voice Canon, read by the writer.
+model (`ops/vllm-writer/`). The candidate bake-off (Mistral Small 24B, Gemma 3
+27B, Cydonia as the writing finetune) was judged the only way that matters —
+`review_voice` reports against the Prose Voice Canon, read by the writer —
+and Gemma 3 27B won on 2026-07-12: the only draft whose administrative
+physical detail carried the horror. (Cydonia was disqualified diagnostically:
+its AWQ quant's chat-template serving path is broken; the weights write fine
+through a hand-templated raw completion.)
 
 ## Skill contracts
 

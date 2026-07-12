@@ -31,7 +31,8 @@ def _read(path: Path, missing: str) -> str:
     return path.read_text(encoding="utf-8") if path.is_file() else missing
 
 
-def execute(d: Dispatch, state: dict, contracts: dict, runner, model: str | None) -> Path:
+def execute(d: Dispatch, state: dict, contracts: dict, runner) -> Path:
+    model = runner.model
     proj = state["project"]
     root = Path(proj["root"])
     if d.skill == "body_fill":
@@ -84,10 +85,9 @@ def last_change(root: Path) -> float:
                 if p.is_file() or p.is_dir()), default=0.0)
 
 
-def _run_once(args, make_runner_fn, model: str | None, chatty: bool = True) -> None:
+def _run_once(args, runners: "RunnerPool", chatty: bool = True) -> None:
     """One dispatch pass. The follow-up iteration exists only so reviews fire
     on drafts this pass just landed — never a second fill, never iteration."""
-    runner = None
     first = True
     while True:
         state = engine.status(args.project)
@@ -103,12 +103,11 @@ def _run_once(args, make_runner_fn, model: str | None, chatty: bool = True) -> N
             if first and chatty:
                 print("nothing to dispatch")
             return
-        if runner is None:
-            runner = make_runner_fn()
         filled = False
         for d in dispatches:
+            runner = runners.for_skill(d.skill)
             print(f"dispatching {d.skill} for {d.card} [{runner.name}] — {d.reason}")
-            path = execute(d, state, contracts, runner, model)
+            path = execute(d, state, contracts, runner)
             print(f"  landed {path}")
             filled = filled or d.skill == "body_fill"
         if not filled:
@@ -116,7 +115,7 @@ def _run_once(args, make_runner_fn, model: str | None, chatty: bool = True) -> N
         first = False
 
 
-def _watch(args, make_runner_fn, model: str | None) -> int:
+def _watch(args, runners: "RunnerPool") -> int:
     """Poll-and-pass loop. A tick where the vault changed inside the settle
     window dispatches nothing — wait out the livesync burst and let the next
     tick look again. Errors are not survived: a dead watch is visible, a watch
@@ -133,7 +132,7 @@ def _watch(args, make_runner_fn, model: str | None) -> int:
             print(f"[watch] vault changed {quiet:.0f}s ago (settle {args.settle:.0f}s) — "
                   "waiting for livesync to finish")
             continue
-        _run_once(args, make_runner_fn, model, chatty=False)
+        _run_once(args, runners, chatty=False)
     return 0
 
 
@@ -143,6 +142,45 @@ def _config() -> dict:
         cfg = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
         return cfg if isinstance(cfg, dict) else {}
     return {}
+
+
+class RunnerPool:
+    """Per-skill runner routing (backlog item 1076). Backend choice stays
+    machine policy: an explicit --runner (or env) pins one backend for the
+    whole pass — that's how the bake-off harness forces a model — otherwise
+    the config's `skills:` map routes each skill (frontier reviews + local
+    fills, say) and the top-level keys are the fallback."""
+
+    def __init__(self, args, cfg: dict):
+        self._cli_runner = args.runner or os.environ.get("SCRIBE_DISPATCH_RUNNER")
+        self._cli_model = args.model or os.environ.get("SCRIBE_DISPATCH_MODEL")
+        self._cli_base = args.base_url or os.environ.get("SCRIBE_DISPATCH_BASE_URL")
+        self._fake_dir = args.fake_dir or os.environ.get("SCRIBE_DISPATCH_FAKE_DIR")
+        self._cfg = cfg
+        self._skills = cfg.get("skills") if isinstance(cfg.get("skills"), dict) else {}
+        self._cache: dict[tuple, object] = {}
+
+    def route(self, skill: str) -> tuple[str | None, str | None, str | None]:
+        per = self._skills.get(skill) if isinstance(self._skills.get(skill), dict) else {}
+        if self._cli_runner:
+            per = {}  # explicit invocation overrides the routing map entirely
+        name = (self._cli_runner or per.get("runner")
+                or self._cfg.get("runner") or "claude")
+        model = self._cli_model or per.get("model") or self._cfg.get("model")
+        base_url = self._cli_base or per.get("base_url") or self._cfg.get("base_url")
+        return name, model, base_url
+
+    def for_skill(self, skill: str):
+        key = self.route(skill)
+        if key not in self._cache:
+            name, model, base_url = key
+            self._cache[key] = make_runner(name, model=model, base_url=base_url,
+                                           fake_dir=self._fake_dir)
+        return self._cache[key]
+
+    def describe(self, skill: str) -> str:
+        name, model, _ = self.route(skill)
+        return f"{name}:{model}" if model else name
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -164,15 +202,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="watch: exit after N polls (timer/cron single-shot: --ticks 1)")
     args = ap.parse_args(argv)
 
-    cfg = _config()
-    runner_name = (args.runner or os.environ.get("SCRIBE_DISPATCH_RUNNER")
-                   or cfg.get("runner") or "claude")
-    model = args.model or os.environ.get("SCRIBE_DISPATCH_MODEL") or cfg.get("model")
-    base_url = args.base_url or os.environ.get("SCRIBE_DISPATCH_BASE_URL") or cfg.get("base_url")
-
-    def make():
-        return make_runner(runner_name, model=model, base_url=base_url,
-                           fake_dir=args.fake_dir or os.environ.get("SCRIBE_DISPATCH_FAKE_DIR"))
+    runners = RunnerPool(args, _config())
 
     try:
         if args.command == "plan":
@@ -183,15 +213,16 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  - {note}")
             for d in dispatches:
                 extra = f" (draft: {d.draft})" if d.draft else ""
-                print(f"would dispatch {d.skill} for {d.card}{extra} — {d.reason}")
+                print(f"would dispatch {d.skill} for {d.card}{extra} "
+                      f"[{runners.describe(d.skill)}] — {d.reason}")
             if any(d.skill == "body_fill" for d in dispatches):
                 print("(reviews for landed fills fire in the same run)")
             if not dispatches:
                 print("nothing to dispatch")
             return 0
         if args.command == "watch":
-            return _watch(args, make, model)
-        _run_once(args, make, model)
+            return _watch(args, runners)
+        _run_once(args, runners)
         return 0
     except DispatchError as e:
         print(f"scribe-dispatch: {e}", file=sys.stderr)

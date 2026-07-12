@@ -278,3 +278,45 @@ def test_gamedev_hand_draft_gets_mechanics_lane_by_default(run_gamedev, scratch_
     assert code == 0
     for kind in ("canon", "voice", "mechanics"):
         assert (project / f"reviews/{kind}/hand-episode — {kind} review.md").is_file(), kind
+
+
+def test_per_skill_routing_splits_fill_and_reviews(monkeypatch, capsys,
+                                                   scratch_root, scratch_project, fakes):
+    """dispatch.yaml `skills:` map (backlog item 1076): fills route to the
+    local writer, reviews fall back to the frontier default — and an explicit
+    --runner still pins one backend for the whole pass."""
+    from scribedispatch import cli, runner as runner_mod
+
+    monkeypatch.setenv("SCRIBECTL_VAULT", str(scratch_root))
+    monkeypatch.setenv("SCRIBE_DISPATCH_FAKE_DIR", str(fakes))
+    monkeypatch.setattr(cli, "_config", lambda: {
+        "runner": "claude",
+        "skills": {"body_fill": {"runner": "openai",
+                                 "base_url": "http://127.0.0.1:8080",
+                                 "model": "local-writer"}}})
+    made = []
+
+    def recording(name, model=None, base_url=None, fake_dir=None):
+        made.append((name, model, base_url))
+        return runner_mod.FakeRunner(fake_dir or str(fakes))
+
+    monkeypatch.setattr(cli, "make_runner", recording)
+    unblock(scratch_project)
+
+    code = cli.main(["plan"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "would dispatch body_fill for Scene 01-01 [openai:local-writer]" in out
+
+    # Explicit --runner overrides the map: one backend for the whole pass.
+    code = cli.main(["plan", "--runner", "fake"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "would dispatch body_fill for Scene 01-01 [fake]" in out
+
+    code = cli.main(["run"])
+    out = capsys.readouterr().out
+    assert code == 0
+    assert ("openai", "local-writer", "http://127.0.0.1:8080") in made
+    assert ("claude", None, None) in made  # reviews fell back to the default
+    assert (scratch_project / "body/drafts/ch01-sc01-draft-a.md").is_file()

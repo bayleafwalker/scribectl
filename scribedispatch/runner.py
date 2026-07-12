@@ -79,6 +79,7 @@ class OpenAIRunner:
 
 class FakeRunner:
     name = "fake"
+    model = None
 
     def __init__(self, responses_dir: str | Path):
         self.dir = Path(responses_dir)
