@@ -129,8 +129,10 @@ the real vault.
 
 - **No watch daemon.** `plan`/`run` are single passes you (or a timer, later)
   invoke. Livesync debounce is a real problem to solve when watch mode is.
-- **No candidate mining.** Reviews list "Introduced candidates"; routing them
-  into the ratification Inbox is the RATIFICATION.md reconciler track.
+- **No candidate mining by the dispatcher.** Reviews list "Introduced
+  candidates"; the *engine's* `scribectl ratify --mine` lifts them into the
+  ratification Inbox as pending candidates (RATIFICATION.md build item 2,
+  landed 2026-07-12). The dispatcher itself still never touches the inbox.
 - **No real-vault dispatch** until the fixture loop and the live smoke both
   hold. `/media/Creative` is production.
 - **No agent-on-agent loops, no retries-with-feedback.** A bad draft is

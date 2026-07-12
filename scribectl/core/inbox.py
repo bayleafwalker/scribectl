@@ -28,8 +28,13 @@ from .vault import WIKILINK
 CANDIDATE = re.compile(r"^- \[( |x|X|>|-)\]\s*(\S.*)$")
 ARROW = re.compile(r"\s*(?:→|->)\s*")
 HEADING = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
+QUOTED = re.compile(r'"([^"]+)"|“([^”]+)”')
 
 VERDICTS = {"x": "accept", "-": "reject", ">": "defer", " ": "pending"}
+
+# Review reports quarantine inventions under this heading (exact tail wording
+# varies by template set, so match on the prefix).
+CANDIDATE_SECTION = "introduced candidates"
 
 
 @dataclass(frozen=True)
@@ -89,6 +94,79 @@ def parse_inbox(text: str) -> tuple[list[Candidate], list[tuple[int, str]]]:
             lines=(start, i),
         ))
     return candidates, problems
+
+
+def _quoted_span(s: str) -> str | None:
+    m = QUOTED.search(s)
+    return (m.group(1) or m.group(2)).strip() if m else None
+
+
+def _report_provenance(note) -> str:
+    """The provenance line every mined candidate carries. The `via [[report]]`
+    link doubles as the mined-already marker: sweep copies provenance into the
+    receipt verbatim, so the marker outlives the candidate in inbox or ledger."""
+    bits = []
+    draft = next(iter(note.links("draft")), "")
+    if draft:
+        bits.append(f"from [[{draft}]]")
+    sha = str(note.meta.get("pack_sha") or "")
+    if sha and sha != "none":
+        bits.append(f"pack {sha}")
+    bits.append(f"via [[{note.name}]]")
+    return "(" + ", ".join(bits) + ")"
+
+
+def mine_report(note) -> list[str]:
+    """Inbox-grammar candidate blocks lifted from one review report's
+    `## Introduced candidates …` section (docs/RATIFICATION.md, build item 2).
+
+    Every candidate lands pending — mining queues, only the writer decides.
+    A bullet the reviewer routed (`→ [[node]]`) keeps its suggested route; an
+    unrouted bullet is queued without an arrow, which every later sweep flags
+    as a problem until the writer routes it — fail toward the writer looking.
+    """
+    title = next((t for t in note.section_titles()
+                  if t.lower().startswith(CANDIDATE_SECTION)), None)
+    if title is None:
+        return []
+    prov = _report_provenance(note)
+    blocks: list[str] = []
+    for line in (note.section(title) or "").splitlines():
+        if not line.startswith("- "):
+            continue
+        text = line[2:].strip()
+        # Skip empties, `- none`, and uninstantiated template placeholders.
+        if not text or text.rstrip(".").lower() == "none" or "<" in text:
+            continue
+        parts = ARROW.split(text)
+        targets = [t for t in WIKILINK.findall(parts[-1]) if t.strip()] if len(parts) > 1 else []
+        if targets:
+            lead = " → ".join(parts[:-1])
+            fact = _quoted_span(lead) or _strip_quotes(lead)
+            blocks.append(f'- [ ] "{fact}" → [[{targets[0].strip()}]]\n      {prov}')
+        else:
+            fact = _quoted_span(text) or text
+            blocks.append(f'- [ ] "{fact}"\n      {prov}')
+    return blocks
+
+
+def mine(vault, inbox_text: str, ledger_text: str) -> tuple[list[str], list[str]]:
+    """(candidate blocks to append to the inbox, names of reports mined).
+
+    A report already wikilinked from the inbox or the ledger was mined before
+    and is skipped — idempotency by artifact content, nothing stored."""
+    seen = {t.strip() for text in (inbox_text, ledger_text)
+            for t in WIKILINK.findall(text) if t.strip()}
+    blocks: list[str] = []
+    names: list[str] = []
+    for r in sorted(vault.by_type("review_report"), key=lambda n: n.name):
+        if r.name in seen:
+            continue
+        got = mine_report(r)
+        if got:
+            blocks += got
+            names.append(r.name)
+    return blocks, names
 
 
 def receipt(c: Candidate) -> str:

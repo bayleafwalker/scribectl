@@ -315,6 +315,88 @@ def test_sweep_rejects_flag_mixing(run, scratch_root, inbox):
     assert code != 0 and "inbox" in err
     code, _, err = run("ratify", "--dry-run", "--accept", "x", vault=scratch_root)
     assert code != 0 and "--sweep" in err
+    code, _, err = run("ratify", "--mine", "--accept", "x", vault=scratch_root)
+    assert code != 0 and "--mine" in err
+
+
+# -- ratify --mine ------------------------------------------------------------
+
+CANON_REVIEW = """\
+---
+type: review_report
+kind: canon
+target: "[[Scene 01-01]]"
+draft: "[[Scene 01-01 — draft 1]]"
+pack_sha: 0123abcdef01
+verdict: clean
+---
+
+## Findings
+- none
+
+## Introduced candidates seen in draft
+- "Ash-line ledgers are audited at solstice" → [[The Volcanic City-State]]
+- "The clerk's alibi stamp" — appears in neither timeline nor pack
+"""
+
+
+@pytest.fixture
+def landed_review(scratch_project) -> Path:
+    path = scratch_project / "reviews/canon/Scene 01-01 — draft 1 — canon review.md"
+    path.write_text(CANON_REVIEW, encoding="utf-8")
+    return path
+
+
+def test_mine_queues_pending_and_creates_inbox(run, scratch_root, scratch_project, landed_review):
+    code, out, err = run("ratify", "--mine", vault=scratch_root)
+    assert code == 0 and err == ""
+    assert "queued 2 candidates from 1 review report" in out
+    # The inbox was created from the set's template, candidates land pending
+    # with full provenance; nothing is ever mined as decided.
+    text = (scratch_project / "control/ratification/Inbox.md").read_text(encoding="utf-8")
+    assert "# Ratification Inbox" in text
+    assert ('- [ ] "Ash-line ledgers are audited at solstice" → [[The Volcanic City-State]]\n'
+            "      (from [[Scene 01-01 — draft 1]], pack 0123abcdef01, "
+            "via [[Scene 01-01 — draft 1 — canon review]])") in text
+    assert '- [ ] "The clerk\'s alibi stamp"' in text
+    assert "- [x]" not in text.split("```")[-1]
+
+    # Idempotent: the via-link marks the report mined.
+    code, out, _ = run("ratify", "--mine", vault=scratch_root)
+    assert code == 0 and "nothing to mine" in out
+
+
+def test_mine_dry_run_writes_nothing(run, scratch_root, scratch_project, landed_review):
+    code, out, _ = run("ratify", "--mine", "--dry-run", vault=scratch_root)
+    assert code == 0
+    assert "dry run" in out and "Ash-line ledgers are audited" in out
+    assert not (scratch_project / "control/ratification/Inbox.md").exists()
+
+
+def test_sweep_mines_before_executing(run, scratch_root, scratch_project, inbox, landed_review):
+    code, out, err = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0
+    assert "queued 2 candidates" in out and "cleared 3 candidates" in out
+    text = inbox.read_text(encoding="utf-8")
+    # Decided candidates swept out, freshly mined ones sit pending.
+    assert "Ash-line ledgers track heat debts" not in text
+    assert '- [ ] "Ash-line ledgers are audited at solstice"' in text
+    # The unrouted mined candidate nags from stderr until the writer routes it.
+    assert "no `→ [[target]]`" in err
+
+    # Ticking a mined candidate ratifies it with provenance carried verbatim.
+    inbox.write_text(text.replace('- [ ] "Ash-line ledgers are audited at solstice"',
+                                  '- [x] "Ash-line ledgers are audited at solstice"'),
+                     encoding="utf-8")
+    code, _, _ = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0
+    log = (scratch_project / "control/ratification/Ratification Log.md").read_text(encoding="utf-8")
+    assert ('"Ash-line ledgers are audited at solstice" → promoted to '
+            "[[The Volcanic City-State]] (from [[Scene 01-01 — draft 1]], "
+            "pack 0123abcdef01, via [[Scene 01-01 — draft 1 — canon review]])") in log
+    # The ledger's via-link keeps the report mined-once forever.
+    code, out, _ = run("ratify", "--mine", vault=scratch_root)
+    assert "nothing to mine" in out
 
 
 # -- adopt ------------------------------------------------------------------

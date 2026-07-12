@@ -177,5 +177,14 @@ longer seeds a phantom event into every pack.
    sets and `init` instantiates it.
 2. Review-report template gains machine-parsable candidate lines that
    `--sweep` can lift into the inbox (or reports write to the inbox directly).
+   — DONE 2026-07-12: `ratify --mine` (also fired first by every `--sweep`)
+   lifts `## Introduced candidates …` bullets from landed review reports into
+   the inbox as *pending* candidates with provenance
+   `(from [[draft]], pack sha, via [[report]])`; the via-link is the
+   mined-once marker (sweep carries provenance into receipts verbatim, so the
+   marker outlives the candidate). Reviewer bullets carry a suggested route
+   (`→ [[node]]`, chosen from pack nodes only — see the review_canon skill
+   contract); an unrouted bullet is queued without an arrow and nags as a
+   sweep problem until the writer routes it. Nothing is ever mined as decided.
 3. Mining packs + `propose` + `fact_proposal` status rows.
 4. Reconciler pass, only once ≥2 sources are actually being mined.

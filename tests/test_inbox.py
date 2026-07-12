@@ -1,12 +1,17 @@
-"""Verdict inbox: parsing and the pure sweep transforms.
+"""Verdict inbox: parsing, the pure sweep transforms, and candidate mining.
 
 The contract under test: checkbox marks map to verdicts, provenance rides
 along verbatim, malformed candidates surface as problems instead of vanishing,
-and the node/inbox rewrites touch nothing beyond their sanctioned span.
+the node/inbox rewrites touch nothing beyond their sanctioned span, and mined
+candidates land pending with a via-link that makes mining idempotent.
 """
+from pathlib import Path
+
 import pytest
 
-from scribectl.core.inbox import append_bullets, parse_inbox, receipt, remove_candidates
+from scribectl.core.inbox import (append_bullets, mine, mine_report,
+                                  parse_inbox, receipt, remove_candidates)
+from scribectl.core.vault import Note, Vault
 
 INBOX = """\
 ---
@@ -110,3 +115,71 @@ def test_remove_candidates_preserves_the_rest():
     assert [c.fact for c in remaining] == ["Bay Nine ≈ forty throats"]
     assert len(problems) == 1  # the malformed line is not ours to delete
     assert "# Ratification Inbox" in out and "fenced example" in out
+
+
+# -- candidate mining (docs/RATIFICATION.md, build item 2) --------------------
+
+REPORT_BODY = """\
+# canon review — Scene 01-01
+
+## Findings
+- none
+
+## Introduced candidates seen in draft
+- "The ash-census is conducted quarterly" — appears in neither timeline nor pack
+- "Curfew keys are cut in pairs" → [[Mara Vey]] — implied by the clerk scene
+- "<new fact, worded as a checkable claim>" → [[<the canon node it belongs in>]]
+- none
+"""
+
+
+def _report(name="ch01-sc01-draft-a — canon review", body=REPORT_BODY, **meta):
+    m = {"type": "review_report", "kind": "canon",
+         "draft": "[[ch01-sc01-draft-a]]", "pack_sha": "d21f2dd064bd", **meta}
+    return Note(path=Path(f"reviews/canon/{name}.md"), meta=m, body=body)
+
+
+PROV = ("(from [[ch01-sc01-draft-a]], pack d21f2dd064bd, "
+        "via [[ch01-sc01-draft-a — canon review]])")
+
+
+def test_mine_report_lifts_candidates_pending():
+    blocks = mine_report(_report())
+    # `- none` and the template placeholder never become candidates.
+    assert blocks == [
+        f'- [ ] "The ash-census is conducted quarterly"\n      {PROV}',
+        f'- [ ] "Curfew keys are cut in pairs" → [[Mara Vey]]\n      {PROV}',
+    ]
+    # The routed block round-trips through the inbox grammar; the unrouted one
+    # surfaces as a problem every sweep until the writer routes it.
+    cands, problems = parse_inbox("\n".join(blocks) + "\n")
+    assert [c.verdict for c in cands] == ["pending"]
+    assert cands[0].fact == "Curfew keys are cut in pairs"
+    assert cands[0].target == "Mara Vey"
+    assert cands[0].provenance == PROV
+    assert len(problems) == 1 and "no `→ [[target]]`" in problems[0][1]
+
+
+def test_mine_report_without_candidates_section():
+    voice = _report(body="## Findings\n- none\n\n## Strongest passage\n- x\n")
+    assert mine_report(voice) == []
+    sparse = _report(body="## Introduced candidates seen in draft\n- none\n")
+    assert mine_report(sparse) == []
+
+
+def test_mine_report_provenance_omits_what_is_missing():
+    bare = _report(body='## Introduced candidates seen in draft\n- "A fact"\n')
+    bare.meta.pop("draft"), bare.meta.update(pack_sha="none")
+    assert mine_report(bare) == [
+        '- [ ] "A fact"\n      (via [[ch01-sc01-draft-a — canon review]])']
+
+
+def test_mine_skips_reports_already_linked():
+    vault = Vault(root=Path("."), notes={"r": _report()})
+    blocks, names = mine(vault, "", "")
+    assert names == ["ch01-sc01-draft-a — canon review"] and len(blocks) == 2
+    # Wikilinked from the inbox (still queued) or the ledger (swept): skipped.
+    inboxed = "- [ ] \"x\"\n      via [[ch01-sc01-draft-a — canon review]]\n"
+    assert mine(vault, inboxed, "") == ([], [])
+    ledgered = '### Accepted\n- "x" → [[Y]] (via [[ch01-sc01-draft-a — canon review]])\n'
+    assert mine(vault, "", ledgered) == ([], [])

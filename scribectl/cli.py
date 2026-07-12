@@ -21,7 +21,7 @@ from pathlib import Path
 
 from .config import DEFAULTS, DEFAULT_ROOTS, ProjectConfig, discover_projects, vault_roots
 from .core.contextpack import build_pack
-from .core.inbox import append_bullets, parse_inbox, receipt, remove_candidates
+from .core.inbox import append_bullets, mine, parse_inbox, receipt, remove_candidates
 from .core.project import card_artifacts, project as project_rows
 from .core.vault import Vault
 from .templateset import TemplateSet, list_sets, load_set
@@ -182,6 +182,35 @@ def _append_ledger(ledger: Path, groups: list[tuple[str, list[str]]]) -> int:
     return sum(len(e) for _, e in groups)
 
 
+def _mine(cfg: ProjectConfig, dry_run: bool, standalone: bool = False) -> int:
+    """Queue review-report candidates into the inbox as pending (mining is
+    mechanics: only the writer's checkbox ever decides). Creates the inbox
+    from the set's template on first use — mining is what first proposes
+    canon. Idempotent: a report wikilinked from inbox or ledger is skipped."""
+    vault = Vault.load(cfg.root)
+    inbox = cfg.ratification_inbox
+    base = inbox.read_text(encoding="utf-8") if inbox.is_file() \
+        else (_ts(cfg).dir / "ratification_inbox.md").read_text(encoding="utf-8")
+    ledger = cfg.ratification_log
+    ledger_text = ledger.read_text(encoding="utf-8") if ledger.is_file() else ""
+    blocks, names = mine(vault, base, ledger_text)
+    if not blocks:
+        if standalone:
+            print("nothing to mine (no unqueued review-report candidates)")
+        return 0
+    what = (f"{len(blocks)} candidate{'s' if len(blocks) != 1 else ''} from "
+            f"{len(names)} review report{'s' if len(names) != 1 else ''}")
+    if dry_run:
+        print(f"dry run — would queue {what} into {inbox.name}:\n")
+        print("\n".join(blocks) + "\n")
+        return 0
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    lead = base if base.endswith("\n") else base + "\n"
+    inbox.write_text(lead + "\n".join(blocks) + "\n", encoding="utf-8")
+    print(f"queued {what} into {inbox.name}")
+    return 0
+
+
 def _sweep(cfg: ProjectConfig, dry_run: bool) -> int:
     """Execute the writer's checkbox verdicts from the inbox: fact into the
     node, receipt into the ledger, candidate out of the inbox — the mechanics
@@ -259,12 +288,18 @@ def _sweep(cfg: ProjectConfig, dry_run: bool) -> int:
 def cmd_ratify(args) -> int:
     cfg = _select(args.project)
     groups = [("Accepted", args.accept), ("Rejected", args.reject), ("Deferred", args.defer)]
-    if args.sweep:
+    if args.sweep or args.mine:
         if any(entries for _, entries in groups):
-            raise CLIError("--sweep takes its verdicts from the inbox; drop --accept/--reject/--defer")
+            raise CLIError("--sweep/--mine take their candidates from reports and the inbox; "
+                           "drop --accept/--reject/--defer")
+        if not args.sweep:
+            return _mine(cfg, dry_run=args.dry_run, standalone=True)
+        # Sweep lifts fresh report candidates first (they land pending, so the
+        # writer's next look has them), then executes the decided ones.
+        _mine(cfg, dry_run=args.dry_run)
         return _sweep(cfg, dry_run=args.dry_run)
     if args.dry_run:
-        raise CLIError("--dry-run only applies to --sweep")
+        raise CLIError("--dry-run only applies to --sweep/--mine")
     if not any(entries for _, entries in groups):
         raise CLIError("nothing to ratify: pass --accept/--reject/--defer at least once, or --sweep")
     n = _append_ledger(cfg.ratification_log, groups)
@@ -387,9 +422,12 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--reject", action="append", default=[], metavar="ENTRY")
     p.add_argument("--defer", action="append", default=[], metavar="ENTRY")
     p.add_argument("--sweep", action="store_true",
-                   help="execute the checkbox verdicts in the ratification inbox")
+                   help="execute the checkbox verdicts in the ratification inbox "
+                        "(mines new review-report candidates first)")
+    p.add_argument("--mine", action="store_true",
+                   help="queue review-report 'Introduced candidates' into the inbox as pending")
     p.add_argument("--dry-run", action="store_true",
-                   help="with --sweep: print what would land where, write nothing")
+                   help="with --sweep/--mine: print what would land where, write nothing")
     p.set_defaults(fn=cmd_ratify)
 
     p = sub.add_parser("adopt", help="wrap a legacy vault note as a canon-node stub")

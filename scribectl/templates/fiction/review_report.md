@@ -14,7 +14,9 @@ verdict: <clean|issues>
 violated directive. For beta: where confused / where tension dropped / what landed.>
 
 ## Introduced candidates seen in draft
-- "<new fact>" — route to ratification log
+- "<new fact, worded as a checkable claim>" → [[<the canon node it belongs in>]]
+<!-- `scribectl ratify --mine` lifts these into the ratification inbox as
+     pending candidates; leave the arrow off if you can't route it yet. -->
 
 ## This report does not edit anything.
 <Consumption is manual. You decide what to act on.>

@@ -29,8 +29,12 @@ Raw markdown, NO yaml frontmatter, NO preamble. First line MUST be exactly
    timeline forbids) count; tone does not.
 2. `## Introduced candidates seen in draft` — new proper nouns or world facts
    the draft asserts that appear in neither timeline nor pack, one bullet
-   each, phrased as a checkable claim for the ratification inbox. `- none` if
-   there are none.
+   each, phrased as a checkable claim for the ratification inbox, in exactly
+   this machine-parsable shape:
+   `- "the claim, worded as it should read in canon" → [[node]]`
+   where `[[node]]` is the pack canon node the fact belongs in. Omit the
+   `→ [[node]]` when no pack node fits — never invent a node name. `- none`
+   if there are none.
 
 A fact merely *absent* from the pack is a candidate, not a contradiction.
 Verdict is `issues` only when Findings is non-empty.
