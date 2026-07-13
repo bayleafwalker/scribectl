@@ -1,0 +1,39 @@
+{
+  "schema_version": "test-context/v1",
+  "id": "scribectl.ratification.sweep-recovery",
+  "owner_repo": "scribectl",
+  "subject": "ratification-candidate",
+  "contract_ref": {
+    "doc_id": "scribectl.state-protocols",
+    "revision": "sha256:09072a5ade16cff285cf67414480a9dc9becdd889b64561f5b1f12446782d392"
+  },
+  "source_of_truth": "inbox-verdict-plus-target-node-plus-ratification-ledger",
+  "depth": 2,
+  "backends": ["posix-filesystem"],
+  "actors": ["writer-sweep-a", "writer-sweep-b", "ambient-miner"],
+  "initial_state": ["one accepted inbox candidate", "target fact absent", "ledger receipt absent"],
+  "operations": [
+    { "name": "mine", "actors": ["ambient-miner"], "synchronization": "before-and-after-sweep" },
+    { "name": "sweep", "actors": ["writer-sweep-a", "writer-sweep-b"], "synchronization": "barrier-before-each-durable-write" },
+    { "name": "status", "actors": "*", "synchronization": "after-each-fault-point" }
+  ],
+  "consistency": { "target": "application-invariant", "object": "ratification-receipt-and-canon-projection" },
+  "assumptions": { "isolation": "separate-processes-shared-filesystem", "clock": "not-authoritative", "fairness": "writer-driven" },
+  "bounds": { "candidates": 8, "sweepers": 2, "fault_points": 4 },
+  "invariants": [
+    "only-accepted-checkbox-promotes-fact",
+    "accepted-receipt-preserves-provenance",
+    "mining-does-not-duplicate-source-artifact",
+    "pending-candidate-is-never-silently-dropped",
+    "derived-status-matches-ledger-and-target-node"
+  ],
+  "faults": [
+    "crash-after-target-write-before-ledger",
+    "crash-after-ledger-before-inbox-removal",
+    "concurrent-sweep-same-candidate",
+    "mine-races-sweep"
+  ],
+  "oracles": ["pure-inbox-transform-model", "ledger-receipt-set", "target-fact-set", "derived-project-status", "pristine-fixture-hash"],
+  "implementation_anchors": ["scribectl/core/inbox.py:mine", "scribectl/core/inbox.py:parse_inbox", "scribectl/core/project.py:canon_status", "scribectl/cli.py:ratify"],
+  "expansions": ["semantic-doc", "stateful-test", "concurrent-history", "formal-model-config", "fault-scenario"]
+}
