@@ -1,0 +1,32 @@
+{
+  "schema_version": "test-context/v1",
+  "id": "scribectl.dispatch.concurrent-artifact-landing",
+  "owner_repo": "scribectl",
+  "subject": "generated-artifact-path",
+  "contract_ref": {
+    "doc_id": "scribectl.state-protocols",
+    "revision": "sha256:c4708dfa8fa4e75f75c02294eafd17137133efcd8f17f8c734d4e16b9e04f669"
+  },
+  "source_of_truth": "fixture-vault-filesystem",
+  "depth": 2,
+  "backends": ["posix-filesystem"],
+  "actors": ["dispatcher-a", "dispatcher-b"],
+  "initial_state": ["card is ready_for_fill", "target artifact path does not exist", "one frozen pack exists"],
+  "operations": [
+    { "name": "land-draft", "actors": ["dispatcher-a", "dispatcher-b"], "synchronization": "barrier-after-existence-check-before-create" },
+    { "name": "recover-unknown-outcome", "actors": "*", "synchronization": "after-injected-response-loss" }
+  ],
+  "consistency": { "target": "linearizable", "object": "exclusive-artifact-creation" },
+  "assumptions": { "isolation": "separate-processes-shared-filesystem", "clock": "not-used-for-ownership", "fairness": "none" },
+  "bounds": { "dispatchers": 2, "attempts": 200 },
+  "invariants": [
+    "at-most-one-successful-create-per-target-path",
+    "existing-artifact-content-never-changes",
+    "landed-artifact-pack-sha-matches-frozen-pack",
+    "no-path-outside-designated-output-roots-changes"
+  ],
+  "faults": ["crash-after-create-before-response", "simultaneous-create", "malformed-review-verdict"],
+  "oracles": ["completed-operation-history", "pristine-fixture-hash", "artifact-frontmatter-parser", "filesystem-change-set"],
+  "implementation_anchors": ["scribedispatch/landing.py:_write_new", "scribedispatch/landing.py:land_draft", "scribedispatch/landing.py:land_review"],
+  "expansions": ["semantic-doc", "concurrent-history", "fault-scenario"]
+}

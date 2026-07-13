@@ -83,6 +83,14 @@ after the Phase C slice holds.
   (contact tests) demonstrates identical status/pack output.
 - Commit at the smallest reviewable scope; never commit with failing tests.
 
+## Stateful protocol verification
+
+- Routing and hooks are declared in `scribectl.dispatch.json`; closed subjects and escalation rules live in `.agents/overlays/scribectl.state-protocols.md`.
+- Use the shared `verify-state-protocols` skill for artifact landing, pack receipts, mining idempotency, ratification sweep recovery, or concurrent filesystem writers.
+- `survey` and `reconcile` are read-only. `verify` may add tests and model artifacts; `repair` requires separate product-change authorization.
+- Run fault and concurrency scenarios only against copied fixture vaults. `/media/Creative/` remains production.
+- The writer's checkbox remains the only ratification verdict. Verification and automation never set or infer acceptance.
+
 ## Artifact paths
 
 | Artifact | Path |
