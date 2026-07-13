@@ -1,4 +1,5 @@
-"""Structural checks for the shipped editor/Obsidian surfaces (#1088, #1090).
+"""Structural checks for the shipped editor/Obsidian surfaces (#1088, #1090)
+and the brainstorm session contract (#1094).
 
 There is no Obsidian or VS Code in this repo's test loop, so these assets can't
 be run here the way the CLI is. What is machine-checkable — the configs are
@@ -92,3 +93,39 @@ def test_vscode_sweep_task_is_dry_run_only():
         tasks = data["tasks"] if path.endswith(".json") else data["tasks"]["tasks"]
         sweeps = [t for t in tasks if "sweep" in t["label"]]
         assert sweeps and all("--dry-run" in t["args"] for t in sweeps)
+
+
+# -- 1094 brainstorm skill ----------------------------------------------------
+
+SKILLS = REPO / ".agents" / "skills"
+TEMPLATES = REPO / "scribectl" / "templates"
+
+# The exit protocol's command spine — the contract and both vault guides must
+# name every step, or a session's output falls out of the loop.
+EXIT_PROTOCOL = ["--kind brainstorm", "scribectl propose",
+                 "control/proposals/", "ratify --mine"]
+
+
+def test_brainstorm_contract_names_the_full_exit_protocol():
+    text = (SKILLS / "brainstorm.md").read_text(encoding="utf-8")
+    for step in EXIT_PROTOCOL:
+        assert step in text, f"brainstorm.md misses exit-protocol step: {step}"
+    # The verdict never belongs to the session agent.
+    assert "checkbox" in text and "writer" in text
+
+
+def test_brainstorm_contract_is_not_a_dispatch_prompt():
+    """No dispatch pass fires a brainstorm — the contract must carry no
+    string.Template placeholders a render() would demand values for."""
+    from string import Template
+
+    text = (SKILLS / "brainstorm.md").read_text(encoding="utf-8")
+    assert Template(text).get_identifiers() == []
+
+
+def test_vault_agent_guides_carry_the_brainstorm_protocol():
+    for ts in ("fiction", "gamedev"):
+        text = (TEMPLATES / ts / "agents.md").read_text(encoding="utf-8")
+        assert "## Brainstorm sessions" in text, f"{ts}/agents.md misses the section"
+        for step in EXIT_PROTOCOL:
+            assert step in text, f"{ts}/agents.md misses exit-protocol step: {step}"

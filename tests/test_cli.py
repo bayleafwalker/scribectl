@@ -454,6 +454,47 @@ def test_propose_candidates_ride_the_mine_path(run, scratch_runosong):
     assert "candidate pending" in sout
 
 
+def test_brainstorm_exit_protocol_rides_existing_machinery(run, tmp_path, scratch_runosong):
+    """#1094: the brainstorm skill is a session contract, not an engine feature —
+    its exit protocol (capture --kind brainstorm → propose against the transcript
+    → fill candidates → ratify --mine) must compose from shipped commands with
+    the transcript as the quotable source of every candidate."""
+    from datetime import date
+
+    proj = scratch_runosong / "Works" / "Runosong"
+    transcript = tmp_path / "session.md"
+    transcript.write_text("Writer: what if väki pools in dug earth?\n"
+                          "Agent: then a fresh ditch is a font until it silts.\n",
+                          encoding="utf-8")
+    code, _, err = run("capture", "Ditch Font Session", "--kind", "brainstorm",
+                       "--from", str(transcript), vault=scratch_runosong)
+    assert code == 0 and err == ""
+    stem = f"{date.today().isoformat()} Ditch Font Session"
+    src = proj / "sources" / f"{stem}.md"
+    assert src.is_file() and "kind: brainstorm" in src.read_text(encoding="utf-8")
+
+    # The captured transcript is ore like any other: propose mines it.
+    assert run("propose", "--into", "Ilmi", "--source", stem,
+               vault=scratch_runosong)[0] == 0
+    pack = next(iter((proj / "control/mining-packs").glob("*mining.md")))
+    assert "a fresh ditch is a font" in pack.read_text(encoding="utf-8")
+
+    prop = next(iter((proj / "control/proposals").glob("*.md")))
+    head = prop.read_text(encoding="utf-8").split("## Candidate facts")[0]
+    prop.write_text(head + '## Candidate facts\n'
+                    '- "a fresh-dug ditch acts as a väki font until it silts"\n'
+                    '      quote: "then a fresh ditch is a font until it silts"\n'
+                    '      confidence: medium\n'
+                    '      conflicts: none\n', encoding="utf-8")
+    code, out, _ = run("ratify", "--mine", vault=scratch_runosong)
+    assert code == 0 and "1 candidate from 1 fact proposal" in out
+    inbox = (proj / "control/ratification/Inbox.md").read_text(encoding="utf-8")
+    assert ('- [ ] "a fresh-dug ditch acts as a väki font until it silts" → [[Ilmi]]'
+            in inbox)
+    # Provenance chains back to the session transcript — the auditable record.
+    assert f"from [[{stem}]]" in inbox
+
+
 # -- reconcile ----------------------------------------------------------------
 
 def _fill_candidates(prop: Path, bullets: str) -> None:

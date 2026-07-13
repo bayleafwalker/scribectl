@@ -264,11 +264,16 @@ miners can actually disagree.
 ### Brainstorm / ideation
 
 Brainstorm anywhere — an agent chat, a walk, a note. The system's job is to
-catch the output, not host the muse. Today: paste the transcript as a source
-note (see above), jot keeper-ideas straight into the inbox as `[ ]`
-candidates routed to a node. Planned: a `brainstorm` skill (#1094) whose
-sessions land as quarantined proposal notes that ride the mining path into
-the inbox — ideation inside the loop, never inside the canon.
+catch the output, not host the muse. On foot: paste the transcript as a
+source note (see above), jot keeper-ideas straight into the inbox as `[ ]`
+candidates routed to a node. With an agent: the `brainstorm` skill (#1094,
+`.agents/skills/brainstorm.md`, summarized in the vault's `AGENTS.md`) makes
+the session end in a fixed exit protocol — capture the transcript verbatim
+(`--kind brainstorm`), `propose` against it, distill keeper ideas into the
+quarantined proposal's candidates (quote / confidence / conflicts), then
+`ratify --mine` queues them as pending inbox lines. Ideation inside the loop,
+never inside the canon: verdicts stay yours, and a session whose every idea
+you reject still succeeded — the ore survived and the receipts say why.
 
 ### Review and ratify — the governance pass
 
@@ -300,6 +305,6 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 | dispatch without a terminal open | `enable --now scribe-dispatch-watch.timer` | — (#1091 done) |
 | bulk-mine legacy ore into candidates | `scribectl propose --into <node> --source <ore>` → agent fills → `ratify --mine` | — (#1092 done) |
 | merge parallel mines of one node | `scribectl reconcile --into <node>` → agent merges → `ratify --mine` | — (#1093 done) |
-| ideation captured into the loop | inbox jots | #1094 brainstorm skill |
+| ideation captured into the loop | brainstorm skill exit protocol (capture → propose → mine) | — (#1094 done) |
 | local/no-cost model fills | claude runner only | #1075/#1076 vllm + routing |
 | dispatch in the real vault | engine only | after 1074 verdict → #1080 |

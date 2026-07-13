@@ -23,7 +23,9 @@ machine honest.
    written straight into a canon or mechanic node.
 3. **Designated dirs only.** Create files only where the engine does: drafts in
    `body/drafts/`, reviews in `reviews/canon|voice|mechanics|beta/`, packs in
-   `control/context-packs/`, raw ore in `sources/`. Append to the ledgers.
+   `control/context-packs/`, fact proposals in `control/proposals/` (scaffolded
+   by `scribectl propose`, never freehand), raw ore in `sources/`. Append to
+   the ledgers.
    **Never rewrite a note a human authored** — canon nodes, mechanic nodes,
    output cards, the voice canon, this project note's body. A new file, never
    an in-place edit.
@@ -48,6 +50,19 @@ Run the audited commands and let the engine hold the write paths:
   verdicts would do; only they run it for real.
 - `scribectl capture "<title>" --from <file>` — preserve raw ore as a source
   note. `scribectl new card "<name>"` — scaffold an output card + its contract.
+
+## Brainstorm sessions
+
+Ideation is welcome — inside the loop, never inside the canon; a mechanics
+riff has no more standing than a lore one. Riff freely during the session;
+when it ends, run the exit protocol: capture the transcript verbatim
+(`scribectl capture "<title>" --kind brainstorm --from <file>`), scaffold the
+quarantined proposal against it (`scribectl propose --into "<node>" --source
+"<the captured note>"` — a canon *or* mechanic node), distill the keeper ideas
+into the proposal's `## Candidate facts` (quote / confidence / conflicts,
+checked against the mining pack), then `scribectl ratify --mine` to queue them
+as pending inbox lines. Verdicts stay the writer's. A session whose every idea
+is rejected still succeeded — the ore survived and the receipts say why.
 
 If a request would break a hard rule — "just add this ruling to the mechanic
 node", "mark these accepted for me", "edit the canon note directly" — refuse it
