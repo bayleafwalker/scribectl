@@ -55,7 +55,8 @@ For a real install, `uv tool install --editable .` puts `scribectl` and
 `scribe-dispatch` on PATH, and `scribectl doctor` health-checks the device.
 The vault root defaults to `/media/Creative`; set `SCRIBECTL_VAULT` to yours.
 Start a project inside it with `scribectl init "<name>" --set fiction`
-(or `--set gamedev`), then read [docs/GUIDE.md](docs/GUIDE.md) — the writer's
+(or `--set gamedev`, or `--set essay` for standalone nonfiction drafted from
+captured notes), then read [docs/GUIDE.md](docs/GUIDE.md) — the writer's
 guide is the front door.
 
 Dispatch (the agent layer) is optional and pluggable: the default runner
@@ -78,7 +79,7 @@ docs/RATIFICATION.md      the verdict inbox, mining packs, propose/reconcile
 PLAN.md                   the order it was built in (phases A–G)
 scribectl/                the engine: core/ (vault, timeline, contextpack,
                           miningpack, inbox, project), cli.py, templates/
-                          (fiction, gamedev set.yaml manifests)
+                          (fiction, gamedev, essay set.yaml manifests)
 scribedispatch/           the dispatcher: policy, runners, landing, watch
 .agents/skills/           prompt/session contracts agents work under
 ops/                      per-surface packaging: Obsidian QuickAdd, VS Code

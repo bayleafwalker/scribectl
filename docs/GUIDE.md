@@ -184,6 +184,7 @@ same state.
 ```
 scribectl init "Sunstolen"                    # fiction set
 scribectl init "Runosong" --set gamedev       # game canon + literary tie-ins
+scribectl init "Kotona Notes" --set essay     # standalone nonfiction from notes
 ```
 
 You get the subtree (world/structure/body/control/reviews), the
@@ -208,6 +209,11 @@ Two moves:
   tags it (dialogue|brainstorm|transcript|notes). The transcript lands
   verbatim and the project note's body is never touched — only its `sources:`
   list grows.
+
+In the essay set, capture is the front door: a captured note linked under an
+essay card's `sources:` ships into that card's pack *whole* ("Source material
+— raw ore, unratified") rather than briefing as an empty fact stub. Fiction
+and gamedev packs stay ratified-facts-only.
 
 ### Bulk fill — turning ore into candidates and cards into drafts
 

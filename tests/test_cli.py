@@ -677,7 +677,7 @@ def test_init_refuses_existing_project(run, scratch_root):
 
 
 def test_init_unknown_template_set(run, scratch_root):
-    code, _, err = run("init", "Essayish", "--set", "essay",
+    code, _, err = run("init", "Zineish", "--set", "zine",
                        "--under", str(scratch_root / "Works"), vault=scratch_root)
     assert code != 0
 

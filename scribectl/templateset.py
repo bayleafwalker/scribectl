@@ -28,6 +28,8 @@ class TemplateSet:
     card_heading: str                 # pack section heading for the card body
     node_types: tuple[str, ...]       # fact-bearing nodes the assembler briefs
     scope_fields: tuple[str, ...]     # link fields resolved into canon-in-scope
+    ore_fields: tuple[str, ...]       # link fields whose notes ship verbatim
+                                      # (raw ore — essay-from-notes sets)
     actor_fields: tuple[str, ...]     # link fields contributing timeline actors
     location_field: str | None
     position_fields: tuple[str, ...]  # frontmatter ints ordering the card;
@@ -40,6 +42,12 @@ class TemplateSet:
     @property
     def dir(self) -> Path:
         return TEMPLATES / self.name
+
+    @property
+    def fill_fields(self) -> tuple[str, ...]:
+        """Every link field a card must author before it can fill: briefed
+        scope plus verbatim ore. Status derivation gates on all of them."""
+        return self.scope_fields + self.ore_fields
 
 
 def list_sets() -> list[str]:
@@ -60,6 +68,7 @@ def load_set(name: str) -> TemplateSet:
         card_heading=m["card_heading"],
         node_types=tuple(m.get("node_types", ["canon_node"])),
         scope_fields=tuple(pull.get("scope", [])),
+        ore_fields=tuple(pull.get("ore", [])),
         actor_fields=tuple(pull.get("actors", [])),
         location_field=pull.get("location"),
         position_fields=tuple(m.get("position", [])),

@@ -72,14 +72,14 @@ def build_digest(vault: Vault, ts, inbox_text: str, ledger_text: str) -> Digest:
             if canon_status(vault, n, accepted) == "ratified_empty":
                 d.ratified_empty.append(n.name)
         elif n.type == ts.card_type:
-            s = card_status(vault, n, ts.scope_fields)
+            s = card_status(vault, n, ts.fill_fields)
             if s == "ready_for_fill":
                 has_contract = n.name in carded or _card_title(n) in carded
                 (d.ready if has_contract else d.ready_no_contract).append(n.name)
             elif s == "awaiting_scope":
                 d.awaiting_scope.append(n.name)
             elif s == "blocked_unresolved_scope":
-                missing = unresolved_scope(vault, n, ts.scope_fields)
+                missing = unresolved_scope(vault, n, ts.fill_fields)
                 d.blocked.append((n.name, ", ".join(f"[[{m}]]" for m in missing)))
             elif s in ("has_draft", "reviewed"):
                 newest = _newest_draft(vault, n.name)

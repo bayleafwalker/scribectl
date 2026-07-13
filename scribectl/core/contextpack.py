@@ -7,6 +7,11 @@ prior relevant timeline events, and hard exclusions. Whole-vault context
 produces confident contradiction soup; this is the thing that keeps fills
 consistent.
 
+Sets whose fills draw on unratified captures (the essay set drafting from
+research notes) additionally declare `pull.ore` fields: those notes ship
+verbatim under "Source material", explicitly labelled unratified, instead of
+briefing as empty fact stubs.
+
 Which frontmatter fields are pulled, and which note types count as the card
 and as fact-bearing nodes, comes from the project's TemplateSet — this module
 stays shape-agnostic and never reads the manifests itself.
@@ -71,6 +76,16 @@ def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
     nodes = [n for n in nodes if n is not None]
     missing = [l for l in scope_links if vault.resolve(l) is None]
 
+    # Ore ships verbatim: sets built on unratified source notes (an essay
+    # drafted from research) declare `pull.ore` fields, and those notes enter
+    # the pack whole — headings, digressions and all — instead of briefing as
+    # empty fact stubs. Canon discipline is unchanged; ore is labelled as such.
+    ore_links = list(dict.fromkeys(
+        l for f in ts.ore_fields for l in card.links(f)
+    ))
+    ore_notes = [n for l in ore_links if (n := vault.resolve(l)) is not None]
+    missing += [l for l in ore_links if vault.resolve(l) is None and l not in missing]
+
     # Advisory only — packing is never gated, but the author should know when
     # in-scope facts ship without a ledger receipt behind them.
     accepted = ledger_accepted(vault)
@@ -108,6 +123,11 @@ def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
 
     if nodes:
         parts.append("## Canon in scope\n" + "\n\n".join(_node_brief(n) for n in nodes))
+    if ore_notes:
+        parts.append("## Source material (raw ore — unratified)\n"
+                     "_Verbatim captures. Draw on them freely; treat claims as the "
+                     "author's working notes, not settled canon._\n\n"
+                     + "\n\n".join(f"### {n.name}\n" + n.body.strip() for n in ore_notes))
     if missing:
         parts.append("## ⚠ Unresolved scope links\n"
                      + "\n".join(f"- [[{l}]] — referenced but no note exists" for l in missing))

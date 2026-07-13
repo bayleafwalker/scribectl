@@ -1,0 +1,40 @@
+# Engine-facing shape of the essay set: standalone nonfiction — a notes
+# garden, a blog — drafted from captured research. One fact-bearing node type
+# (ratified positions/concepts) plus the set's distinguishing rule: `pull.ore`
+# fields ship captured source notes into the pack verbatim, instead of
+# briefing them as empty fact stubs. See ARCHITECTURE.md, "Template sets".
+card_type: essay_card
+card_heading: Essay card
+node_types: [canon_node]
+pull:
+  scope: [canon_scope]   # ratified position/concept nodes the essay must stay true to
+  ore: [sources]         # captured research notes — ship verbatim, labelled unratified
+  actors: []
+# Essays are unsequenced: no card carries a position, every card sees the
+# whole timeline (if the project keeps one at all).
+position: []
+new:
+  card_template: essay_card.md
+  card_dir: structure/essays
+init:
+  dirs:
+    - world/canon
+    - world/language
+    - structure/essays
+    - sources
+    - body/drafts
+    - control/timeline
+    - control/ratification
+    - control/context-packs
+    - control/mining-packs
+    - control/proposals
+    - reviews/canon
+    - reviews/voice
+    - reviews/beta
+  files:
+    timeline.md: control/timeline/Timeline.md
+    ratification_log.md: control/ratification/Ratification Log.md
+    ratification_inbox.md: control/ratification/Inbox.md
+    voice_canon.md: world/language/Prose Voice Canon.md
+    world_seed.md: world/Site Seed.md
+    agents.md: AGENTS.md   # house rules for any console agent opened in the vault

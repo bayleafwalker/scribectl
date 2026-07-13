@@ -187,8 +187,8 @@ def project(vault: Vault, ts) -> list[tuple[str, str, str, str]]:
                 detail = ""
             rows.append((n.type, n.name, s, detail))
         elif n.type == ts.card_type:
-            s = card_status(vault, n, ts.scope_fields)
-            missing = unresolved_scope(vault, n, ts.scope_fields) if s == "blocked_unresolved_scope" else []
+            s = card_status(vault, n, ts.fill_fields)
+            missing = unresolved_scope(vault, n, ts.fill_fields) if s == "blocked_unresolved_scope" else []
             detail = "missing: " + ", ".join(f"[[{l}]]" for l in missing) if missing else ""
             if s == "awaiting_scope":
                 detail = "scope placeholders ([[ ]]) unfilled — author the card"

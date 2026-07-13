@@ -50,16 +50,16 @@ def rs_vault(runosong_root):
 
 # -- the set itself -----------------------------------------------------------
 
-def test_both_sets_discoverable():
-    assert list_sets() == ["fiction", "gamedev"]
+def test_all_sets_discoverable():
+    assert list_sets() == ["essay", "fiction", "gamedev"]
     gd = load_set("gamedev")
     assert gd.card_type == "output_card"
     assert gd.node_types == ("canon_node", "mechanic_node")
 
 
 def test_load_unknown_set_names_available():
-    with pytest.raises(ValueError, match="fiction, gamedev"):
-        load_set("essay")
+    with pytest.raises(ValueError, match="essay, fiction, gamedev"):
+        load_set("zine")
 
 
 # -- derived state ------------------------------------------------------------

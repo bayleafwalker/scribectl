@@ -163,6 +163,20 @@ adding `mechanics_scope` to the pull and a `reviews/mechanics` lane. Both
 node types brief identically into packs: one-line function + ratified facts,
 scaffolding excluded.
 
+`essay/` declares essay cards for standalone nonfiction — a notes garden, a
+blog — drafted from captured research. Cards are unsequenced (no `position`)
+and carry no fiction fields; canon nodes hold ratified *positions* the essays
+must stay true to, and the world seed becomes a Site Seed whose hard
+constraints ("no private infrastructure details") ship into every pack. The
+set's distinguishing rule is the pull spec's `ore:` list: link fields (here
+`sources`, fed by `scribectl capture`) whose notes ship into the pack
+*verbatim* under "Source material (raw ore — unratified)" instead of briefing
+as empty fact stubs — ratified-facts-only discipline is right for settled
+world canon and wrong for essay-from-notes, where the capture *is* the
+research. Ore fields gate the card exactly like scope fields (placeholders
+derive `awaiting_scope`, unresolved links block the fill); sets that declare
+no `ore:` are byte-for-byte unaffected.
+
 ## Testing
 
 The fixture vault moves to `fixtures/fertile-flames/` and the existing contact
