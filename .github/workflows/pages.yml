@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "docs/**"
+      - "README.md"
+      - "PLAN.md"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -28,16 +31,80 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Validate site entrypoint
-        run: test -s site/index.html
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
 
-      - name: Upload site artifact
+      - name: Stage site and Markdown documentation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import shutil
+
+          source_site = Path("site")
+          stage = Path("_pages")
+          shutil.copytree(source_site, stage)
+
+          documents = [Path("README.md"), Path("PLAN.md")]
+          documents.extend(sorted(Path("docs").rglob("*.md")))
+
+          def page_text(source: Path) -> str:
+              text = source.read_text(encoding="utf-8")
+              text = re.sub(
+                  r"(\]\([^)\s]+)\.md(?=(?:#[^)]*)?\))",
+                  r"\1.html",
+                  text,
+              )
+              return "---\nlayout: doc\n---\n\n" + text
+
+          for source in documents:
+              destination = stage / source
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              destination.write_text(page_text(source), encoding="utf-8")
+
+          index = [
+              "---",
+              "layout: doc",
+              "title: Scribectl documentation",
+              "---",
+              "",
+              "# Scribectl documentation",
+              "",
+              "Architecture, operating guides, contracts, and project notes published from the repository.",
+              "",
+              "- [Repository overview](../README.html)",
+              "- [Implementation plan](../PLAN.html)",
+          ]
+          for source in sorted(Path("docs").rglob("*.md")):
+              relative = source.relative_to("docs")
+              title = next(
+                  (
+                      line.removeprefix("# ").strip()
+                      for line in source.read_text(encoding="utf-8").splitlines()
+                      if line.startswith("# ")
+                  ),
+                  relative.stem.replace("-", " ").title(),
+              )
+              target = relative.with_suffix(".html").as_posix()
+              index.append(f"- [{title}]({target})")
+
+          (stage / "docs" / "index.md").write_text(
+              "\n".join(index) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Build site and documentation
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: _pages
+          destination: _site
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: site
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
