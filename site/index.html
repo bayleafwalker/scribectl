@@ -1,0 +1,2426 @@
+<!doctype html>
+<html lang="en" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Scribectl — canonical fiction pipeline</title>
+<meta name="description" content="An interactive system map of Scribectl's canonical fiction pipeline, artifacts, contracts, and human-gated iteration.">
+<style>:root {
+  color-scheme: light dark;
+  background-color: transparent !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --main-surface-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: light-dark(rgb(26 28 31), rgb(255 255 255));
+  --card: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --card-foreground: var(--foreground);
+  --popover: light-dark(rgb(255 255 255), rgb(45 45 45));
+  --popover-foreground: var(--foreground);
+  --primary: light-dark(rgb(51 156 255), rgb(131 195 255));
+  --primary-foreground: light-dark(rgb(255 255 255), rgb(13 13 13));
+  --secondary: light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%));
+  --secondary-foreground: var(--foreground);
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: light-dark(
+    rgb(26 28 31 / 49.4%),
+    rgb(255 255 255 / 49.8%)
+  );
+  --accent: light-dark(rgb(229 242 255), rgb(13 39 63));
+  --accent-foreground: var(--primary);
+  --destructive: light-dark(rgb(226 85 7), rgb(255 133 73));
+  --border: light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%));
+  --input: light-dark(
+    rgb(26 28 31 / 11.8%),
+    color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+  );
+  --ring: light-dark(rgb(51 156 255), rgb(131 195 255 / 76%));
+  --font-size-base: 14px;
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: 10px;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+  --color-background-primary: var(--background);
+  --color-text-primary: var(--foreground);
+  --color-border-secondary: var(--border);
+}
+
+:root[data-visualize-standalone] {
+  background-color: var(--background) !important;
+}
+
+/* Generic mobile code-block hosts provide light/dark mode but no series palette.
+   AppBlock hosts set all six variables themselves. */
+:root:not([data-app-block-surface]) {
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(#f3883b, #f59a56);
+  --viz-series-3: light-dark(#5dc977, #74d58b);
+  --viz-series-4: light-dark(#eb77b1, #f08fc0);
+  --viz-series-5: light-dark(#9b79ec, #aa91ef);
+  --viz-series-6: light-dark(#3ab9b1, #5acbc2);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html > body {
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+:root:not([data-app-block-surface]) > body {
+  padding: 12px;
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--viz-font-weight-medium);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget > :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-legend,
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls > .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls > .form-label > :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type="checkbox"]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: "";
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type="radio"]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: "";
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed="true"],
+    [aria-selected="true"],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed="true"], [aria-selected="true"], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget > svg {
+  width: 100%;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+</style>
+</head>
+<body>
+<main id="scribectl-pipeline" class="sc-shell">
+  <style>
+    #scribectl-pipeline {
+      --sc-ember: var(--viz-series-1, #b94f37);
+      --sc-mist: var(--viz-series-2, #4d8394);
+      --sc-ash: var(--viz-series-3, #8a7867);
+      --sc-gold: var(--viz-series-4, #aa8135);
+      --sc-green: var(--viz-series-5, #547a5c);
+      --sc-purple: var(--viz-series-6, #786489);
+      --sc-bg: var(--background, #f5f1e8);
+      --sc-fg: var(--foreground, #211d19);
+      --sc-card: var(--card, #fffdf8);
+      --sc-card-fg: var(--card-foreground, #211d19);
+      --sc-muted: var(--muted, #ebe5da);
+      --sc-muted-fg: var(--muted-foreground, #6f675f);
+      --sc-border: var(--border, #d8d0c4);
+      --sc-primary: var(--primary, #27221d);
+      --sc-primary-fg: var(--primary-foreground, #fffaf2);
+      --sc-accent: var(--accent, #eee6da);
+      --sc-accent-fg: var(--accent-foreground, #211d19);
+      --sc-radius: 18px;
+      color: var(--sc-fg);
+      background:
+        radial-gradient(circle at 93% 2%, color-mix(in srgb, var(--sc-ember) 13%, transparent) 0, transparent 28rem),
+        linear-gradient(180deg, color-mix(in srgb, var(--sc-bg) 94%, var(--sc-card)) 0, var(--sc-bg) 38rem);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100%;
+      padding: clamp(18px, 3vw, 44px);
+      border: 1px solid var(--sc-border);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    #scribectl-pipeline *,
+    #scribectl-pipeline *::before,
+    #scribectl-pipeline *::after { box-sizing: border-box; }
+
+    #scribectl-pipeline h1,
+    #scribectl-pipeline h2,
+    #scribectl-pipeline h3,
+    #scribectl-pipeline p { margin-top: 0; }
+
+    #scribectl-pipeline h1,
+    #scribectl-pipeline h2 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      letter-spacing: -0.035em;
+    }
+
+    #scribectl-pipeline h1 {
+      max-width: 16ch;
+      margin-bottom: 20px;
+      font-size: clamp(2.7rem, 7vw, 6.7rem);
+      line-height: 0.94;
+    }
+
+    #scribectl-pipeline h2 {
+      margin-bottom: 10px;
+      font-size: clamp(2rem, 4vw, 3.65rem);
+      line-height: 1;
+    }
+
+    #scribectl-pipeline h3 {
+      margin-bottom: 8px;
+      font-size: 1rem;
+      line-height: 1.25;
+    }
+
+    #scribectl-pipeline p { line-height: 1.65; }
+
+    #scribectl-pipeline a { color: inherit; }
+
+    #scribectl-pipeline button {
+      color: inherit;
+      font: inherit;
+    }
+
+    #scribectl-pipeline button:disabled {
+      cursor: not-allowed;
+      opacity: 0.46;
+    }
+
+    #scribectl-pipeline button:focus-visible,
+    #scribectl-pipeline a:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--sc-ember) 65%, transparent);
+      outline-offset: 3px;
+    }
+
+    #scribectl-pipeline code,
+    #scribectl-pipeline pre,
+    #scribectl-pipeline .sc-kicker,
+    #scribectl-pipeline .sc-eyebrow,
+    #scribectl-pipeline .sc-badge,
+    #scribectl-pipeline .sc-path,
+    #scribectl-pipeline .sc-command,
+    #scribectl-pipeline .sc-state {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    #scribectl-pipeline .sc-wrap {
+      width: min(100%, 1240px);
+      margin: 0 auto;
+    }
+
+    #scribectl-pipeline .sc-masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--sc-border);
+    }
+
+    #scribectl-pipeline .sc-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    #scribectl-pipeline .sc-brand-mark {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 1px solid var(--sc-fg);
+      border-radius: 50%;
+      font-family: Georgia, serif;
+    }
+
+    #scribectl-pipeline .sc-kicker,
+    #scribectl-pipeline .sc-eyebrow {
+      color: var(--sc-muted-fg);
+      font-size: 0.76rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #scribectl-pipeline .sc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--sc-border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--sc-card) 75%, transparent);
+      font-size: 0.72rem;
+    }
+
+    #scribectl-pipeline .sc-badge::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--sc-ember);
+      content: "";
+    }
+
+    #scribectl-pipeline .sc-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.32fr) minmax(290px, 0.68fr);
+      gap: clamp(32px, 7vw, 96px);
+      align-items: end;
+      padding: clamp(64px, 11vw, 132px) 0 clamp(58px, 9vw, 108px);
+    }
+
+    #scribectl-pipeline .sc-hero-lead {
+      max-width: 58ch;
+      margin-bottom: 0;
+      color: var(--sc-muted-fg);
+      font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+    }
+
+    #scribectl-pipeline .sc-hero-aside {
+      padding: 26px;
+      border-left: 2px solid var(--sc-ember);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--sc-ember) 8%, transparent), transparent);
+    }
+
+    #scribectl-pipeline .sc-hero-aside blockquote {
+      margin: 0 0 24px;
+      font-family: Georgia, serif;
+      font-size: 1.3rem;
+      line-height: 1.45;
+    }
+
+    #scribectl-pipeline .sc-hero-aside p {
+      margin-bottom: 0;
+      color: var(--sc-muted-fg);
+      font-size: 0.9rem;
+    }
+
+    #scribectl-pipeline .sc-pill-row,
+    #scribectl-pipeline .sc-controls,
+    #scribectl-pipeline .sc-field-list,
+    #scribectl-pipeline .sc-step-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    #scribectl-pipeline .sc-pill-row { margin-top: 28px; }
+
+    #scribectl-pipeline .sc-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid var(--sc-border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--sc-card) 72%, transparent);
+      font-size: 0.82rem;
+    }
+
+    #scribectl-pipeline .sc-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--sc-ember);
+    }
+
+    #scribectl-pipeline .sc-nav {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 5px;
+      border: 1px solid var(--sc-border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--sc-bg) 89%, transparent);
+      box-shadow: 0 10px 30px color-mix(in srgb, var(--sc-fg) 9%, transparent);
+      backdrop-filter: blur(14px);
+    }
+
+    #scribectl-pipeline .sc-nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.82rem;
+    }
+
+    #scribectl-pipeline .sc-nav a:hover { background: var(--sc-accent); }
+
+    #scribectl-pipeline .sc-section {
+      scroll-margin-top: 92px;
+      padding: clamp(72px, 10vw, 124px) 0;
+      border-top: 1px solid var(--sc-border);
+    }
+
+    #scribectl-pipeline .sc-section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(280px, 0.45fr);
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 40px;
+    }
+
+    #scribectl-pipeline .sc-section-head > p {
+      margin-bottom: 0;
+      color: var(--sc-muted-fg);
+    }
+
+    #scribectl-pipeline .sc-btn,
+    #scribectl-pipeline .sc-filter,
+    #scribectl-pipeline .sc-field,
+    #scribectl-pipeline .sc-step-dot {
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--sc-border);
+      border-radius: 10px;
+      background: var(--sc-card);
+      cursor: pointer;
+      transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+
+    #scribectl-pipeline .sc-btn:hover,
+    #scribectl-pipeline .sc-filter:hover,
+    #scribectl-pipeline .sc-field:hover,
+    #scribectl-pipeline .sc-step-dot:hover { border-color: color-mix(in srgb, var(--sc-fg) 38%, var(--sc-border)); }
+
+    #scribectl-pipeline .sc-btn[aria-pressed="true"],
+    #scribectl-pipeline .sc-filter[aria-pressed="true"],
+    #scribectl-pipeline .sc-field[aria-pressed="true"] {
+      border-color: var(--sc-primary);
+      background: var(--sc-primary);
+      color: var(--sc-primary-fg);
+    }
+
+    #scribectl-pipeline .sc-btn-primary {
+      border-color: var(--sc-primary);
+      background: var(--sc-primary);
+      color: var(--sc-primary-fg);
+    }
+
+    #scribectl-pipeline .sc-boundary {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 24px;
+    }
+
+    #scribectl-pipeline .sc-boundary-flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 24px;
+      border: 1px solid var(--sc-border);
+      border-radius: var(--sc-radius);
+      background: color-mix(in srgb, var(--sc-card) 78%, transparent);
+    }
+
+    #scribectl-pipeline .sc-boundary-node {
+      position: relative;
+      min-height: 160px;
+      padding: 20px;
+      border: 1px solid var(--sc-border);
+      border-radius: 14px;
+      background: var(--sc-card);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    #scribectl-pipeline .sc-boundary-node::after {
+      position: absolute;
+      right: 16px;
+      bottom: 14px;
+      color: var(--sc-muted-fg);
+      content: "↗";
+    }
+
+    #scribectl-pipeline .sc-boundary-node[aria-pressed="true"] {
+      border-color: var(--node-color, var(--sc-ember));
+      background: color-mix(in srgb, var(--node-color, var(--sc-ember)) 10%, var(--sc-card));
+      box-shadow: inset 4px 0 0 var(--node-color, var(--sc-ember));
+    }
+
+    #scribectl-pipeline .sc-node-num {
+      display: block;
+      margin-bottom: 24px;
+      color: var(--sc-muted-fg);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.75rem;
+    }
+
+    #scribectl-pipeline .sc-boundary-node strong { display: block; margin-bottom: 6px; }
+    #scribectl-pipeline .sc-boundary-node span:last-child { color: var(--sc-muted-fg); font-size: 0.86rem; line-height: 1.45; }
+
+    #scribectl-pipeline .sc-detail {
+      min-height: 100%;
+      padding: 26px;
+      border: 1px solid var(--sc-border);
+      border-radius: var(--sc-radius);
+      background: var(--sc-card);
+    }
+
+    #scribectl-pipeline .sc-detail-rule {
+      height: 3px;
+      margin-bottom: 22px;
+      border-radius: 99px;
+      background: var(--detail-color, var(--sc-ember));
+    }
+
+    #scribectl-pipeline .sc-detail p { color: var(--sc-muted-fg); }
+
+    #scribectl-pipeline .sc-do-dont {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    #scribectl-pipeline .sc-mini-panel {
+      padding: 14px;
+      border: 1px solid var(--sc-border);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--sc-muted) 45%, transparent);
+    }
+
+    #scribectl-pipeline .sc-mini-panel b {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #scribectl-pipeline .sc-mini-panel span { font-size: 0.86rem; line-height: 1.45; }
+
+    #scribectl-pipeline .sc-pipeline-frame {
+      padding: clamp(18px, 3vw, 34px);
+      border: 1px solid var(--sc-border);
+      border-radius: var(--sc-radius);
+      background: color-mix(in srgb, var(--sc-card) 76%, transparent);
+    }
+
+    #scribectl-pipeline .sc-controls { margin-bottom: 28px; }
+
+    #scribectl-pipeline .sc-flow-track {
+      display: grid;
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+
+    #scribectl-pipeline .sc-flow-node {
+      grid-column: span 1;
+      min-height: 170px;
+      padding: 16px;
+      border: 1px solid var(--sc-border);
+      border-radius: 14px;
+      background: var(--sc-card);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    #scribectl-pipeline .sc-flow-node[aria-pressed="true"] {
+      border-color: var(--sc-ember);
+      background: color-mix(in srgb, var(--sc-ember) 9%, var(--sc-card));
+      box-shadow: inset 0 -4px 0 var(--sc-ember);
+    }
+
+    #scribectl-pipeline .sc-flow-node small {
+      display: block;
+      margin-bottom: 24px;
+      color: var(--sc-muted-fg);
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    #scribectl-pipeline .sc-flow-node strong { display: block; margin-bottom: 7px; }
+    #scribectl-pipeline .sc-flow-node span { color: var(--sc-muted-fg); font-size: 0.82rem; line-height: 1.4; }
+
+    #scribectl-pipeline .sc-flow-arrow {
+      display: grid;
+      min-width: 22px;
+      place-items: center;
+      color: var(--sc-muted-fg);
+      font-family: Georgia, serif;
+      font-size: 1.4rem;
+    }
+
+    #scribectl-pipeline .sc-flow-detail {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+      gap: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--sc-border);
+    }
+
+    #scribectl-pipeline .sc-flow-detail p { margin-bottom: 0; color: var(--sc-muted-fg); }
+
+    #scribectl-pipeline .sc-receipt {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    #scribectl-pipeline .sc-receipt-row {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--sc-border);
+      font-size: 0.84rem;
+    }
+
+    #scribectl-pipeline .sc-receipt-row:last-child { border-bottom: 0; }
+    #scribectl-pipeline .sc-receipt-row span:first-child { color: var(--sc-muted-fg); }
+
+    #scribectl-pipeline .sc-artifact-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+      gap: 24px;
+    }
+
+    #scribectl-pipeline .sc-artifact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    #scribectl-pipeline .sc-artifact {
+      min-height: 145px;
+      padding: 15px;
+      border: 1px solid var(--sc-border);
+      border-radius: 12px;
+      background: var(--sc-card);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    #scribectl-pipeline .sc-artifact[hidden] { display: none; }
+
+    #scribectl-pipeline .sc-artifact[aria-pressed="true"] {
+      border-color: var(--artifact-color, var(--sc-ember));
+      background: color-mix(in srgb, var(--artifact-color, var(--sc-ember)) 9%, var(--sc-card));
+      box-shadow: inset 0 -3px 0 var(--artifact-color, var(--sc-ember));
+    }
+
+    #scribectl-pipeline .sc-artifact-type {
+      display: block;
+      margin-bottom: 16px;
+      color: var(--sc-muted-fg);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.72rem;
+    }
+
+    #scribectl-pipeline .sc-artifact strong { display: block; margin-bottom: 5px; }
+    #scribectl-pipeline .sc-artifact span:last-child { color: var(--sc-muted-fg); font-size: 0.78rem; }
+
+    #scribectl-pipeline .sc-path {
+      display: block;
+      margin: 14px 0 20px;
+      padding: 10px 12px;
+      border: 1px solid var(--sc-border);
+      border-radius: 9px;
+      background: var(--sc-muted);
+      overflow-wrap: anywhere;
+      font-size: 0.78rem;
+    }
+
+    #scribectl-pipeline .sc-tag {
+      display: inline-block;
+      margin-right: 7px;
+      margin-bottom: 7px;
+      padding: 5px 8px;
+      border: 1px solid var(--sc-border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--sc-muted) 55%, transparent);
+      font-size: 0.75rem;
+    }
+
+    #scribectl-pipeline .sc-contract-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(290px, 0.88fr);
+      gap: 24px;
+    }
+
+    #scribectl-pipeline .sc-code-frame {
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--sc-border);
+      border-radius: var(--sc-radius);
+      background: color-mix(in srgb, var(--sc-primary) 94%, var(--sc-card));
+      color: var(--sc-primary-fg);
+    }
+
+    #scribectl-pipeline .sc-code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+      color: color-mix(in srgb, var(--sc-primary-fg) 70%, transparent);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.76rem;
+    }
+
+    #scribectl-pipeline .sc-window-dots { display: flex; gap: 6px; }
+    #scribectl-pipeline .sc-window-dots i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.6; }
+
+    #scribectl-pipeline pre {
+      min-height: 430px;
+      margin: 0;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 0.82rem;
+      line-height: 1.72;
+    }
+
+    #scribectl-pipeline .sc-contract-detail {
+      padding: 24px;
+      border: 1px solid var(--sc-border);
+      border-radius: var(--sc-radius);
+      background: var(--sc-card);
+    }
+
+    #scribectl-pipeline .sc-field-list { margin: 18px 0 22px; }
+    #scribectl-pipeline .sc-field { min-height: 34px; padding: 6px 9px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.74rem; }
+
+    #scribectl-pipeline .sc-field-detail {
+      padding-top: 20px;
+      border-top: 1px solid var(--sc-border);
+    }
+
+    #scribectl-pipeline .sc-field-detail p { color: var(--sc-muted-fg); }
+
+    #scribectl-pipeline .sc-example-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(310px, 0.8fr);
+      gap: 24px;
+    }
+
+    #scribectl-pipeline .sc-stepper,
+    #scribectl-pipeline .sc-vault-view {
+      padding: clamp(20px, 3vw, 30px);
+      border: 1px solid var(--sc-border);
+      border-radius: var(--sc-radius);
+      background: var(--sc-card);
+    }
+
+    #scribectl-pipeline .sc-step-rail {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      margin: 22px 0 28px;
+    }
+
+    #scribectl-pipeline .sc-step-dot {
+      min-width: 0;
+      padding: 8px 4px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.74rem;
+    }
+
+    #scribectl-pipeline .sc-step-dot[aria-current="step"] {
+      border-color: var(--sc-ember);
+      background: var(--sc-ember);
+      color: var(--sc-primary-fg);
+    }
+
+    #scribectl-pipeline .sc-step-dot[data-complete="true"] {
+      border-color: color-mix(in srgb, var(--sc-ember) 40%, var(--sc-border));
+      background: color-mix(in srgb, var(--sc-ember) 9%, var(--sc-card));
+    }
+
+    #scribectl-pipeline .sc-progress {
+      height: 4px;
+      margin-bottom: 24px;
+      border-radius: 99px;
+      background: var(--sc-muted);
+      overflow: hidden;
+    }
+
+    #scribectl-pipeline .sc-progress > span {
+      display: block;
+      width: 14.285%;
+      height: 100%;
+      background: var(--sc-ember);
+      transition: width 220ms ease;
+    }
+
+    #scribectl-pipeline .sc-step-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    #scribectl-pipeline .sc-state {
+      display: inline-block;
+      padding: 5px 8px;
+      border: 1px solid color-mix(in srgb, var(--sc-mist) 48%, var(--sc-border));
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--sc-mist) 11%, transparent);
+      font-size: 0.74rem;
+    }
+
+    #scribectl-pipeline .sc-owner {
+      display: inline-block;
+      padding: 5px 8px;
+      border: 1px solid var(--sc-border);
+      border-radius: 999px;
+      color: var(--sc-muted-fg);
+      font-size: 0.74rem;
+    }
+
+    #scribectl-pipeline .sc-command {
+      margin: 20px 0;
+      padding: 13px 14px;
+      border-left: 3px solid var(--sc-ember);
+      border-radius: 0 9px 9px 0;
+      background: var(--sc-muted);
+      overflow-wrap: anywhere;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    #scribectl-pipeline .sc-step-copy { min-height: 180px; }
+    #scribectl-pipeline .sc-step-copy p { color: var(--sc-muted-fg); }
+
+    #scribectl-pipeline .sc-step-controls { justify-content: space-between; margin-top: 24px; }
+
+    #scribectl-pipeline .sc-tree {
+      margin-top: 22px;
+      padding: 18px;
+      border: 1px solid var(--sc-border);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--sc-muted) 45%, transparent);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.9;
+    }
+
+    #scribectl-pipeline .sc-tree-row {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    #scribectl-pipeline .sc-tree-row span:nth-child(2) { overflow-wrap: anywhere; }
+    #scribectl-pipeline .sc-tree-status { color: var(--sc-muted-fg); font-size: 0.68rem; }
+    #scribectl-pipeline .sc-tree-row.is-new { color: var(--sc-ember); }
+
+    #scribectl-pipeline .sc-gate-callout {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      margin-top: 24px;
+      padding: 18px;
+      border: 1px solid color-mix(in srgb, var(--sc-gold) 46%, var(--sc-border));
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--sc-gold) 10%, transparent);
+    }
+
+    #scribectl-pipeline .sc-gate-callout p { margin-bottom: 0; color: var(--sc-muted-fg); font-size: 0.86rem; }
+    #scribectl-pipeline .sc-gate-icon { font-family: Georgia, serif; font-size: 2rem; }
+
+    #scribectl-pipeline .sc-rules {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    #scribectl-pipeline .sc-rule {
+      padding: 22px;
+      border-top: 3px solid var(--rule-color, var(--sc-ember));
+      background: color-mix(in srgb, var(--sc-card) 64%, transparent);
+    }
+
+    #scribectl-pipeline .sc-rule strong { display: block; margin-bottom: 8px; }
+    #scribectl-pipeline .sc-rule p { margin-bottom: 0; color: var(--sc-muted-fg); font-size: 0.88rem; }
+
+    #scribectl-pipeline .sc-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      padding-top: 28px;
+      border-top: 1px solid var(--sc-border);
+      color: var(--sc-muted-fg);
+      font-size: 0.8rem;
+    }
+
+    #scribectl-pipeline .sc-footer-links { display: flex; flex-wrap: wrap; gap: 14px; }
+
+    #scribectl-pipeline .sc-empty {
+      grid-column: 1 / -1;
+      padding: 28px;
+      border: 1px dashed var(--sc-border);
+      border-radius: 12px;
+      color: var(--sc-muted-fg);
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      #scribectl-pipeline .sc-hero,
+      #scribectl-pipeline .sc-boundary,
+      #scribectl-pipeline .sc-artifact-layout,
+      #scribectl-pipeline .sc-contract-layout,
+      #scribectl-pipeline .sc-example-layout { grid-template-columns: 1fr; }
+
+      #scribectl-pipeline .sc-flow-track { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+      #scribectl-pipeline .sc-flow-arrow { display: none; }
+      #scribectl-pipeline .sc-flow-node { min-height: 145px; }
+      #scribectl-pipeline .sc-artifact-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      #scribectl-pipeline pre { min-height: 360px; }
+    }
+
+    @media (max-width: 720px) {
+      #scribectl-pipeline { padding: 16px; border-radius: 16px; }
+      #scribectl-pipeline h1 { font-size: clamp(2.65rem, 14vw, 4.4rem); }
+      #scribectl-pipeline .sc-section-head,
+      #scribectl-pipeline .sc-flow-detail { grid-template-columns: 1fr; }
+      #scribectl-pipeline .sc-boundary-flow { grid-template-columns: 1fr; }
+      #scribectl-pipeline .sc-boundary-node { min-height: 128px; }
+      #scribectl-pipeline .sc-flow-track { grid-template-columns: 1fr; }
+      #scribectl-pipeline .sc-flow-node { min-height: 0; }
+      #scribectl-pipeline .sc-flow-node small { margin-bottom: 10px; }
+      #scribectl-pipeline .sc-flow-arrow { display: grid; min-height: 18px; transform: rotate(90deg); }
+      #scribectl-pipeline .sc-artifact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #scribectl-pipeline .sc-do-dont { grid-template-columns: 1fr; }
+      #scribectl-pipeline .sc-rules { grid-template-columns: 1fr; }
+      #scribectl-pipeline .sc-nav { border-radius: 16px; }
+    }
+
+    @media (max-width: 440px) {
+      #scribectl-pipeline .sc-masthead { align-items: flex-start; }
+      #scribectl-pipeline .sc-kicker { display: none; }
+      #scribectl-pipeline .sc-artifact-grid { grid-template-columns: 1fr; }
+      #scribectl-pipeline .sc-step-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      #scribectl-pipeline .sc-receipt-row { grid-template-columns: 1fr; gap: 2px; }
+      #scribectl-pipeline .sc-gate-callout { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #scribectl-pipeline * { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+
+  <div class="sc-wrap">
+    <header class="sc-masthead">
+      <div class="sc-brand"><span class="sc-brand-mark" aria-hidden="true">S</span><span>scribectl</span></div>
+      <span class="sc-kicker">canonical fiction pipeline / system map</span>
+      <span class="sc-badge">interactive</span>
+    </header>
+
+    <section class="sc-hero" id="overview">
+      <div>
+        <p class="sc-eyebrow">Vault → pack → draft → verdict → canon</p>
+        <h1>Fiction without quiet canon rot.</h1>
+        <p class="sc-hero-lead">Scribectl separates authored intent, ratified truth, and agent proposals. The machine assembles evidence and preserves receipts; the writer decides what is true in the world.</p>
+        <div class="sc-pill-row" aria-label="Core system principles">
+          <span class="sc-pill"><i class="sc-dot" aria-hidden="true"></i> state is derived</span>
+          <span class="sc-pill"><i class="sc-dot" aria-hidden="true" style="background:var(--sc-mist)"></i> packs are frozen</span>
+          <span class="sc-pill"><i class="sc-dot" aria-hidden="true" style="background:var(--sc-gold)"></i> canon is ratified</span>
+        </div>
+      </div>
+      <aside class="sc-hero-aside">
+        <blockquote>“The dangerous failure mode is not bad prose — it is quiet canon rot.”</blockquote>
+        <p>The writer remains the taste gate. The engine never calls an LLM. Agents neither ratify nor edit one another, and they never overwrite a human-authored note.</p>
+      </aside>
+    </section>
+
+    <nav class="sc-nav" aria-label="Page sections">
+      <a href="#boundaries">Boundaries</a>
+      <a href="#pipeline">Pipelines</a>
+      <a href="#artifacts">Artifacts</a>
+      <a href="#contracts">Contracts</a>
+      <a href="#example">Example flow</a>
+    </nav>
+
+    <section class="sc-section" id="boundaries">
+      <div class="sc-section-head">
+        <div><p class="sc-eyebrow">01 / responsibility boundaries</p><h2>Who may do what?</h2></div>
+        <p>Select a system component. The boundaries are the architecture: where state lives, who may write, and where decision authority remains.</p>
+      </div>
+      <div class="sc-boundary">
+        <div class="sc-boundary-flow" id="sc-boundary-flow" aria-label="Scribectl responsibility boundaries"></div>
+        <aside class="sc-detail" id="sc-boundary-detail" aria-live="polite"></aside>
+      </div>
+    </section>
+
+    <section class="sc-section" id="pipeline">
+      <div class="sc-section-head">
+        <div><p class="sc-eyebrow">02 / two canonical pipelines</p><h2>One gate, different raw material.</h2></div>
+        <p>The production pipeline creates a scene from existing canon. The worldbuilding pipeline mines sources for new claims. Both terminate at the same writer-owned verdict inbox.</p>
+      </div>
+      <div class="sc-pipeline-frame">
+        <div class="sc-controls" role="group" aria-label="Select a pipeline">
+          <button class="sc-btn sc-btn-primary" type="button" data-flow="production" aria-pressed="true">Scene production</button>
+          <button class="sc-btn" type="button" data-flow="worldbuilding" aria-pressed="false">Worldbuilding</button>
+        </div>
+        <div class="sc-flow-track" id="sc-flow-track" aria-label="Selected pipeline stages"></div>
+        <div class="sc-flow-detail" id="sc-flow-detail" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="sc-section" id="artifacts">
+      <div class="sc-section-head">
+        <div><p class="sc-eyebrow">03 / artifact map</p><h2>Every file has a trust class.</h2></div>
+        <p>Filter artifacts by authority and inspect a card. The critical distinction is between canon, frozen, quarantined, gate-controlled, and merely derived information.</p>
+      </div>
+      <div class="sc-artifact-layout">
+        <div>
+          <div class="sc-controls" id="sc-artifact-filters" role="group" aria-label="Filter artifacts"></div>
+          <div class="sc-artifact-grid" id="sc-artifact-grid"></div>
+        </div>
+        <aside class="sc-detail" id="sc-artifact-detail" aria-live="polite"></aside>
+      </div>
+    </section>
+
+    <section class="sc-section" id="contracts">
+      <div class="sc-section-head">
+        <div><p class="sc-eyebrow">04 / contract layers</p><h2>Intent becomes executable without becoming canon.</h2></div>
+        <p>The template set defines the project shape for the engine. The scene card defines the content objective. The per-card contract bounds exactly one agent run.</p>
+      </div>
+      <div class="sc-controls" id="sc-contract-tabs" role="tablist" aria-label="Contract layers"></div>
+      <div class="sc-contract-layout">
+        <div class="sc-code-frame">
+          <div class="sc-code-head"><span class="sc-window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="sc-code-name"></span></div>
+          <pre><code id="sc-contract-code"></code></pre>
+        </div>
+        <aside class="sc-contract-detail">
+          <p class="sc-eyebrow" id="sc-contract-kind"></p>
+          <h3 id="sc-contract-title"></h3>
+          <p id="sc-contract-copy"></p>
+          <div class="sc-field-list" id="sc-field-list" role="group" aria-label="Inspect a field"></div>
+          <div class="sc-field-detail" id="sc-field-detail" aria-live="polite"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="sc-section" id="example">
+      <div class="sc-section-head">
+        <div><p class="sc-eyebrow">05 / Fertile Flames</p><h2>A new world, its first canonical pass.</h2></div>
+        <p>Walk through seven stages. The example shows how unresolved canon blocks a fill, how the hash acts as a receipt, and the exact point where a proposal may become true.</p>
+      </div>
+      <div class="sc-example-layout">
+        <div class="sc-stepper">
+          <p class="sc-eyebrow">Volcanic City-State Battling Demons and Mist</p>
+          <div class="sc-step-rail" id="sc-step-rail" aria-label="Example flow stages"></div>
+          <div class="sc-progress" aria-hidden="true"><span id="sc-progress-bar"></span></div>
+          <div class="sc-step-copy" id="sc-step-copy" aria-live="polite"></div>
+          <div class="sc-step-controls">
+            <button class="sc-btn" id="sc-prev-step" type="button">← Previous</button>
+            <button class="sc-btn sc-btn-primary" id="sc-next-step" type="button">Next →</button>
+          </div>
+        </div>
+        <aside class="sc-vault-view">
+          <div class="sc-code-head" style="color:var(--sc-muted-fg)"><span>vault / Fertile Flames</span><span id="sc-vault-counter"></span></div>
+          <div class="sc-tree" id="sc-tree" aria-live="polite"></div>
+          <div class="sc-gate-callout">
+            <div><strong id="sc-gate-title"></strong><p id="sc-gate-copy"></p></div>
+            <span class="sc-gate-icon" id="sc-gate-icon" aria-hidden="true">◇</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="sc-section" aria-labelledby="sc-rules-title">
+      <div class="sc-section-head">
+        <div><p class="sc-eyebrow">06 / iteration boundaries</p><h2 id="sc-rules-title">The loop grows sideways, not inward.</h2></div>
+        <p>Scribectl permits new source material, independent fill variants, and new review passes. It does not permit an agent to revise its own output autonomously from another agent's feedback.</p>
+      </div>
+      <div class="sc-rules">
+        <article class="sc-rule" style="--rule-color:var(--sc-mist)"><strong>Breadth is allowed</strong><p>Several independent proposals from the same frozen source may land side by side for human judgment.</p></article>
+        <article class="sc-rule" style="--rule-color:var(--sc-gold)"><strong>Feedback is consumed manually</strong><p>A review reports. The writer decides, reworks the draft, and requests another bounded pass if needed.</p></article>
+        <article class="sc-rule" style="--rule-color:var(--sc-ember)"><strong>Canon is a one-way gate</strong><p>Only a checkbox verdict and <code>ratify --sweep</code> move a claim from quarantine into a ratified node and ledger.</p></article>
+      </div>
+    </section>
+
+    <footer class="sc-footer">
+      <span>Grounded in Scribectl's ratified DESIGN, ARCHITECTURE, DISPATCH, and RATIFICATION model.</span>
+      <span class="sc-footer-links"><a href="../docs/DESIGN.md">DESIGN</a><a href="../docs/ARCHITECTURE.md">ARCHITECTURE</a><a href="../docs/DISPATCH.md">DISPATCH</a><a href="../docs/RATIFICATION.md">RATIFICATION</a></span>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const root = document.getElementById("scribectl-pipeline");
+      if (!root) return;
+
+      const colors = {
+        ember: "var(--sc-ember)",
+        mist: "var(--sc-mist)",
+        ash: "var(--sc-ash)",
+        gold: "var(--sc-gold)",
+        green: "var(--sc-green)",
+        purple: "var(--sc-purple)"
+      };
+
+      const boundaryParts = [
+        {
+          id: "human",
+          name: "Writer",
+          subtitle: "intent + taste gate",
+          color: colors.gold,
+          role: "Owns the direction of the world, the prose, and every canon decision.",
+          does: "Authors the seed, canon nodes, cards, and contracts; reworks drafts; reads reviews; records verdicts.",
+          never: "Does not copy canon into a second system or maintain status enums by hand.",
+          boundary: "The only actor allowed to say: this claim is now true."
+        },
+        {
+          id: "vault",
+          name: "Obsidian vault",
+          subtitle: "world database + cockpit",
+          color: colors.mist,
+          role: "The visible, synchronized source for world state, structure, prose, and decision receipts.",
+          does: "Holds human-authored notes, ratified canon, the timeline oracle, contracts, and every generated artifact.",
+          never: "Does not host a second state machine in Dataview or a copied canon registry that can drift.",
+          boundary: "Human-authored notes are never overwritten; only designated outputs are created, and only designated ledgers are appended."
+        },
+        {
+          id: "engine",
+          name: "scribectl engine",
+          subtitle: "assemble + derive + receipt",
+          color: colors.green,
+          role: "Reads the vault, derives state, and freezes minimal context into an auditable pack.",
+          does: "Discovers projects, derives status, freezes packs, scaffolds proposals, reconciles sources, mines candidates, and executes explicit ratification verdicts.",
+          never: "Never calls an LLM, judges taste, or decides whether a claim is canon.",
+          boundary: "The engine is a deterministic contract runner, not an author."
+        },
+        {
+          id: "dispatch",
+          name: "scribe-dispatch + agents",
+          subtitle: "fill + review + propose",
+          color: colors.ember,
+          role: "Selects one skill from derived state, runs the model, and lands a new artifact in the vault.",
+          does: "Fills a draft, runs canon and voice reviews, and may emit quarantined fact proposals.",
+          never: "Never edits a human-authored file, ratifies, consumes its own review, or builds an agent-on-agent feedback loop.",
+          boundary: "Automation covers firing; consumption and verdict remain with the writer."
+        }
+      ];
+
+      const flows = {
+        production: {
+          label: "Scene production",
+          nodes: [
+            { id: "shape", title: "Bound the intent", short: "Scene card + contract", actor: "Writer", reads: "World seed, ratified canon", emits: "Scene card, per-card contract", command: "scribectl new card", detail: "The writer defines POV, scope links, entry and exit states, required beats, and hard exclusions. The contract fixes the mode, output target, and review lanes for one run." },
+            { id: "freeze", title: "Freeze the evidence", short: "Context pack + sha", actor: "scribectl", reads: "Card, ratified facts, prior timeline, voice canon", emits: "Frozen context pack", command: "scribectl pack \"Scene 01-01\"", detail: "The assembler pulls only the relevant canon slice. Open questions and authoring scaffolding stay out. The hash binds the later draft to the exact world state the agent saw." },
+            { id: "fill", title: "Fill once", short: "Draft + pack_sha", actor: "body_fill", reads: "Frozen pack, card, contract", emits: "New draft file", command: "scribe-dispatch run", detail: "The agent produces one draft. Minor sensory texture is allowed; new proper nouns and world claims are isolated under Introduced candidates." },
+            { id: "review", title: "Review independently", short: "Canon + voice reports", actor: "review skills", reads: "Draft, pack, timeline / voice canon", emits: "Advisory review reports", command: "scribe-dispatch run", detail: "Missing canon and voice lanes fire independently. They report; they do not repair. An issues verdict neither blocks the workflow nor triggers an autonomous rewrite." },
+            { id: "ratify", title: "Decide and project", short: "Inbox → canon + ledger", actor: "Writer + scribectl", reads: "Review candidates, writer verdict", emits: "Ratified fact, append-only receipt", command: "scribectl ratify --mine && scribectl ratify --sweep", detail: "Candidates enter the inbox as pending. The writer may rewrite the claim and mark it accept, reject, or defer. Sweep executes only those explicit verdicts." }
+          ]
+        },
+        worldbuilding: {
+          label: "Worldbuilding",
+          nodes: [
+            { id: "ore", title: "Capture the ore", short: "Legacy note / transcript", actor: "Writer", reads: "Ideas, conversations, research", emits: "Source note", command: "scribectl capture \"Mist doctrine\"", detail: "Raw source material is ore, not canon. It may be incomplete or contradictory because no fill may cite it as ratified truth." },
+            { id: "mine", title: "Freeze the mining frame", short: "Mining pack + sha", actor: "scribectl", reads: "Source, target node, hard constraints, project canon", emits: "Frozen mining pack", command: "scribectl propose --into \"The Mist\" --source \"Mist doctrine\"", detail: "The mining pack frames the source with the target node's open questions and current project canon. The agent gets evidence and constraints, but no write access to the canon node." },
+            { id: "propose", title: "Propose into quarantine", short: "Fact proposal(s)", actor: "Agent", reads: "Mining pack", emits: "Candidate facts + confidence + conflicts", command: "scribe-dispatch / proposal skill", detail: "One or more independent agents extract claims into proposal files. The claims are not citable facts; derived status keeps them visibly open." },
+            { id: "reconcile", title: "Reconcile the sources", short: "Reconciliation pack", actor: "scribectl + agent", reads: "≥2 proposals from distinct sources", emits: "Merged proposal", command: "scribectl reconcile --into \"The Mist\"", detail: "Once distinct sources produce overlapping or conflicting claims, a bounded merge pass deduplicates them and flags contradictions. It does not resolve those contradictions for the writer." },
+            { id: "ratify", title: "Decide and project", short: "Inbox → canon + ledger", actor: "Writer + scribectl", reads: "Mined candidates, writer verdict", emits: "Ratified fact, append-only receipt", command: "scribectl ratify --mine && scribectl ratify --sweep", detail: "A proposal becomes fact only when the writer accepts its exact wording. The accepted claim retains source, pack, and proposal provenance." }
+          ]
+        }
+      };
+
+      const artifacts = [
+        { id: "project", name: "Project note", type: "scribe-project", trust: "intent", path: "Fertile Flames.md", owner: "Writer", color: colors.gold, summary: "The in-vault project registry and path configuration.", reads: "Engine discovery", writes: "Writer; capture extends only the sources list", rule: "The body remains the writer's." },
+        { id: "seed", name: "World seed", type: "world_seed", trust: "intent", path: "world/World Seed.md", owner: "Writer", color: colors.gold, summary: "The premise, primary tensions, tone, and hard constraints.", reads: "Context and mining packs", writes: "Writer", rule: "A source of direction, not a factory for empty lore nodes." },
+        { id: "card", name: "Scene card", type: "scene_card", trust: "intent", path: "structure/scenes/Scene 01-01.md", owner: "Writer", color: colors.gold, summary: "The content contract for one scene: where it begins, what changes, and where it ends.", reads: "Pack assembler + body_fill", writes: "Writer", rule: "A fill never starts while scope still contains placeholders." },
+        { id: "contract", name: "Per-card contract", type: "contract", trust: "intent", path: "control/contracts/fill-scene-01-01.md", owner: "Writer", color: colors.gold, summary: "The execution specification for exactly one dispatch.", reads: "Dispatch policy + skill", writes: "Writer", rule: "A missing contract means skip, not inferred intent." },
+        { id: "canon", name: "Canon node", type: "canon_node", trust: "canon", path: "world/canon/The Mist.md", owner: "Writer gate", color: colors.ember, summary: "A named world entity from which only One-line function and Ratified facts enter a pack.", reads: "Context and mining packs + review", writes: "Writer / accepted sweep", rule: "Open questions never leak into fill context." },
+        { id: "timeline", name: "Timeline", type: "timeline", trust: "canon", path: "control/timeline/Timeline.md", owner: "Append-only", color: colors.ember, summary: "The chronology oracle and source for prior-event filtering.", reads: "Pack assembler + canon review", writes: "Single writer, append only", rule: "Prose chronology must not depend on model memory." },
+        { id: "voice", name: "Voice canon", type: "voice_canon", trust: "canon", path: "world/language/Prose Voice Canon.md", owner: "Writer", color: colors.ember, summary: "Directives, prohibited mannerisms, and accepted cadence exemplars.", reads: "Context pack + voice review", writes: "Writer", rule: "Exemplars carry more weight than abstract adjectives." },
+        { id: "pack", name: "Context pack", type: "context_pack", trust: "frozen", path: "control/context-packs/Scene-01-01-context.md", owner: "scribectl", color: colors.green, summary: "A minimal, hashed slice of truth for one fill.", reads: "Agent skills", writes: "Engine create-only", rule: "Regenerate to fill; freeze to audit; never hand-edit." },
+        { id: "mining", name: "Mining pack", type: "mining_pack", trust: "frozen", path: "control/mining-packs/<target> — <source>.md", owner: "scribectl", color: colors.green, summary: "A source, the target's open questions, and current canon framed for extraction.", reads: "Proposal agent", writes: "Engine create-only", rule: "The pack proves what was known when the proposal was made." },
+        { id: "proposal", name: "Fact proposal", type: "fact_proposal", trust: "quarantine", path: "control/proposals/<target> — <source> — <date>.md", owner: "Agent", color: colors.purple, summary: "Candidate facts, supporting quotations, confidence, and conflicts—not canon.", reads: "ratify --mine / reconcile", writes: "Agent fills a new file", rule: "An unswept proposal is not citable." },
+        { id: "draft", name: "Draft", type: "draft", trust: "quarantine", path: "body/drafts/ch01-sc01-draft-a.md", owner: "Agent → writer", color: colors.purple, summary: "One prose draft and its pack_sha receipt.", reads: "Review skills + writer rework", writes: "Agent creates; writer owns thereafter", rule: "The dispatcher never rewrites a landed draft." },
+        { id: "review", name: "Review report", type: "review_report", trust: "quarantine", path: "reviews/canon|voice/<draft>-<kind>-review.md", owner: "Agent", color: colors.purple, summary: "An advisory findings list, verdict, and introduced candidates observed in the draft.", reads: "Writer + ratify --mine", writes: "Agent creates", rule: "Review informs; it neither blocks nor edits." },
+        { id: "inbox", name: "Ratification inbox", type: "ratification_inbox", trust: "gate", path: "control/ratification/Inbox.md", owner: "Writer", color: colors.mist, summary: "One checkbox surface for every candidate claim.", reads: "Writer + ratify --sweep", writes: "Engine mines; writer edits verdict and wording", rule: "[x] accept, [-] reject, [>] defer, [ ] pending." },
+        { id: "ledger", name: "Ratification log", type: "ratification_log", trust: "canon", path: "control/ratification/Ratification Log.md", owner: "scribectl only", color: colors.ember, summary: "An append-only decision receipt: what was accepted, rejected, or deferred, and where it came from.", reads: "Status + audit", writes: "ratify --sweep only", rule: "One fact, one addressable receipt." },
+        { id: "status", name: "Status view", type: "derived", trust: "derived", path: "control/Status.md", owner: "scribectl", color: colors.ash, summary: "A vault-derived view of the actual state of cards, nodes, and proposals.", reads: "Writer + dispatch policy", writes: "Regenerable cache", rule: "No status enum is stored in frontmatter." }
+      ];
+
+      const trustLabels = {
+        all: "All",
+        intent: "Intent",
+        canon: "Canon",
+        frozen: "Frozen",
+        quarantine: "Quarantine",
+        gate: "Decision gate",
+        derived: "Derived"
+      };
+
+      const contracts = {
+        scene: {
+          tab: "Scene card",
+          kind: "Content contract",
+          title: "What must the scene accomplish?",
+          filename: "structure/scenes/Scene 01-01.md",
+          copy: "The card bounds the narrative task without prescribing finished prose. Its scope links also tell the assembler which canon slice belongs in the pack.",
+          code: `---
+type: scene_card
+book: 1
+chapter: 1
+scene: 1
+pov: "[[Mara Vey]]"
+location: "[[Lower Ashmarket]]"
+characters:
+  - "[[Mara Vey]]"
+canon_scope:
+  - "[[The Volcanic City-State]]"
+  - "[[The Mist]]"
+  - "[[Lower Ashmarket]]"
+mode: body_fill
+target_words: 1000
+---
+
+# Scene 1.1 — A Routine That Lies
+
+## Entry state
+Mara completes an ordinary civic process before curfew.
+
+## Required beats
+- A minor Mist alarm interrupts the procedure.
+- The survival system responds competently and brutally.
+- Mara sees one verifiable lie in the official story.
+
+## Exit state
+Mara holds evidence and tells no one.
+
+## Do not
+- Explain the full demon system.
+- Reveal what the Mist wants.`,
+          fields: {
+            canon_scope: { title: "canon_scope", copy: "Directly identifies the canon nodes the assembler must resolve into the pack. An unresolved link yields blocked_unresolved_scope." },
+            position: { title: "book / chapter / scene", copy: "Positions the card on the timeline. Only relevant events before that position enter the context." },
+            states: { title: "Entry / Exit state", copy: "Together they form the scene's change contract and give canon review a concrete continuity claim to test." },
+            exclusions: { title: "Do not", copy: "Hard exclusions enter the pack verbatim. They constrain the fill more precisely than a general style request." }
+          }
+        },
+        contract: {
+          tab: "Per-card contract",
+          kind: "Execution contract",
+          title: "How may one agent run behave?",
+          filename: "control/contracts/fill-scene-01-01.md",
+          copy: "The contract is authored intent, not an agent inference. It binds target, mode, output, and follow-up reviews into one idempotent dispatch.",
+          code: `---
+type: contract
+contract_id: body-scene-01-01
+target: "[[Scene 1.1 — A Routine That Lies]]"
+mode: body_fill
+agent_profile: prose_drafter
+context_strategy: canon_slice
+output_target: "/body/drafts/ch01-sc01-draft-a.md"
+review_after:
+  - canon_check
+  - voice_check
+---
+
+# Contract
+
+## Task
+Draft Scene 1.1 from its card and frozen context pack,
+~1000 words, single POV.
+
+## Scope
+Use only the supplied context pack and target note.
+Put new proper nouns or world facts under
+"Introduced candidates" — never assert them as settled canon.`,
+          fields: {
+            target: { title: "target", copy: "Binds the contract to exactly one card. Dispatch never writes a generic 'next chapter'." },
+            mode: { title: "mode + agent_profile", copy: "Selects the skill and working role. The engine still knows nothing about the model and never calls an LLM." },
+            output: { title: "output_target", copy: "Idempotency is based on artifact existence. Once the file has landed, fill never reruns over it." },
+            review_after: { title: "review_after", copy: "Defines the review lanes and order. Firing may be automatic; report consumption remains manual." }
+          }
+        },
+        template: {
+          tab: "Template set",
+          kind: "Engine contract",
+          title: "What is the shape of this project type?",
+          filename: "scribectl/templates/fiction/set.yaml",
+          copy: "The template set makes project shape data-driven. The same core can run fiction and gamedev projects without per-set subclasses.",
+          code: `card_type: scene_card
+card_heading: Scene card
+node_types: [canon_node]
+
+pull:
+  scope: [canon_scope, characters, location]
+  actors: [characters, pov]
+  location: location
+
+position: [book, chapter, scene]
+
+new:
+  card_template: scene_card.md
+  card_dir: structure/scenes
+
+init:
+  dirs:
+    - world/canon
+    - world/language
+    - structure/scenes
+    - body/drafts
+    - control/timeline
+    - control/ratification
+    - control/context-packs
+    - control/mining-packs
+    - control/proposals
+    - reviews/canon
+    - reviews/voice`,
+          fields: {
+            types: { title: "card_type + node_types", copy: "Identifies the fillable unit and the file types that carry ratified facts." },
+            pull: { title: "pull", copy: "Declares the frontmatter links from which scope, timeline actors, and location are derived without set-specific Python logic." },
+            position: { title: "position", copy: "Provides the card's ordering key. An unpositioned card sees the whole timeline; a fiction scene sees only prior events." },
+            init: { title: "init", copy: "Lists the paths and scaffolds project creation may instantiate. It does not generate empty lore nodes on speculation." }
+          }
+        }
+      };
+
+      const exampleSteps = [
+        {
+          title: "Create the project",
+          owner: "Writer + scribectl",
+          state: "project discovered",
+          command: "scribectl init \"Fertile Flames\" --set fiction",
+          copy: "The fiction template set creates only the earned skeleton: world, structure, body, control, review lanes, and the project's scribe-project note. The vault immediately becomes both world database and writing cockpit.",
+          files: [
+            ["Fertile Flames.md", "config", "new"],
+            ["world/World Seed.md", "intent", "new"],
+            ["control/timeline/Timeline.md", "oracle", "new"],
+            ["control/ratification/Inbox.md", "gate", "new"]
+          ],
+          gateTitle: "Initialization does not create canon",
+          gateCopy: "Init creates structure, not a world full of empty nodes.",
+          gateIcon: "○"
+        },
+        {
+          title: "Author the world spine",
+          owner: "Writer",
+          state: "awaiting authored scope",
+          command: "edit world/World Seed.md + world/canon/*.md",
+          copy: "The seed fixes the premise: a volcanic city-state survives between infernal pressure and a memory-eroding Mist. Only ratified facts belong under a canon node's Ratified facts heading.",
+          files: [
+            ["world/World Seed.md", "hard constraints", "ready"],
+            ["world/canon/The Volcanic City-State.md", "3 facts", "new"],
+            ["world/canon/The Mist.md", "3 facts", "new"],
+            ["world/canon/Mara Vey.md", "2 facts", "new"]
+          ],
+          gateTitle: "Open questions are not facts",
+          gateCopy: "The assembler ships only One-line function and Ratified facts into a fill.",
+          gateIcon: "≠"
+        },
+        {
+          title: "Bound the first scene",
+          owner: "Writer",
+          state: "blocked_unresolved_scope",
+          command: "scribectl new card \"A Routine That Lies\"",
+          copy: "Scene 1.1 requires Mara Vey, the city-state, the Mist, and Lower Ashmarket. The first three resolve; [[Lower Ashmarket]] does not. State is derived from the vault, so the fill stops for the right reason.",
+          files: [
+            ["structure/scenes/Scene 01-01.md", "card", "new"],
+            ["control/contracts/fill-scene-01-01.md", "intent", "new"],
+            ["world/canon/Lower Ashmarket.md", "missing", "missing"]
+          ],
+          gateTitle: "Unresolved scope is a real blocker",
+          gateCopy: "The coordinator neither invents the missing canon node nor fills an unauthored card.",
+          gateIcon: "!"
+        },
+        {
+          title: "Resolve scope and freeze the pack",
+          owner: "Writer + scribectl",
+          state: "ready_for_fill → packed",
+          command: "scribectl pack \"Scene 01-01\"",
+          copy: "Once Lower Ashmarket has a ratified canon node, the card becomes fillable. The pack combines the scene card, relevant facts, prior timeline events, voice canon, and hard exclusions in one auditable file.",
+          files: [
+            ["world/canon/Lower Ashmarket.md", "resolved", "new"],
+            ["control/context-packs/Scene-01-01-context.md", "sha b1aa50b69a16", "new"],
+            ["control/timeline/Timeline.md", "2 prior events", "ready"]
+          ],
+          gateTitle: "The hash is the prose receipt",
+          gateCopy: "The draft can later prove which canon state it actually saw.",
+          gateIcon: "#"
+        },
+        {
+          title: "Fill the draft once",
+          owner: "body_fill agent",
+          state: "has_draft",
+          command: "scribe-dispatch run -p \"Fertile Flames\"",
+          copy: "body_fill receives the pack path, card, and contract. It lands a new draft at output_target with a pack_sha receipt. A new claim—such as the cadence of a local alarm bell—is marked as a candidate, not a fact.",
+          files: [
+            ["body/drafts/ch01-sc01-draft-a.md", "pack_sha receipt", "new"],
+            ["control/context-packs/Scene-01-01-context.md", "frozen", "ready"]
+          ],
+          gateTitle: "A landed draft belongs to the writer",
+          gateCopy: "The next dispatch will not overwrite the same file.",
+          gateIcon: "✎"
+        },
+        {
+          title: "Review; do not repair",
+          owner: "review_canon + review_voice",
+          state: "reviewed",
+          command: "scribe-dispatch run -p \"Fertile Flames\"",
+          copy: "Missing canon and voice lanes fire independently. The reports compare the draft with the timeline, ratified facts, and accepted cadence. Findings and introduced candidates remain advisory.",
+          files: [
+            ["reviews/canon/ch01-sc01-draft-a-canon-review.md", "advisory", "new"],
+            ["reviews/voice/ch01-sc01-draft-a-voice-review.md", "advisory", "new"],
+            ["body/drafts/ch01-sc01-draft-a.md", "human-owned", "ready"]
+          ],
+          gateTitle: "No agent-on-agent loop",
+          gateCopy: "The writer consumes the feedback and decides the rework.",
+          gateIcon: "↯"
+        },
+        {
+          title: "Ratify the exact claim",
+          owner: "Writer + scribectl",
+          state: "canon projected",
+          command: "scribectl ratify --mine && scribectl ratify --sweep",
+          copy: "A review candidate enters the inbox as pending. The writer fixes its wording, selects accept, reject, or defer, and runs the sweep. An accepted fact is added to the target node; the decision and provenance are appended to the log. The next pack sees the new canon.",
+          files: [
+            ["control/ratification/Inbox.md", "[x] accepted", "new"],
+            ["world/canon/The Volcanic City-State.md", "+1 ratified fact", "new"],
+            ["control/ratification/Ratification Log.md", "+1 receipt", "new"]
+          ],
+          gateTitle: "This is where a proposal becomes true",
+          gateCopy: "No earlier stage may cross this gate.",
+          gateIcon: "◆"
+        }
+      ];
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function renderBoundaries(selectedId) {
+        const flow = root.querySelector("#sc-boundary-flow");
+        const detail = root.querySelector("#sc-boundary-detail");
+        const selected = boundaryParts.find((part) => part.id === selectedId) || boundaryParts[0];
+        flow.innerHTML = boundaryParts.map((part, index) => `
+          <button type="button" class="sc-boundary-node" data-boundary="${part.id}" aria-pressed="${part.id === selected.id}" style="--node-color:${part.color}">
+            <span class="sc-node-num">0${index + 1}</span>
+            <strong>${part.name}</strong>
+            <span>${part.subtitle}</span>
+          </button>`).join("");
+        detail.style.setProperty("--detail-color", selected.color);
+        detail.innerHTML = `
+          <div class="sc-detail-rule"></div>
+          <p class="sc-eyebrow">${selected.subtitle}</p>
+          <h3>${selected.name}</h3>
+          <p>${selected.role}</p>
+          <div class="sc-do-dont">
+            <div class="sc-mini-panel"><b>May do</b><span>${selected.does}</span></div>
+            <div class="sc-mini-panel"><b>Does not</b><span>${selected.never}</span></div>
+          </div>
+          <span class="sc-path">boundary: ${selected.boundary}</span>`;
+        flow.querySelectorAll("[data-boundary]").forEach((button) => {
+          button.addEventListener("click", () => renderBoundaries(button.dataset.boundary));
+        });
+      }
+
+      let activeFlow = "production";
+      let activeFlowNode = "shape";
+
+      function renderFlow() {
+        const flow = flows[activeFlow];
+        if (!flow.nodes.some((node) => node.id === activeFlowNode)) activeFlowNode = flow.nodes[0].id;
+        const selected = flow.nodes.find((node) => node.id === activeFlowNode) || flow.nodes[0];
+        const track = root.querySelector("#sc-flow-track");
+        track.innerHTML = flow.nodes.map((node, index) => {
+          const arrow = index < flow.nodes.length - 1 ? '<span class="sc-flow-arrow" aria-hidden="true">→</span>' : "";
+          return `<button type="button" class="sc-flow-node" data-flow-node="${node.id}" aria-pressed="${node.id === selected.id}">
+            <small>0${index + 1}</small><strong>${node.title}</strong><span>${node.short}</span>
+          </button>${arrow}`;
+        }).join("");
+        root.querySelector("#sc-flow-detail").innerHTML = `
+          <div><p class="sc-eyebrow">${flow.label} / ${selected.actor}</p><h3>${selected.title}</h3><p>${selected.detail}</p></div>
+          <div class="sc-receipt">
+            <div class="sc-receipt-row"><span>reads</span><strong>${selected.reads}</strong></div>
+            <div class="sc-receipt-row"><span>emits</span><strong>${selected.emits}</strong></div>
+            <div class="sc-receipt-row"><span>command</span><code>${escapeHtml(selected.command)}</code></div>
+          </div>`;
+        track.querySelectorAll("[data-flow-node]").forEach((button) => {
+          button.addEventListener("click", () => {
+            activeFlowNode = button.dataset.flowNode;
+            renderFlow();
+          });
+        });
+        root.querySelectorAll("[data-flow]").forEach((button) => {
+          const active = button.dataset.flow === activeFlow;
+          button.setAttribute("aria-pressed", String(active));
+          button.classList.toggle("sc-btn-primary", active);
+        });
+      }
+
+      root.querySelectorAll("[data-flow]").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFlow = button.dataset.flow;
+          activeFlowNode = flows[activeFlow].nodes[0].id;
+          renderFlow();
+        });
+      });
+
+      let activeTrust = "all";
+      let activeArtifact = "pack";
+
+      function renderArtifactFilters() {
+        const order = ["all", "intent", "canon", "frozen", "quarantine", "gate", "derived"];
+        root.querySelector("#sc-artifact-filters").innerHTML = order.map((trust) => `
+          <button type="button" class="sc-filter" data-trust="${trust}" aria-pressed="${trust === activeTrust}">${trustLabels[trust]}</button>`).join("");
+        root.querySelectorAll("[data-trust]").forEach((button) => {
+          button.addEventListener("click", () => {
+            activeTrust = button.dataset.trust;
+            const visible = artifacts.filter((artifact) => activeTrust === "all" || artifact.trust === activeTrust);
+            if (!visible.some((artifact) => artifact.id === activeArtifact) && visible.length) activeArtifact = visible[0].id;
+            renderArtifacts();
+          });
+        });
+      }
+
+      function renderArtifacts() {
+        renderArtifactFilters();
+        const visible = artifacts.filter((artifact) => activeTrust === "all" || artifact.trust === activeTrust);
+        const grid = root.querySelector("#sc-artifact-grid");
+        grid.innerHTML = visible.length ? visible.map((artifact) => `
+          <button type="button" class="sc-artifact" data-artifact="${artifact.id}" aria-pressed="${artifact.id === activeArtifact}" style="--artifact-color:${artifact.color}">
+            <span class="sc-artifact-type">${artifact.type}</span>
+            <strong>${artifact.name}</strong>
+            <span>${trustLabels[artifact.trust]}</span>
+          </button>`).join("") : '<div class="sc-empty">No artifacts match this filter.</div>';
+        grid.querySelectorAll("[data-artifact]").forEach((button) => {
+          button.addEventListener("click", () => {
+            activeArtifact = button.dataset.artifact;
+            renderArtifacts();
+          });
+        });
+        const selected = artifacts.find((artifact) => artifact.id === activeArtifact) || visible[0] || artifacts[0];
+        const detail = root.querySelector("#sc-artifact-detail");
+        detail.style.setProperty("--detail-color", selected.color);
+        detail.innerHTML = `
+          <div class="sc-detail-rule"></div>
+          <p class="sc-eyebrow">${trustLabels[selected.trust]} / ${selected.type}</p>
+          <h3>${selected.name}</h3>
+          <p>${selected.summary}</p>
+          <span class="sc-path">${escapeHtml(selected.path)}</span>
+          <div><span class="sc-tag">owner: ${selected.owner}</span><span class="sc-tag">reads: ${selected.reads}</span><span class="sc-tag">writes: ${selected.writes}</span></div>
+          <div class="sc-mini-panel" style="margin-top:16px"><b>Trust rule</b><span>${selected.rule}</span></div>`;
+      }
+
+      let activeContract = "scene";
+      let activeField = "canon_scope";
+
+      function renderContracts() {
+        const tabs = root.querySelector("#sc-contract-tabs");
+        tabs.innerHTML = Object.entries(contracts).map(([id, contract]) => `
+          <button type="button" class="sc-btn" role="tab" data-contract="${id}" aria-selected="${id === activeContract}" aria-pressed="${id === activeContract}">${contract.tab}</button>`).join("");
+        const current = contracts[activeContract];
+        if (!Object.prototype.hasOwnProperty.call(current.fields, activeField)) activeField = Object.keys(current.fields)[0];
+        root.querySelector("#sc-code-name").textContent = current.filename;
+        root.querySelector("#sc-contract-code").textContent = current.code;
+        root.querySelector("#sc-contract-kind").textContent = current.kind;
+        root.querySelector("#sc-contract-title").textContent = current.title;
+        root.querySelector("#sc-contract-copy").textContent = current.copy;
+        const fieldList = root.querySelector("#sc-field-list");
+        fieldList.innerHTML = Object.entries(current.fields).map(([id, field]) => `
+          <button type="button" class="sc-field" data-field="${id}" aria-pressed="${id === activeField}">${field.title}</button>`).join("");
+        const field = current.fields[activeField];
+        root.querySelector("#sc-field-detail").innerHTML = `<p class="sc-eyebrow">selected field</p><h3>${field.title}</h3><p>${field.copy}</p>`;
+        tabs.querySelectorAll("[data-contract]").forEach((button) => {
+          button.addEventListener("click", () => {
+            activeContract = button.dataset.contract;
+            activeField = Object.keys(contracts[activeContract].fields)[0];
+            renderContracts();
+          });
+        });
+        fieldList.querySelectorAll("[data-field]").forEach((button) => {
+          button.addEventListener("click", () => {
+            activeField = button.dataset.field;
+            renderContracts();
+          });
+        });
+      }
+
+      let activeStep = 0;
+
+      function renderExample() {
+        const rail = root.querySelector("#sc-step-rail");
+        rail.innerHTML = exampleSteps.map((step, index) => `
+          <button type="button" class="sc-step-dot" data-step="${index}" aria-label="Step ${index + 1}: ${step.title}" aria-current="${index === activeStep ? "step" : "false"}" data-complete="${index < activeStep}">${String(index + 1).padStart(2, "0")}</button>`).join("");
+        const step = exampleSteps[activeStep];
+        root.querySelector("#sc-progress-bar").style.width = `${((activeStep + 1) / exampleSteps.length) * 100}%`;
+        root.querySelector("#sc-step-copy").innerHTML = `
+          <div class="sc-step-meta"><span class="sc-state">${step.state}</span><span class="sc-owner">${step.owner}</span></div>
+          <h3>${activeStep + 1}. ${step.title}</h3>
+          <p>${step.copy}</p>
+          <div class="sc-command">$ ${escapeHtml(step.command)}</div>`;
+        root.querySelector("#sc-tree").innerHTML = step.files.map(([file, status, state]) => `
+          <div class="sc-tree-row ${state === "new" ? "is-new" : ""}"><span aria-hidden="true">${state === "missing" ? "×" : state === "new" ? "+" : "·"}</span><span>${escapeHtml(file)}</span><span class="sc-tree-status">${status}</span></div>`).join("");
+        root.querySelector("#sc-vault-counter").textContent = `${activeStep + 1} / ${exampleSteps.length}`;
+        root.querySelector("#sc-gate-title").textContent = step.gateTitle;
+        root.querySelector("#sc-gate-copy").textContent = step.gateCopy;
+        root.querySelector("#sc-gate-icon").textContent = step.gateIcon;
+        root.querySelector("#sc-prev-step").disabled = activeStep === 0;
+        root.querySelector("#sc-next-step").disabled = activeStep === exampleSteps.length - 1;
+        root.querySelector("#sc-next-step").textContent = activeStep === exampleSteps.length - 1 ? "Complete" : "Next →";
+        rail.querySelectorAll("[data-step]").forEach((button) => {
+          button.addEventListener("click", () => {
+            activeStep = Number(button.dataset.step);
+            renderExample();
+          });
+        });
+      }
+
+      root.querySelector("#sc-prev-step").addEventListener("click", () => {
+        activeStep = Math.max(0, activeStep - 1);
+        renderExample();
+      });
+      root.querySelector("#sc-next-step").addEventListener("click", () => {
+        activeStep = Math.min(exampleSteps.length - 1, activeStep + 1);
+        renderExample();
+      });
+
+      renderBoundaries("engine");
+      renderFlow();
+      renderArtifacts();
+      renderContracts();
+      renderExample();
+    }());
+  </script>
+</main>
+
+<script id="codex-visualization-tooltip">/* oxlint-disable typescript/no-unsafe-argument, typescript/no-unsafe-call, typescript/no-unsafe-return */
+// Runs inside the visualization sandbox, not the host webview.
+(() => {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set(["top", "right", "bottom", "left"]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =>
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest("[data-tooltip]")
+      : null;
+  const containsTarget = (trigger, target) =>
+    target?.nodeType != null && trigger.contains(target);
+  const getContent = (trigger) =>
+    trigger.getAttribute("data-tooltip")?.trim() ?? "";
+  const getPlacement = (trigger) => {
+    const placement = trigger.getAttribute("data-tooltip-placement");
+    return tooltipPlacements.has(placement) ? placement : "top";
+  };
+  const getTooltip = () => {
+    if (tooltip == null) {
+      tooltip = document.createElement("div");
+      tooltip.id = tooltipId;
+      tooltip.className = "tooltip";
+      tooltip.setAttribute("role", "tooltip");
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) => {
+    const ids = new Set(
+      (trigger.getAttribute("aria-describedby") ?? "")
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute("aria-describedby");
+    } else {
+      trigger.setAttribute("aria-describedby", [...ids].join(" "));
+    }
+  };
+  const clearOpenTimeout = () => {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) => {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) => {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              "--tooltip-available-width",
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              "--tooltip-available-height",
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: "fixed",
+    })
+      .then(({ x, y }) => {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = "visible";
+      })
+      .catch(() => {
+        if (activeTrigger === trigger && request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) => {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = "hidden";
+    floating.style.transform = "translate(0, 0)";
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () => {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) => {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() < skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() => {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) => {
+    if (event.pointerType === "touch") {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) => {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) => {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(":focus-visible")) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) => {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () => {
+    closeTooltip(false);
+    document.removeEventListener("pointerover", handlePointerOpen);
+    document.removeEventListener("pointerout", handleLeave);
+    document.removeEventListener("focusin", handleFocusIn);
+    document.removeEventListener("focusout", handleLeave);
+    document.removeEventListener("keydown", handleKeyDown);
+    document.removeEventListener("contextmenu", handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener("pointerover", handlePointerOpen);
+  document.addEventListener("pointerout", handleLeave);
+  document.addEventListener("focusin", handleFocusIn);
+  document.addEventListener("focusout", handleLeave);
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("contextmenu", handleContextMenu);
+  window.addEventListener("pagehide", destroy, { once: true });
+})();
+</script>
+<script id="codex-visualization-lucide-initialization">(() => {
+  const initialize = () => {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById("codex-visualization-lucide")
+    ?.addEventListener("load", initialize, { once: true });
+})();
+</script>
+</body>
+</html>
