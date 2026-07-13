@@ -27,6 +27,15 @@ def status(project: str | None = None) -> dict:
     return json.loads(_run(["status", "--json"] + (["-p", project] if project else [])))
 
 
+def mine(project: str | None = None) -> str:
+    """Invoke the engine's `ratify --mine`: queue candidates from landed
+    review artifacts into the ratification inbox as pending. Invoke, don't
+    do (#1101, docs/DISPATCH.md): the dispatcher never parses report content
+    and never writes the inbox itself — it fires the same idempotent command
+    the writer would type (the via-link marker makes a second mine a no-op)."""
+    return _run(["ratify", "--mine"] + (["-p", project] if project else []))
+
+
 def freeze_pack(card: str, project: str | None = None) -> Path:
     """Freeze (or find already-frozen) the card's pack; return its path."""
     out = _run(["pack", card] + (["-p", project] if project else []))

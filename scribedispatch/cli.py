@@ -85,10 +85,13 @@ def last_change(root: Path) -> float:
                 if p.is_file() or p.is_dir()), default=0.0)
 
 
-def _run_once(args, runners: "RunnerPool", chatty: bool = True) -> None:
+def _run_once(args, runners: "RunnerPool", chatty: bool = True) -> bool:
     """One dispatch pass. The follow-up iteration exists only so reviews fire
-    on drafts this pass just landed — never a second fill, never iteration."""
+    on drafts this pass just landed — never a second fill, never iteration.
+    Returns whether any review artifact landed — the signal watch uses to
+    invoke the engine's candidate mining (#1101)."""
     first = True
+    reviewed = False
     while True:
         state = engine.status(args.project)
         contracts = load_contracts(Path(state["project"]["root"]))
@@ -102,7 +105,7 @@ def _run_once(args, runners: "RunnerPool", chatty: bool = True) -> None:
         if not dispatches:
             if first and chatty:
                 print("nothing to dispatch")
-            return
+            return reviewed
         filled = False
         for d in dispatches:
             runner = runners.for_skill(d.skill)
@@ -114,8 +117,9 @@ def _run_once(args, runners: "RunnerPool", chatty: bool = True) -> None:
             path = execute(d, state, contracts, runner)
             print(f"  landed {path}")
             filled = filled or d.skill == "body_fill"
+            reviewed = reviewed or d.skill.startswith("review_")
         if not filled:
-            return
+            return reviewed
         first = False
 
 
@@ -136,7 +140,12 @@ def _watch(args, runners: "RunnerPool") -> int:
             print(f"[watch] vault changed {quiet:.0f}s ago (settle {args.settle:.0f}s) — "
                   "waiting for livesync to finish")
             continue
-        _run_once(args, runners, chatty=False)
+        if _run_once(args, runners, chatty=False) and not args.no_mine:
+            # Reviews landed: invoke the engine's own mining so their
+            # candidates queue as pending — ambient flow, invoke-don't-do
+            # (#1101, docs/DISPATCH.md). Idempotent, so a crash between
+            # landing and mining costs nothing but the next tick.
+            print(f"[watch] {engine.mine(args.project).strip()}")
     return 0
 
 
@@ -204,6 +213,10 @@ def main(argv: list[str] | None = None) -> int:
                          "(livesync debounce; default: 30)")
     ap.add_argument("--ticks", type=int,
                     help="watch: exit after N polls (timer/cron single-shot: --ticks 1)")
+    ap.add_argument("--no-mine", action="store_true",
+                    help="watch: don't invoke `scribectl ratify --mine` after a pass "
+                         "that landed reviews (ambient candidate flow is the default; "
+                         "the engine mines, the dispatcher only invokes)")
     ap.add_argument("--skip-unreachable", action="store_true",
                     help="skip (don't crash on) a dispatch whose runner is down — "
                          "ambient default so a stopped vllm-writer skips fills while "

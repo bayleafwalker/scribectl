@@ -190,7 +190,10 @@ Filed on that recipe (cairn 403), in rough value order:
    chapter iteration" and "no writers-room" (dispatch track).
 2. #1101 watch invokes `ratify --mine` — ambient candidate flow; the
    dispatcher still never parses a report or touches the inbox (dispatch
-   track; the invoke-vs-do line gets decided in DISPATCH.md).
+   track; the invoke-vs-do line gets decided in DISPATCH.md). — DONE
+   2026-07-13: lifted as *invoke, don't do*; watch fires the engine's
+   `ratify --mine` after a pass lands reviews, `--no-mine` opts out
+   (DISPATCH.md carries the redrawn line).
 3. #1102 Shell Commands / QuickAdd macros invoking scribectl — one-motion
    sweep and status from inside Obsidian; the plugin is a dumb button under
    DESIGN.md's ergonomics-only doctrine (surfaces track).

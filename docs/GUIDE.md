@@ -134,6 +134,10 @@ Watch polls every `--interval` (60s) and only acts once the vault has been
 mtime-quiet for `--settle` (30s), so a half-synced note never dispatches.
 It repeats, never iterates: a finished card is never re-drafted. It stops
 loudly on error — a dead watch is visible, a silently skipping one is not.
+After a pass that lands reviews, watch invokes the engine's
+`scribectl ratify --mine`, so their candidates are already waiting pending
+in the inbox when you next look (`--no-mine` keeps that step manual). Your
+checkbox is still the only verdict — mining queues, never decides.
 
 Fully ambient, no terminal held open — packaged systemd user units
 (`ops/scribe-dispatch/`, its README has the install):

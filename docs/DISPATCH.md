@@ -150,16 +150,19 @@ the real vault.
   cron single shot (one debounced pass, exit 0 either way). Errors are not
   survived: a dead watch is visible, one that silently skips failures is not.
   The hard lines hold — watching adds repetition, never iteration.
-- **No candidate mining by the dispatcher.** Reviews list "Introduced
-  candidates"; the *engine's* `scribectl ratify --mine` lifts them into the
-  ratification Inbox as pending candidates (RATIFICATION.md build item 2,
-  landed 2026-07-12). The dispatcher itself still never touches the inbox.
-  Gate under assessment (#1101): watch *invoking* `scribectl ratify
-  --mine` after reviews land — ambient candidate flow. The line's purpose is
-  one implementation of mining; the engine CLI is the dispatcher's whole API
-  and `--mine` is idempotent (via-link marker), so invoke-vs-do may be a
-  legitimate lift. Deciding it means writing the answer into this paragraph,
-  not just shipping the call.
+- **No candidate mining by the dispatcher** — line redrawn as *invoke,
+  don't do* (#1101, 2026-07-13). The ban's purpose was always one
+  implementation of mining, not zero ambient flow: parsing reports or
+  writing the inbox from dispatcher code would be a second implementation
+  that drifts, so that stays banned. Invoking the engine's own command is
+  the opposite of drift — the engine CLI is the dispatcher's whole API, and
+  `ratify --mine` is the same idempotent command the writer would type (the
+  via-link marker makes a second mine a no-op, so a crash between landing
+  and mining costs nothing but the next tick). Shipped: after a `watch`
+  pass lands review artifacts, watch invokes `scribectl ratify --mine`;
+  `--no-mine` turns the ambient flow off; `run` and `plan` stay manual.
+  Candidates land pending, conflicts-first (#1104) — the checkbox remains
+  the only verdict.
 - ~~**No real-vault dispatch** until the fixture loop and the live smoke both
   hold.~~ Gate lifted 2026-07-12: the F.5 smoke draft passed the operator's
   voice verdict (canon + voice lanes clean), and the first real-vault

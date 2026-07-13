@@ -235,6 +235,39 @@ def test_watch_second_tick_goes_quiet(run, scratch_project):
     assert out.count("dispatching body_fill") == 1
 
 
+def test_watch_mines_landed_reviews_into_inbox(run, scratch_project):
+    """#1101, invoke-don't-do: after a watch pass lands review artifacts, watch
+    invokes the engine's `ratify --mine` — their candidates queue as pending,
+    and the second tick (nothing landed) invokes nothing, so nothing
+    double-queues. The dispatcher never wrote the inbox; the engine did."""
+    unblock(scratch_project)
+    code, out, _ = run("watch", "--ticks", "2", "--interval", "0", "--settle", "0")
+    assert code == 0
+    inbox = (scratch_project / "control/ratification/Inbox.md").read_text(encoding="utf-8")
+    assert '- [ ] "The ash-census is conducted quarterly"' in inbox
+    assert inbox.count("The ash-census is conducted quarterly") == 1
+    assert out.count("[watch] queued") == 1
+
+
+def test_watch_no_mine_leaves_candidate_flow_manual(run, scratch_project):
+    """--no-mine: the pass still lands fill + reviews, but the writer runs
+    `ratify --mine` themselves — no inbox appears ambient-ly."""
+    unblock(scratch_project)
+    code, _, _ = run("watch", "--ticks", "1", "--settle", "0", "--no-mine")
+    assert code == 0
+    assert (scratch_project / "reviews/canon/ch01-sc01-draft-a — canon review.md").is_file()
+    assert not (scratch_project / "control/ratification/Inbox.md").is_file()
+
+
+def test_run_never_mines(run, scratch_project):
+    """`run` is the manual shape: it dispatches, the writer mines. Only watch
+    carries the ambient flow (#1101)."""
+    unblock(scratch_project)
+    code, _, _ = run("run")
+    assert code == 0
+    assert not (scratch_project / "control/ratification/Inbox.md").is_file()
+
+
 def test_tampered_pack_fails_verification(run, scratch_project, tmp_path):
     unblock(scratch_project)
     code, _, _ = run("run")
