@@ -141,6 +141,70 @@ def test_full_loop_fill_then_reviews_then_quiet(run, scratch_project):
     assert after == before
 
 
+def _add_variants(project: Path, n: int) -> None:
+    c = project / "control/contracts/fill-scene-01-01.md"
+    text = c.read_text(encoding="utf-8")
+    c.write_text(text.replace("mode: body_fill\n", f"mode: body_fill\nvariants: {n}\n"),
+                 encoding="utf-8")
+
+
+def test_variant_fills_land_side_by_side_then_reviews_per_variant(run, scratch_project):
+    """#1100 breadth, not iteration: the contract's `variants: 2` fires two
+    independent fills of the SAME frozen pack, landed side by side with
+    variant tags; reviews fire per variant (the information the pick runs
+    on); nothing refires; nothing picks — the writer does."""
+    unblock(scratch_project)
+    _add_variants(scratch_project, 2)
+
+    code, out, _ = run("plan")
+    assert code == 0
+    assert "variant 1/2" in out and "variant 2/2" in out
+
+    code, out, _ = run("run")
+    assert code == 0
+    v1 = scratch_project / "body/drafts/ch01-sc01-draft-a (v1).md"
+    v2 = scratch_project / "body/drafts/ch01-sc01-draft-a (v2).md"
+    assert v1.is_file() and v2.is_file()
+    # One pack frozen; every sibling cites its sha — breadth from one frame.
+    packs = list((scratch_project / "control/context-packs").glob("*-context.md"))
+    assert len(packs) == 1
+    sha = verify_pack(packs[0])
+    for v, tag in ((v1, "v1"), (v2, "v2")):
+        text = v.read_text(encoding="utf-8")
+        assert f"pack_sha: {sha}" in text and f"variant: {tag}" in text
+    # Reviews landed per variant, each reading only its own draft.
+    for d in ("ch01-sc01-draft-a (v1)", "ch01-sc01-draft-a (v2)"):
+        assert (scratch_project / f"reviews/canon/{d} — canon review.md").is_file()
+        assert (scratch_project / f"reviews/voice/{d} — voice review.md").is_file()
+    # Second pass: any variant makes the card has_draft — nothing refires,
+    # and no auto-pick exists to fire.
+    code, out, _ = run("run")
+    assert code == 0
+    assert "nothing to dispatch" in out and "the writer picks" in out
+
+
+def test_variant_routes_overlay_the_skill_route():
+    """The routing map's `variants:` list keys per-fill routes; entries past
+    its end ride the plain skill route; a --runner pin still overrides
+    everything (the bake-off invariant)."""
+    from argparse import Namespace
+    from scribedispatch.cli import RunnerPool
+
+    cfg = {"runner": "claude",
+           "skills": {"body_fill": {
+               "runner": "openai", "base_url": "http://x:1", "temperature": 0.5,
+               "variants": [{"temperature": 0.9},
+                            {"runner": "claude", "model": "opus"}]}}}
+    bare = Namespace(runner=None, model=None, base_url=None, fake_dir=None)
+    pool = RunnerPool(bare, cfg)
+    assert pool.route("body_fill", 1) == ("openai", None, "http://x:1", 0.9)
+    assert pool.route("body_fill", 2) == ("claude", "opus", "http://x:1", 0.5)
+    assert pool.route("body_fill", 3) == ("openai", None, "http://x:1", 0.5)
+    pinned = RunnerPool(Namespace(runner="fake", model=None, base_url=None,
+                                  fake_dir="/tmp/x"), cfg)
+    assert pinned.route("body_fill", 2)[0] == "fake"
+
+
 def test_ready_card_without_contract_is_skipped(run, scratch_project):
     unblock(scratch_project)
     (scratch_project / "control/contracts/fill-scene-01-01.md").unlink()
@@ -355,7 +419,7 @@ def test_skip_unreachable_skips_fill_but_reviews_still_fire(monkeypatch, capsys,
         def reachable(self):
             return False
 
-    def routed(name, model=None, base_url=None, fake_dir=None):
+    def routed(name, model=None, base_url=None, fake_dir=None, temperature=None):
         cls = DownWriter if name == "openai" else runner_mod.FakeRunner
         return cls(fake_dir or str(fakes))
 
@@ -423,7 +487,7 @@ def test_per_skill_routing_splits_fill_and_reviews(monkeypatch, capsys,
                                  "model": "local-writer"}}})
     made = []
 
-    def recording(name, model=None, base_url=None, fake_dir=None):
+    def recording(name, model=None, base_url=None, fake_dir=None, temperature=None):
         made.append((name, model, base_url))
         return runner_mod.FakeRunner(fake_dir or str(fakes))
 

@@ -90,8 +90,22 @@ Backend choice is machine policy, not vault content: `--runner`/`--model`/
 (item 1076, once two backends were real): a `skills:` map in dispatch.yaml
 routes each skill (frontier reviews + local fills is the shipped shape) with
 the top-level keys as fallback; an explicit `--runner` pins one backend for
-the whole pass. `codex` joins as a fourth backend if/when the CLI is
+the whole pass. A skill entry may carry a `variants:` list (#1100) — per-fill
+route overlays (`runner` / `model` / `base_url` / `temperature`) applied when
+a contract asks for `variants: N`; entries past the list's end ride the plain
+skill route. `codex` joins as a fourth backend if/when the CLI is
 installed — the abstraction is the contract, not the vendor.
+
+```yaml
+skills:
+  body_fill:
+    runner: openai
+    base_url: http://127.0.0.1:8080
+    variants:                # only consulted when a contract sets variants: N
+      - {temperature: 0.7}
+      - {temperature: 1.1}
+      - {runner: claude}     # a frontier take beside the local ones
+```
 
 The local track reuses the proven `vllm-devstral.service` pattern (user unit +
 env file, AWQ 4-bit, 24 GB budget) with a *writing* model — Devstral is a code
@@ -172,11 +186,19 @@ the real vault.
   (runner: claude), and every hard line above applies with no fixture net.
 - **No agent-on-agent loops, no retries-with-feedback.** A bad draft is
   information for the writer, not fuel for the coordinator. The sanctioned
-  neighbor (#1100) is *variant fills*: N independent fills of one card
-  from the same frozen pack — different routes, temperatures, or contract
-  emphases — landed side by side for the writer to pick from. Breadth, not
-  iteration: no agent judges another, no feedback loop, one human gate. The
-  writer bake-off already proved the judging harness by hand.
+  neighbor, shipped 2026-07-13 (#1100), is *variant fills*: the contract's
+  `variants: N` (breadth is authored intent) fires N independent fills of
+  the same frozen pack, routed per variant by the routing map's
+  `skills.body_fill.variants:` list (runner / model / temperature each) and
+  landed side by side as ` (vN)`-tagged drafts, every sibling citing the
+  same pack sha. Breadth, not iteration: no fill sees another, a card with
+  any variant is `has_draft` so nothing refires, and there is no auto-pick
+  and no scoring loop — the writer picks. **Reviews fire per variant**, not
+  on the pick: the review lanes are the information the pick runs on (the
+  bake-off precedent — lanes judged, the operator chose), a pick-signal
+  would be dispatcher state, and each review still reads only its own
+  variant. The writer's rework of the pick lands untagged, which returns
+  reviews to newest-only.
 - ~~**No actionq/cockpit integration yet.**~~ Landed 2026-07-12, once dispatch
   proved out: `scribectl.dispatch.json` (repo root; staged copy in
   `agentops/templates/dispatch/examples/`) registers the repo at adoption

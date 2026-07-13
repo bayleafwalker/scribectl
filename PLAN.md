@@ -187,7 +187,9 @@ Filed on that recipe (cairn 403), in rough value order:
 
 1. #1100 variant fills — breadth without iteration: N independent fills of
    one card from the same frozen pack, writer picks. Mines "no autonomous
-   chapter iteration" and "no writers-room" (dispatch track).
+   chapter iteration" and "no writers-room" (dispatch track). — DONE
+   2026-07-13: contract `variants: N` + routing-map variant routes; reviews
+   fire per variant (DISPATCH.md carries the decision).
 2. #1101 watch invokes `ratify --mine` — ambient candidate flow; the
    dispatcher still never parses a report or touches the inbox (dispatch
    track; the invoke-vs-do line gets decided in DISPATCH.md). — DONE

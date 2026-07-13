@@ -33,8 +33,15 @@ def _write_new(path: Path, text: str) -> Path:
 
 
 def land_draft(root: Path, card: str, contract: dict, body: str,
-               pack_sha: str, runner: str, model: str | None) -> Path:
+               pack_sha: str, runner: str, model: str | None,
+               variant: int | None = None) -> Path:
     rel = str(contract.get("output_target") or f"body/drafts/{card} draft (dispatch).md").lstrip("/")
+    if variant:
+        # Variant fills (#1100) land side by side: the ` (vN)` name tag is
+        # what policy reads back to plan per-variant reviews. Same pack_sha
+        # receipt on every sibling — breadth from one frozen pack.
+        p = Path(rel)
+        rel = str(p.with_name(f"{p.stem} (v{variant}){p.suffix}"))
     fm = "\n".join([
         "---",
         "type: draft",
@@ -43,6 +50,7 @@ def land_draft(root: Path, card: str, contract: dict, body: str,
         "agent: body_fill",
         f"runner: {runner}",
         f"model: {model or 'default'}",
+        *([f"variant: v{variant}"] if variant else []),
         f"generated: {date.today().isoformat()}",
         "---",
         "", "",

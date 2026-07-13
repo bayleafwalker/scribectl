@@ -112,14 +112,18 @@ class FakeRunner:
 
 
 def make_runner(name: str, model: str | None = None, base_url: str | None = None,
-                fake_dir: str | None = None):
+                fake_dir: str | None = None, temperature: float | None = None):
+    """`temperature` is honored where the backend accepts one (openai);
+    claude's CLI exposes none and the fake runner is canned — a variant route
+    (#1100) that sets it on those still varies by runner/model alone."""
     if name == "claude":
         return ClaudeRunner(model=model)
     if name == "openai":
         if not base_url:
             raise DispatchError("openai runner needs --base-url (e.g. http://127.0.0.1:8080)")
         return OpenAIRunner(base_url=base_url, model=model or "default",
-                            api_key=os.environ.get("SCRIBE_DISPATCH_API_KEY"))
+                            api_key=os.environ.get("SCRIBE_DISPATCH_API_KEY"),
+                            **({"temperature": temperature} if temperature is not None else {}))
     if name == "fake":
         if not fake_dir:
             raise DispatchError("fake runner needs --fake-dir")

@@ -48,7 +48,8 @@ def execute(d: Dispatch, state: dict, contracts: dict, runner) -> Path:
             pack_text=pack_path.read_text(encoding="utf-8"),
         )
         out = runner.generate("body_fill", prompt)
-        return landing.land_draft(root, d.card, contract, out, sha, runner.name, model)
+        return landing.land_draft(root, d.card, contract, out, sha, runner.name, model,
+                                  variant=d.variant)
 
     # review_canon / review_voice
     draft_path = find_note(root, d.draft)
@@ -108,7 +109,7 @@ def _run_once(args, runners: "RunnerPool", chatty: bool = True) -> bool:
             return reviewed
         filled = False
         for d in dispatches:
-            runner = runners.for_skill(d.skill)
+            runner = runners.for_skill(d.skill, d.variant)
             if args.skip_unreachable and not runner.reachable():
                 print(f"skipping {d.skill} for {d.card} [{runner.name}] — "
                       "runner unreachable (start it, or drop --skip-unreachable)")
@@ -173,27 +174,40 @@ class RunnerPool:
         self._skills = cfg.get("skills") if isinstance(cfg.get("skills"), dict) else {}
         self._cache: dict[tuple, object] = {}
 
-    def route(self, skill: str) -> tuple[str | None, str | None, str | None]:
+    def route(self, skill: str, variant: int | None = None
+              ) -> tuple[str | None, str | None, str | None, float | None]:
         per = self._skills.get(skill) if isinstance(self._skills.get(skill), dict) else {}
         if self._cli_runner:
             per = {}  # explicit invocation overrides the routing map entirely
-        name = (self._cli_runner or per.get("runner")
+        # Variant routes (#1100): the skill entry's `variants:` list overlays
+        # the skill route per fill index — distinct runners/models/temperatures
+        # are what make N fills breadth instead of N coin flips. A variant
+        # past the list's end just rides the plain skill route.
+        routes = per.get("variants") if isinstance(per.get("variants"), list) else []
+        over = (routes[variant - 1]
+                if variant and variant <= len(routes) and isinstance(routes[variant - 1], dict)
+                else {})
+        name = (self._cli_runner or over.get("runner") or per.get("runner")
                 or self._cfg.get("runner") or "claude")
-        model = self._cli_model or per.get("model") or self._cfg.get("model")
-        base_url = self._cli_base or per.get("base_url") or self._cfg.get("base_url")
-        return name, model, base_url
+        model = self._cli_model or over.get("model") or per.get("model") or self._cfg.get("model")
+        base_url = (self._cli_base or over.get("base_url") or per.get("base_url")
+                    or self._cfg.get("base_url"))
+        temperature = over.get("temperature", per.get("temperature", self._cfg.get("temperature")))
+        return name, model, base_url, temperature
 
-    def for_skill(self, skill: str):
-        key = self.route(skill)
+    def for_skill(self, skill: str, variant: int | None = None):
+        key = self.route(skill, variant)
         if key not in self._cache:
-            name, model, base_url = key
+            name, model, base_url, temperature = key
             self._cache[key] = make_runner(name, model=model, base_url=base_url,
-                                           fake_dir=self._fake_dir)
+                                           fake_dir=self._fake_dir,
+                                           temperature=temperature)
         return self._cache[key]
 
-    def describe(self, skill: str) -> str:
-        name, model, _ = self.route(skill)
-        return f"{name}:{model}" if model else name
+    def describe(self, skill: str, variant: int | None = None) -> str:
+        name, model, _, temperature = self.route(skill, variant)
+        desc = f"{name}:{model}" if model else name
+        return f"{desc} t={temperature}" if temperature is not None else desc
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -235,7 +249,7 @@ def main(argv: list[str] | None = None) -> int:
             for d in dispatches:
                 extra = f" (draft: {d.draft})" if d.draft else ""
                 print(f"would dispatch {d.skill} for {d.card}{extra} "
-                      f"[{runners.describe(d.skill)}] — {d.reason}")
+                      f"[{runners.describe(d.skill, d.variant)}] — {d.reason}")
             if any(d.skill == "body_fill" for d in dispatches):
                 print("(reviews for landed fills fire in the same run)")
             if not dispatches:
