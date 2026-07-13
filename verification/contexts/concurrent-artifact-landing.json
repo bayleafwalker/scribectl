@@ -5,7 +5,7 @@
   "subject": "generated-artifact-path",
   "contract_ref": {
     "doc_id": "scribectl.state-protocols",
-    "revision": "sha256:c4708dfa8fa4e75f75c02294eafd17137133efcd8f17f8c734d4e16b9e04f669"
+    "revision": "sha256:09072a5ade16cff285cf67414480a9dc9becdd889b64561f5b1f12446782d392"
   },
   "source_of_truth": "fixture-vault-filesystem",
   "depth": 2,

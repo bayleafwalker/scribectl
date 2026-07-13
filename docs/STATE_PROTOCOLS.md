@@ -1,7 +1,7 @@
 ---
 doc_id: scribectl.state-protocols
 status: draft
-supersedes: []
+supersedes: null
 ---
 
 # Stateful protocol boundaries
