@@ -83,10 +83,10 @@ def open_proposal_candidates(vault: Vault, node_name: str, linked_in_ledger: set
     for p in vault.by_type("fact_proposal"):
         if proposal_status(p, linked_in_ledger, reconciled) != "open":
             continue
-        blocks = mine_proposal(p)
-        if not blocks:
+        mined = mine_proposal(p)
+        if not mined:
             continue
-        cands, _ = parse_inbox("\n".join(blocks) + "\n")
+        cands, _ = parse_inbox("\n".join(m.block for m in mined) + "\n")
         total += sum(1 for c in cands if c.target == node_name)
     return total
 

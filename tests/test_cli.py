@@ -454,6 +454,40 @@ def test_propose_candidates_ride_the_mine_path(run, scratch_runosong):
     assert "candidate pending" in sout
 
 
+def test_mine_appends_ordered_batch_without_touching_queued_candidates(run, scratch_runosong):
+    """#1104: ordering applies to the freshly mined batch alone — candidates
+    already sitting in the inbox stay byte-for-byte where the writer left
+    them, even when a later batch carries a conflict flag that sorts first."""
+    proj = scratch_runosong / "Works" / "Runosong"
+    assert run("propose", "--into", "Ilmi", "--source", "Design Seed",
+               vault=scratch_runosong)[0] == 0
+    first = next(iter((proj / "control/proposals").glob("*.md")))
+    head = first.read_text(encoding="utf-8").split("## Candidate facts")[0]
+    first.write_text(head + '## Candidate facts\n'
+                     '- "queued earlier"\n      confidence: low\n', encoding="utf-8")
+    assert run("ratify", "--mine", vault=scratch_runosong)[0] == 0
+    inbox = proj / "control/ratification/Inbox.md"
+    before = inbox.read_text(encoding="utf-8")
+
+    (proj / "sources").mkdir(exist_ok=True)
+    (proj / "sources/Second Ore.md").write_text(
+        "---\ntype: source\n---\n\nMore raw dialogue about Ilmi.\n", encoding="utf-8")
+    assert run("propose", "--into", "Ilmi", "--source", "Second Ore",
+               vault=scratch_runosong)[0] == 0
+    second = next(p for p in (proj / "control/proposals").glob("*.md")
+                  if "Second Ore" in p.name)
+    head = second.read_text(encoding="utf-8").split("## Candidate facts")[0]
+    second.write_text(head + '## Candidate facts\n'
+                      '- "later but conflicted"\n'
+                      '      confidence: high\n'
+                      '      conflicts: rubs against ratified Ilmi canon\n',
+                      encoding="utf-8")
+    assert run("ratify", "--mine", vault=scratch_runosong)[0] == 0
+    after = inbox.read_text(encoding="utf-8")
+    assert after.startswith(before)  # nothing moved under the writer's cursor
+    assert '"later but conflicted"' in after[len(before):]
+
+
 def test_brainstorm_exit_protocol_rides_existing_machinery(run, tmp_path, scratch_runosong):
     """#1094: the brainstorm skill is a session contract, not an engine feature —
     its exit protocol (capture --kind brainstorm → propose against the transcript

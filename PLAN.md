@@ -199,7 +199,9 @@ Filed on that recipe (cairn 403), in rough value order:
    #1065 (engine track).
 5. #1104 inbox ordering — verdict ergonomics: conflicts-first /
    by-confidence presentation; threshold-accept is auto-ratify in a hat and
-   stays refused (engine track).
+   stays refused (engine track). — DONE 2026-07-13: `ratify --mine` orders
+   each fresh batch, queued candidates never move, signals stay in the
+   proposal (RATIFICATION.md "What stays forbidden").
 
 Judged not worth mining: engine-side LLM anything (every tempting case has a
 skills-layer answer — e.g. an agent skill *proposing* `scope:` links if pack

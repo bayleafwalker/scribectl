@@ -49,6 +49,41 @@ class Candidate:
     lines: tuple[int, int]  # [start, end) line span in the inbox file
 
 
+@dataclass(frozen=True)
+class Mined:
+    """One inbox-grammar candidate block plus the ordering signals its source
+    artifact stated (#1104). The signals order the freshly mined batch for the
+    writer's attention — conflicts-flagged first, then confidence descending —
+    and do nothing else: they never ride into the inbox text, never touch
+    candidates already queued, and never carry a verdict. An agent's confidence
+    is input, not verdict (docs/RATIFICATION.md, "What stays forbidden")."""
+    block: str
+    conflicts: bool = False      # the proposal named a fact this rubs against
+    confidence: str | None = None  # high | medium | low, else None
+
+# Indented detail line under a proposal candidate; only these two keys matter
+# to ordering — the quote (and everything else) is proposal-local noise here.
+DETAIL = re.compile(r"^[ \t]+(confidence|conflicts):\s*(.+?)\s*$")
+
+_CONFIDENCE_RANK = {"high": 0, "medium": 1, "low": 2}
+
+
+def _stated_confidence(value: str | None) -> str | None:
+    v = (value or "").strip().lower()
+    return v if v in _CONFIDENCE_RANK else None
+
+
+def _stated_conflict(value: str | None) -> bool:
+    v = (value or "").strip().lower()
+    # `<` marks an uninstantiated template placeholder, same as in bullets.
+    return bool(v) and not v.rstrip(".").startswith("none") and "<" not in v
+
+
+def _mine_key(m: Mined) -> tuple[bool, int]:
+    return (not m.conflicts,
+            _CONFIDENCE_RANK.get(m.confidence, len(_CONFIDENCE_RANK)))
+
+
 def _strip_quotes(s: str) -> str:
     s = s.strip()
     for a, b in (('"', '"'), ("“", "”")):
@@ -119,7 +154,7 @@ def _report_provenance(note) -> str:
     return "(" + ", ".join(bits) + ")"
 
 
-def mine_report(note) -> list[str]:
+def mine_report(note) -> list[Mined]:
     """Inbox-grammar candidate blocks lifted from one review report's
     `## Introduced candidates …` section (docs/RATIFICATION.md, build item 2).
 
@@ -127,13 +162,15 @@ def mine_report(note) -> list[str]:
     A bullet the reviewer routed (`→ [[node]]`) keeps its suggested route; an
     unrouted bullet is queued without an arrow, which every later sweep flags
     as a problem until the writer routes it — fail toward the writer looking.
+    Reports state no confidence or conflicts, so their candidates sort after
+    any proposal candidate that does (#1104).
     """
     title = next((t for t in note.section_titles()
                   if t.lower().startswith(CANDIDATE_SECTION)), None)
     if title is None:
         return []
     prov = _report_provenance(note)
-    blocks: list[str] = []
+    blocks: list[Mined] = []
     for line in (note.section(title) or "").splitlines():
         if not line.startswith("- "):
             continue
@@ -146,10 +183,10 @@ def mine_report(note) -> list[str]:
         if targets:
             lead = " → ".join(parts[:-1])
             fact = _quoted_span(lead) or _strip_quotes(lead)
-            blocks.append(f'- [ ] "{fact}" → [[{targets[0].strip()}]]\n      {prov}')
+            blocks.append(Mined(f'- [ ] "{fact}" → [[{targets[0].strip()}]]\n      {prov}'))
         else:
             fact = _quoted_span(text) or text
-            blocks.append(f'- [ ] "{fact}"\n      {prov}')
+            blocks.append(Mined(f'- [ ] "{fact}"\n      {prov}'))
     return blocks
 
 
@@ -168,7 +205,7 @@ def _proposal_provenance(note) -> str:
     return "(" + ", ".join(bits) + ")"
 
 
-def mine_proposal(note) -> list[str]:
+def mine_proposal(note) -> list[Mined]:
     """Inbox-grammar candidate blocks lifted from one fact proposal's
     `## Candidate facts` section (docs/RATIFICATION.md, build item 3).
 
@@ -177,17 +214,25 @@ def mine_proposal(note) -> list[str]:
     keeps it (agents sometimes spot a fact that belongs elsewhere). Everything
     lands pending — the proposal is agent output, only the writer decides. The
     indented quote/confidence/conflicts lines stay in the proposal (the
-    via-link points the writer back to them); they never ride into the inbox."""
+    via-link points the writer back to them); they never ride into the inbox —
+    but confidence and conflicts do key the mined batch's ordering (#1104)."""
     title = next((t for t in note.section_titles()
                   if t.lower().startswith(PROPOSAL_SECTION)), None)
     if title is None:
         return []
     prov = _proposal_provenance(note)
     default_target = next(iter(note.links("target")), "")
-    blocks: list[str] = []
+    rows: list[dict] = []
+    current: dict | None = None
     for line in (note.section(title) or "").splitlines():
         if not line.startswith("- "):
-            continue  # indented quote/confidence/conflicts lines are proposal-local
+            # A detail line belongs to the candidate above it; details under a
+            # skipped bullet (placeholder, `- none`) attach to nothing.
+            d = DETAIL.match(line)
+            if d and current is not None:
+                current[d.group(1)] = d.group(2)
+            continue
+        current = None
         text = line[2:].strip()
         if not text or text.rstrip(".").lower() == "none" or "<" in text:
             continue
@@ -196,14 +241,19 @@ def mine_proposal(note) -> list[str]:
         if targets:
             lead = " → ".join(parts[:-1])
             fact = _quoted_span(lead) or _strip_quotes(lead)
-            blocks.append(f'- [ ] "{fact}" → [[{targets[0].strip()}]]\n      {prov}')
+            block = f'- [ ] "{fact}" → [[{targets[0].strip()}]]\n      {prov}'
         elif default_target:
             fact = _quoted_span(text) or _strip_quotes(text)
-            blocks.append(f'- [ ] "{fact}" → [[{default_target}]]\n      {prov}')
+            block = f'- [ ] "{fact}" → [[{default_target}]]\n      {prov}'
         else:
             fact = _quoted_span(text) or _strip_quotes(text)
-            blocks.append(f'- [ ] "{fact}"\n      {prov}')
-    return blocks
+            block = f'- [ ] "{fact}"\n      {prov}'
+        current = {"block": block}
+        rows.append(current)
+    return [Mined(block=r["block"],
+                  conflicts=_stated_conflict(r.get("conflicts")),
+                  confidence=_stated_confidence(r.get("confidence")))
+            for r in rows]
 
 
 def mine(vault, inbox_text: str, ledger_text: str) -> tuple[list[str], list[str]]:
@@ -214,12 +264,19 @@ def mine(vault, inbox_text: str, ledger_text: str) -> tuple[list[str], list[str]
     wikilinked from the inbox or the ledger was mined before and is skipped —
     idempotency by artifact content, nothing stored. A proposal folded into a
     merge (named in some proposal's `reconciles:`) is skipped too: its
-    candidates ride the merge proposal, never the sibling."""
+    candidates ride the merge proposal, never the sibling.
+
+    The fresh batch is ordered for the writer's attention (#1104):
+    conflicts-flagged first, then confidence descending, ties in artifact
+    order (stable sort). Ordering is presentation only — it applies to the
+    newly mined blocks alone (the caller appends; candidates already sitting
+    in the inbox are never reordered under the writer's cursor), and the
+    checkbox stays the sole verdict."""
     seen = {t.strip() for text in (inbox_text, ledger_text)
             for t in WIKILINK.findall(text) if t.strip()}
     for p in vault.by_type("fact_proposal"):
         seen.update(s.strip() for s in p.links("reconciles"))
-    blocks: list[str] = []
+    mined: list[Mined] = []
     names: list[str] = []
     for artifact_type, extract in (("review_report", mine_report),
                                    ("fact_proposal", mine_proposal)):
@@ -228,9 +285,9 @@ def mine(vault, inbox_text: str, ledger_text: str) -> tuple[list[str], list[str]
                 continue
             got = extract(a)
             if got:
-                blocks += got
+                mined += got
                 names.append(a.name)
-    return blocks, names
+    return [m.block for m in sorted(mined, key=_mine_key)], names
 
 
 def receipt(c: Candidate) -> str:

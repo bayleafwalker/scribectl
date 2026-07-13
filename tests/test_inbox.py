@@ -144,15 +144,17 @@ PROV = ("(from [[ch01-sc01-draft-a]], pack d21f2dd064bd, "
 
 
 def test_mine_report_lifts_candidates_pending():
-    blocks = mine_report(_report())
+    mined = mine_report(_report())
     # `- none` and the template placeholder never become candidates.
-    assert blocks == [
+    assert [m.block for m in mined] == [
         f'- [ ] "The ash-census is conducted quarterly"\n      {PROV}',
         f'- [ ] "Curfew keys are cut in pairs" → [[Mara Vey]]\n      {PROV}',
     ]
+    # Reports state no ordering signals — their candidates carry none (#1104).
+    assert all(not m.conflicts and m.confidence is None for m in mined)
     # The routed block round-trips through the inbox grammar; the unrouted one
     # surfaces as a problem every sweep until the writer routes it.
-    cands, problems = parse_inbox("\n".join(blocks) + "\n")
+    cands, problems = parse_inbox("\n".join(m.block for m in mined) + "\n")
     assert [c.verdict for c in cands] == ["pending"]
     assert cands[0].fact == "Curfew keys are cut in pairs"
     assert cands[0].target == "Mara Vey"
@@ -170,7 +172,7 @@ def test_mine_report_without_candidates_section():
 def test_mine_report_provenance_omits_what_is_missing():
     bare = _report(body='## Introduced candidates seen in draft\n- "A fact"\n')
     bare.meta.pop("draft"), bare.meta.update(pack_sha="none")
-    assert mine_report(bare) == [
+    assert [m.block for m in mine_report(bare)] == [
         '- [ ] "A fact"\n      (via [[ch01-sc01-draft-a — canon review]])']
 
 
@@ -214,15 +216,15 @@ PPROV = ("(from [[Design Seed]], mining pack abaeea6dc3ac, "
 
 
 def test_mine_proposal_routes_to_target_and_honors_overrides():
-    blocks = mine_proposal(_proposal())
+    mined = mine_proposal(_proposal())
     # `- none` and the template placeholder never become candidates; the
     # indented quote/confidence/conflicts lines stay in the proposal.
-    assert blocks == [
+    assert [m.block for m in mined] == [
         f'- [ ] "Ilmi learned the beat digging ditches to work songs" → [[Ilmi]]\n      {PPROV}',
         f'- [ ] "Cast feedback is diegetic music, never a UI popup" → [[Freeform Casting Evaluation]]\n      {PPROV}',
     ]
     # Round-trips through the inbox grammar as pending, provenance intact.
-    cands, problems = parse_inbox("\n".join(blocks) + "\n")
+    cands, problems = parse_inbox("\n".join(m.block for m in mined) + "\n")
     assert [c.verdict for c in cands] == ["pending", "pending"]
     assert cands[0].target == "Ilmi"          # defaulted to the proposal's target
     assert cands[1].target == "Freeform Casting Evaluation"  # explicit override kept
@@ -234,8 +236,57 @@ def test_mine_proposal_without_candidates_or_provenance():
     # Missing sha and source drop out of provenance, leaving just the via-link.
     bare = _proposal(body='## Candidate facts\n- "A fact"\n')
     bare.meta.pop("source"), bare.meta.update(mining_pack_sha="none")
-    assert mine_proposal(bare) == [
+    assert [m.block for m in mine_proposal(bare)] == [
         '- [ ] "A fact" → [[Ilmi]]\n      (via [[Ilmi — Design Seed — 2026-07-12]])']
+
+
+def test_mine_proposal_reads_ordering_signals():
+    """#1104: the indented confidence/conflicts lines never ride into the inbox,
+    but they do key the fresh batch's ordering — parsed here, applied in mine()."""
+    body = """\
+## Candidate facts
+- "Väki pools in dug earth"
+      quote: "väki pools where earth is opened"
+      confidence: low
+      conflicts: none
+- "The Mist predates the first rune-song"
+      confidence: medium
+      conflicts: [[Ilmi]] — ratified: the songs came first
+- "Work songs are older than magic"
+- "<candidate fact — a checkable claim>"
+      confidence: high
+      conflicts: everything
+"""
+    mined = mine_proposal(_proposal(body=body))
+    # `none` and template placeholders are not conflicts; a bare candidate has
+    # no signals; details under a skipped placeholder bullet attach to nothing.
+    assert [(m.conflicts, m.confidence) for m in mined] == [
+        (False, "low"), (True, "medium"), (False, None)]
+
+
+def test_mine_orders_fresh_batch_conflicts_first_then_confidence():
+    """#1104: the freshly mined batch lands conflicts-flagged first, then by
+    confidence descending, ties in artifact order; report candidates (which
+    state no signals) sort last. Ordering is presentation on the writer's
+    attention only — every candidate still lands pending."""
+    body = """\
+## Candidate facts
+- "low fact"
+      confidence: low
+- "conflicted fact"
+      confidence: low
+      conflicts: rubs against [[Ilmi]]
+- "high fact"
+      confidence: high
+"""
+    vault = Vault(root=Path("."), notes={"r": _report(), "p": _proposal(body=body)})
+    blocks, _ = mine(vault, "", "")
+    assert [b.split('"')[1] for b in blocks] == [
+        "conflicted fact", "high fact", "low fact",
+        "The ash-census is conducted quarterly",
+        "Curfew keys are cut in pairs"]
+    # Confidence never flips a checkbox — there is no accept path here.
+    assert all(b.startswith("- [ ] ") for b in blocks)
 
 
 def test_mine_covers_reports_and_proposals_and_stays_idempotent():

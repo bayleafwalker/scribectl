@@ -152,8 +152,12 @@ applies them under the same checkbox rule.
 - No auto-ratify, ever. An agent's confidence is input, not verdict. The
   safe edge of this line is *ordering*: presenting inbox candidates
   conflicts-first or grouped by confidence is ergonomics on the writer's
-  attention and fine (#1104); any "accept all above confidence X" is
-  auto-ratify in a hat and stays refused, whatever flag it wears.
+  attention and fine — shipped as #1104 (2026-07-13): `ratify --mine` orders
+  each freshly mined batch conflicts-flagged first, then by stated confidence
+  descending, ties in artifact order; candidates already queued are never
+  reordered under the writer's cursor, and the signals themselves stay in the
+  proposal. Any "accept all above confidence X" is auto-ratify in a hat and
+  stays refused, whatever flag it wears.
 - Agents write only under `control/proposals/` (and the inbox, via sweep of
   proposal candidates). `world/`, `structure/`, `body/` remain human-plus-fill
   territory.
