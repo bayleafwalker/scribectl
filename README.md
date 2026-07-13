@@ -1,5 +1,7 @@
 # scribectl
 
+[![tests](https://github.com/bayleafwalker/scribectl/actions/workflows/test.yml/badge.svg)](https://github.com/bayleafwalker/scribectl/actions/workflows/test.yml)
+
 A contract runner for writing projects that live in an Obsidian vault. The
 vault is the world database and writing cockpit; scribectl assembles frozen
 context packs, derives project state, and keeps ledgers honest; LLM agents
