@@ -81,6 +81,7 @@ flip it — Obsidian-only — but pick one writer and keep it.
 | Plugin | State | Role |
 | --- | --- | --- |
 | QuickAdd (enabled) | none | Instantiate the artifact templates into a project subtree from inside Obsidian. Replaces copy-by-hand. |
+| Shell Commands (optional, desktop only) | none | One-motion buttons invoking `scribectl` — sweep verdicts, refresh dashboard, what's next (`ops/obsidian/shell-commands/`, #1102). Pure config, zero script code of ours: the dumb button made literal; the engine stays the only implementation. |
 | Longform (installed, disabled) | compile config only | Enable per-project to compile `body/drafts/` into a manuscript. Read/compile concern; cannot corrupt canon. |
 | LanguageTool (installed, disabled) | none | Enable during manual rework passes. Irrelevant to the pipeline. |
 | livesync (enabled) | sync | The constraint above. Not a pipeline component. |

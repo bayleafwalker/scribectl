@@ -91,7 +91,10 @@ the mechanical passes for you — that is watch mode below, packaged as the
 systemd timer (#1091). In-Obsidian buttons for "new card + contract", "new
 canon/mechanic node", and "jot an inbox candidate" ship as QuickAdd configs in
 `ops/obsidian/quickadd/` (#1088) — install them and the writer never meets a
-shell for the everyday captures.
+shell for the everyday captures. The governance side gets the same treatment
+in `ops/obsidian/shell-commands/` (#1102): one-motion **sweep verdicts**,
+**refresh dashboard**, and **what's next** buttons (desktop only — mobile has
+no shell), so tick-checkboxes-then-sweep happens without leaving Obsidian.
 
 ### Obsidian + a console beside it
 

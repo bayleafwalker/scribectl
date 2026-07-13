@@ -1,5 +1,5 @@
-"""Structural checks for the shipped editor/Obsidian surfaces (#1088, #1090)
-and the brainstorm session contract (#1094).
+"""Structural checks for the shipped editor/Obsidian surfaces (#1088, #1090,
+#1102) and the brainstorm session contract (#1094).
 
 There is no Obsidian or VS Code in this repo's test loop, so these assets can't
 be run here the way the CLI is. What is machine-checkable — the configs are
@@ -57,6 +57,42 @@ def test_quickadd_card_script_parses():
     js = QUICKADD / "scripts" / "new-card.js"
     r = subprocess.run(["node", "--check", str(js)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
+
+
+# -- 1102 Shell Commands ------------------------------------------------------
+
+SHELLCMDS = REPO / "ops" / "obsidian" / "shell-commands"
+
+# The three one-motion actions, exactly as the README documents them. Vault
+# scoping must ride the env prefix — discovery never reads the working dir.
+ONE_MOTION = [
+    "SCRIBECTL_VAULT={{vault_path}} scribectl ratify --sweep",
+    "SCRIBECTL_VAULT={{vault_path}} scribectl status --write",
+    "SCRIBECTL_VAULT={{vault_path}} scribectl next --write",
+]
+
+
+def test_shell_commands_readme_documents_the_three_actions():
+    text = (SHELLCMDS / "README.md").read_text(encoding="utf-8")
+    for cmd in ONE_MOTION:
+        assert cmd in text, f"README misses the documented command: {cmd}"
+    # Scope guards the item is filed under: desktop only, dumb button.
+    assert "desktop" in text.lower() and "mobile" in text.lower()
+
+
+def test_shell_commands_stays_a_dumb_button():
+    """#1102's scope guard: config only — no state, no parsing, no plugin
+    code of ours. The directory must hold nothing but documentation, and
+    every documented command must be a plain scribectl invocation (no pipes
+    or output-parsing that would sneak a second implementation in)."""
+    files = [p for p in SHELLCMDS.rglob("*") if p.is_file()]
+    assert [p.name for p in files] == ["README.md"]
+    for cmd in ONE_MOTION:
+        assert "|" not in cmd and ">" not in cmd
+    # Ratification stays the writer's keystroke: sweep executes verdicts
+    # already ticked; nothing here may tick, accept, or auto-answer.
+    text = (SHELLCMDS / "README.md").read_text(encoding="utf-8")
+    assert "--yes" not in text and "auto" not in " ".join(ONE_MOTION)
 
 
 # -- 1090 VS Code -----------------------------------------------------------
