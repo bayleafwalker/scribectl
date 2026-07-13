@@ -1,11 +1,11 @@
 # Ratification, iterated — and agent-filled canon nodes
 
 **Status:** proposal, 2026-07-11. Grounded in the first real-vault Phase C run
-(Fertile Flames, scene `What Aune Brings Back`). Implemented so far: the fixes
-listed at the end, and build-order items 1–3 — the verdict inbox and
-`ratify --sweep`, review-report `--mine`, and mining packs + `propose` +
-`fact_proposal` derived state (see the DONE notes on each below). Item 4 (the
-reconciler) remains design, gated on ≥2 sources actually being mined.
+(Fertile Flames, scene `What Aune Brings Back`). Implemented in full: the fixes
+listed at the end and build-order items 1–4 — the verdict inbox and
+`ratify --sweep`, review-report `--mine`, mining packs + `propose` +
+`fact_proposal` derived state, and the `reconcile` merge pass (see the DONE
+notes on each below).
 
 ## What the run taught about ratification
 
@@ -139,7 +139,8 @@ applies them under the same checkbox rule.
 
 ### Derived state, extended
 
-- `fact_proposal` notes get status rows: `open` / `swept`.
+- `fact_proposal` notes get status rows: `open` / `swept` / `reconciled`
+  (folded into a merge proposal — the merge carries its candidates).
 - A stub node with open proposals reads `stub (3 candidates pending)` — the
   status table now tells the writer where the next ten minutes go, which the
   Phase C run showed is the real function of `status`.
@@ -204,3 +205,18 @@ longer seeds a phantom event into every pack.
    `N candidates pending` counted by each candidate's actual route. Agents never
    touch `world/canon/`; an unswept proposal is no more citable than its ore.
 4. Reconciler pass, only once ≥2 sources are actually being mined.
+   — DONE 2026-07-13: `scribectl reconcile --into <node>` merges the open
+   proposals targeting one node, gated on ≥2 of them from distinct sources
+   (reconciliation only earns its keep once independent agents might
+   disagree). It freezes a **reconciliation pack** (same frame as a mining
+   pack — hard constraints + target node — plus every sibling's candidate set
+   laid out side by side, sha-stamped) and scaffolds a merge
+   `control/proposals/<node> — reconciliation — <date>.md` whose
+   `reconciles:` frontmatter names the siblings. An agent dedupes overlaps
+   and flags contradictions *between agents* (`merged_from` / `conflicts`
+   detail per bullet); the merged candidates ride the same
+   mine → inbox → sweep path. A reconciled sibling retires everywhere at
+   once — status shows `reconciled (folded into [[merge]])`, `ratify --mine`
+   skips it, and no node counts its candidates as pending — so nothing
+   double-queues. The writer's surface is unchanged: checkbox, sweep,
+   receipt. No auto-ratify.

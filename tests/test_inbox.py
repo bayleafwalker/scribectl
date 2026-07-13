@@ -248,3 +248,16 @@ def test_mine_covers_reports_and_proposals_and_stays_idempotent():
     ledgered = '### Accepted\n- "x" → [[Ilmi]] (via [[Ilmi — Design Seed — 2026-07-12]])\n'
     _, names2 = mine(vault, "", ledgered)
     assert names2 == ["ch01-sc01-draft-a — canon review"]
+
+
+def test_mine_skips_reconciled_siblings():
+    """A proposal folded into a merge (named in its `reconciles:`) never
+    reaches the inbox itself — its candidates ride the merge proposal
+    (docs/RATIFICATION.md, build item 4)."""
+    merge = _proposal(name="Ilmi — reconciliation — 2026-07-13",
+                      body='## Candidate facts\n- "The merged fact"\n',
+                      reconciles=["[[Ilmi — Design Seed — 2026-07-12]]"])
+    vault = Vault(root=Path("."), notes={"p": _proposal(), "m": merge})
+    blocks, names = mine(vault, "", "")
+    assert names == ["Ilmi — reconciliation — 2026-07-13"]
+    assert len(blocks) == 1 and '"The merged fact"' in blocks[0]

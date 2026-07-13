@@ -1,7 +1,7 @@
 """Derived-state projection: status is a function of the vault, never stored."""
 from pathlib import Path
 
-from scribectl.core.project import project
+from scribectl.core.project import project, reconciled_into
 from scribectl.core.vault import Vault
 from scribectl.templateset import load_set
 
@@ -167,6 +167,30 @@ def test_open_proposal_row_and_node_pending_detail(scratch_project):
     # the overridden one counts against the node it truly names.
     assert "1 candidate pending" in rows["The Mist"][1]
     assert "1 candidate pending" in rows["The Volcanic City-State"][1]
+
+
+MERGE_NAME = "The Mist — reconciliation — 2026-07-13"
+
+
+def test_reconciled_proposal_folds_into_the_merge(scratch_project):
+    """A sibling named in a merge's `reconciles:` retires from the open queue;
+    its candidates ride the merge (docs/RATIFICATION.md, build item 4)."""
+    _write_proposal(scratch_project)
+    merge = scratch_project / f"control/proposals/{MERGE_NAME}.md"
+    merge.write_text(
+        '---\ntype: fact_proposal\ntarget: "[[The Mist]]"\n'
+        f'reconciles:\n  - "[[{PROPOSAL_NAME}]]"\n'
+        "mining_pack_sha: def456def456\n---\n\n"
+        '## Candidate facts\n- "The merged Mist fact"\n', encoding="utf-8")
+    vault = Vault.load(scratch_project)
+    assert reconciled_into(vault) == {PROPOSAL_NAME: MERGE_NAME}
+    rows = _rows(scratch_project)
+    assert rows[PROPOSAL_NAME] == ("reconciled", f"folded into [[{MERGE_NAME}]]")
+    assert rows[MERGE_NAME] == ("open", "1 candidate → [[The Mist]]")
+    # Nodes advertise only the merge's candidates — the sibling's 2 (one routed
+    # to each node) no longer count anywhere.
+    assert rows["The Mist"][1] == "1 candidate pending"
+    assert "candidate" not in rows["The Volcanic City-State"][1]
 
 
 def test_swept_proposal_drops_out_of_pending(scratch_project):

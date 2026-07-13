@@ -91,6 +91,25 @@ def test_clean_review_is_not_rework(scratch_project):
     assert _digest(scratch_project).rework == []
 
 
+def test_open_proposals_exclude_swept_and_reconciled(scratch_project):
+    """docs/RATIFICATION.md build items 3–4: a ledger-linked proposal is swept,
+    one folded into a merge is reconciled — only the merge itself stays open."""
+    props = scratch_project / "control/proposals"
+    props.mkdir(parents=True, exist_ok=True)
+    frontmatter = '---\ntype: fact_proposal\ntarget: "[[The Mist]]"\n{extra}---\n'
+    (props / "The Mist — A — 2026-07-13.md").write_text(
+        frontmatter.format(extra=""), encoding="utf-8")
+    (props / "The Mist — swept — 2026-07-13.md").write_text(
+        frontmatter.format(extra=""), encoding="utf-8")
+    (props / "The Mist — reconciliation — 2026-07-13.md").write_text(
+        frontmatter.format(extra='reconciles:\n  - "[[The Mist — A — 2026-07-13]]"\n'),
+        encoding="utf-8")
+    d = _digest(scratch_project,
+                ledger='- "x" (via [[The Mist — swept — 2026-07-13]])\n')
+    assert d.open_proposals == 1  # the merge alone
+    assert "1 open fact proposal" in render_digest(d, "x")
+
+
 def test_inbox_pending_and_unrouted_counts():
     inbox = (
         "---\ntype: ratification_inbox\n---\n\n# Inbox\n\n"

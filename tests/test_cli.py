@@ -454,6 +454,85 @@ def test_propose_candidates_ride_the_mine_path(run, scratch_runosong):
     assert "candidate pending" in sout
 
 
+# -- reconcile ----------------------------------------------------------------
+
+def _fill_candidates(prop: Path, bullets: str) -> None:
+    head = prop.read_text(encoding="utf-8").split("## Candidate facts")[0]
+    prop.write_text(head + "## Candidate facts\n" + bullets, encoding="utf-8")
+
+
+def _two_sibling_proposals(run, scratch_runosong) -> Path:
+    """Two open proposals for Ilmi from distinct sources, candidates filled
+    with one deliberate overlap — the reconciliation-worthy state."""
+    proj = scratch_runosong / "Works" / "Runosong"
+    (proj / "sources").mkdir(exist_ok=True)
+    (proj / "sources/Second Ore.md").write_text(
+        "---\ntype: source\n---\n\nMore raw dialogue about Ilmi.\n", encoding="utf-8")
+    assert run("propose", "--into", "Ilmi", "--source", "Design Seed",
+               vault=scratch_runosong)[0] == 0
+    assert run("propose", "--into", "Ilmi", "--source", "Second Ore",
+               vault=scratch_runosong)[0] == 0
+    a, b = sorted((proj / "control/proposals").glob("*.md"))
+    _fill_candidates(a, '- "Ilmi dug ditches to work songs"\n- "Shared claim"\n')
+    _fill_candidates(b, '- "Ilmi resents the meadow"\n- "Shared claim"\n')
+    return proj
+
+
+def test_reconcile_merges_sibling_proposals(run, scratch_runosong):
+    proj = _two_sibling_proposals(run, scratch_runosong)
+    code, out, err = run("reconcile", "--into", "Ilmi", vault=scratch_runosong)
+    assert code == 0 and err == ""
+    assert "reconciles 2 proposals from 2 sources" in out
+    # The frozen pack lays both candidate sets side by side.
+    pack = next(iter((proj / "control/mining-packs").glob("*reconciliation*")))
+    ptext = pack.read_text(encoding="utf-8")
+    assert "reconciliation-pack-sha:" in ptext
+    assert '- "Ilmi dug ditches to work songs"' in ptext
+    assert '- "Ilmi resents the meadow"' in ptext
+    # The merge proposal names its siblings and cites the pack's sha.
+    merge = next(p for p in (proj / "control/proposals").glob("*.md")
+                 if "reconciliation" in p.name)
+    mtext = merge.read_text(encoding="utf-8")
+    assert "type: fact_proposal" in mtext and "reconciles:" in mtext
+    assert mtext.count('- "[[Ilmi — ') == 2
+    sha = pack.stem.split("-")[-2]
+    assert f"mining_pack_sha: {sha}" in mtext
+    # Status: siblings retire as reconciled, only the merge stays open.
+    _, sout, _ = run("status", vault=scratch_runosong)
+    assert sout.count("reconciled") == 2 and "folded into" in sout
+    # Mining now sees the merge alone — sibling candidates never double-queue.
+    _fill_candidates(merge, '- "Shared claim"\n- "Ilmi resents the meadow"\n')
+    code, mout, _ = run("ratify", "--mine", vault=scratch_runosong)
+    assert code == 0 and "2 candidates from 1 fact proposal" in mout
+    inbox = (proj / "control/ratification/Inbox.md").read_text(encoding="utf-8")
+    assert inbox.count(f"via [[{merge.stem}]]") == 2
+
+
+def test_reconcile_gate_needs_two_open_distinct_source_proposals(run, scratch_runosong):
+    # No proposals at all.
+    code, _, err = run("reconcile", "--into", "Ilmi", vault=scratch_runosong)
+    assert code != 0 and "≥2 open proposals" in err
+    # Two proposals from the SAME source don't clear the gate either.
+    proj = scratch_runosong / "Works" / "Runosong"
+    assert run("propose", "--into", "Ilmi", "--source", "Design Seed",
+               vault=scratch_runosong)[0] == 0
+    dup = proj / "control/proposals/Ilmi — Design Seed — earlier.md"
+    dup.write_text('---\ntype: fact_proposal\ntarget: "[[Ilmi]]"\n'
+                   'source: "[[Design Seed]]"\n---\n\n## Candidate facts\n- "x"\n',
+                   encoding="utf-8")
+    code, _, err = run("reconcile", "--into", "Ilmi", vault=scratch_runosong)
+    assert code != 0 and "2 proposals from 1 source" in err
+
+
+def test_reconcile_runs_once_per_generation(run, scratch_runosong):
+    """After a reconcile the siblings are no longer open, so a re-run refuses —
+    the merge is now the queue, not more merging."""
+    _two_sibling_proposals(run, scratch_runosong)
+    assert run("reconcile", "--into", "Ilmi", vault=scratch_runosong)[0] == 0
+    code, _, err = run("reconcile", "--into", "Ilmi", vault=scratch_runosong)
+    assert code != 0 and "0 proposals from 0 sources" in err
+
+
 # -- adopt ------------------------------------------------------------------
 
 def test_adopt_wraps_legacy_note_as_stub(run, scratch_root, scratch_project):

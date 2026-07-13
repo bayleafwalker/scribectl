@@ -3,7 +3,8 @@
 core/ takes the vault as data and never writes. This module is the only place
 that holds write paths, and they are exactly the designated outputs:
 pack_output/ (pack), control/mining-packs/ + a quarantined control/proposals/
-scaffold (propose), control/Status.md (status/next --write), ledger appends
+scaffold (propose, and its merge-proposal variant reconcile), control/Status.md
+(status/next --write), ledger appends
 (ratify), stubs (adopt, init), card + contract scaffolds (new card), dated
 source notes under sources/ (capture), the verdict inbox (ratify --sweep clears
 decided candidates), and — the one sanctioned append into a human note — a
@@ -24,11 +25,12 @@ from pathlib import Path
 
 from .config import DEFAULTS, DEFAULT_ROOTS, ProjectConfig, discover_projects, vault_roots
 from .core.contextpack import build_pack
-from .core.miningpack import build_mining_pack
+from .core.miningpack import build_mining_pack, build_reconciliation_pack
 from .core.digest import build_digest, render_digest
 from .doctor import run_doctor
 from .core.inbox import append_bullets, mine, parse_inbox, receipt, remove_candidates
-from .core.project import card_artifacts, project as project_rows
+from .core.project import (card_artifacts, ledger_links, project as project_rows,
+                           proposal_status, reconciled_into)
 from .core.vault import Vault
 from .templateset import TemplateSet, list_sets, load_set
 
@@ -265,6 +267,92 @@ def cmd_propose(args) -> int:
     print("read the mining pack, fill the candidates, then `scribectl ratify --mine`")
     for warn in mp.warnings:
         print(f"scribectl: warning: {warn}", file=sys.stderr)
+    return 0
+
+
+MERGE_PROPOSAL = """\
+---
+type: fact_proposal
+target: "[[{node}]]"
+reconciles:
+{reconciles}
+mining_pack_sha: {sha}
+created: {today}
+---
+
+# Reconciliation — {node}
+
+Agent output, quarantined. Merges the sibling proposals named in `reconciles:`
+above, laid out side by side in reconciliation pack `{sha}` (under
+control/mining-packs/). Dedupe overlaps, drop what contradicts canon, and keep
+one bullet per surviving fact — noting where the agents disagreed. Then
+`scribectl ratify --mine` queues these into the inbox and the reconciled
+siblings retire from the queue. Only the writer's checkbox ratifies.
+
+## Candidate facts
+<!-- One bullet per surviving fact, worded as it should read in canon; routes to
+     [[{node}]] by default. Indent merged_from / conflicts detail — it stays
+     here; the inbox gets only the fact and a link back. -->
+- "<merged fact — a checkable claim>"
+      merged_from: <which sibling proposals asserted it>
+      conflicts: <none | the ratified fact or timeline event it still rubs against>
+"""
+
+
+def cmd_reconcile(args) -> int:
+    """Merge the open proposals targeting one node into a single quarantined
+    merge proposal (#1093, docs/RATIFICATION.md build item 4). Gated on ≥2
+    distinct sources — reconciliation only earns its keep once independent
+    agents have actually mined different ore and might disagree. Freezes a
+    reconciliation pack (the sibling candidate sets side by side) and scaffolds
+    the merge; the reconciled siblings retire from the queue, and the merged
+    candidates ride the same mine → inbox → sweep path. No auto-ratify."""
+    cfg = _select(args.project)
+    ts = _ts(cfg)
+    vault = Vault.load(cfg.root)
+    node = args.into
+    in_ledger = ledger_links(vault)
+    reconciled = reconciled_into(vault)
+    # Primary open proposals targeting the node: exclude swept, already
+    # reconciled, and merge proposals themselves (never reconcile a merge).
+    siblings = [p for p in vault.by_type("fact_proposal")
+                if node in p.links("target") and not p.links("reconciles")
+                and proposal_status(p, in_ledger, reconciled) == "open"]
+    sources = {s for p in siblings for s in p.links("source")}
+    if len(sources) < 2:
+        raise CLIError(
+            f"reconcile needs ≥2 open proposals from distinct sources targeting "
+            f"[[{node}]] (found {len(siblings)} proposal{'s' if len(siblings) != 1 else ''} "
+            f"from {len(sources)} source{'s' if len(sources) != 1 else ''}) — "
+            "reconciliation only earns its keep once sources actually disagree")
+
+    try:
+        rp = build_reconciliation_pack(vault, node, siblings, ts)
+    except ValueError as e:
+        raise CLIError(str(e)) from e
+
+    today = date.today().isoformat()
+    merge_path = cfg.roots["control"] / "proposals" / f"{node} — reconciliation — {today}.md"
+    if merge_path.exists():
+        raise CLIError(f"refusing to overwrite existing reconciliation: {merge_path}")
+
+    mp_dir = cfg.roots["control"] / "mining-packs"
+    mp_dir.mkdir(parents=True, exist_ok=True)
+    rp_path = mp_dir / f"{node.replace(' ', '-')}-reconciliation-{rp.sha}-mining.md"
+    if rp_path.exists():
+        print(f"unchanged {rp_path}  (sha {rp.sha} already frozen)")
+    else:
+        rp_path.write_text(rp.markdown, encoding="utf-8")
+        print(f"wrote {rp_path}  (sha {rp.sha}, {len(rp.markdown)} bytes)")
+
+    reconciles_yaml = "\n".join(f'  - "[[{p.name}]]"'
+                                for p in sorted(siblings, key=lambda n: n.name))
+    merge_path.parent.mkdir(parents=True, exist_ok=True)
+    merge_path.write_text(
+        MERGE_PROPOSAL.format(node=node, reconciles=reconciles_yaml, sha=rp.sha, today=today),
+        encoding="utf-8")
+    print(f"created {merge_path}  (reconciles {len(siblings)} proposals from {len(sources)} sources)")
+    print("read the reconciliation pack, merge the candidates, then `scribectl ratify --mine`")
     return 0
 
 
@@ -680,6 +768,13 @@ def _parser() -> argparse.ArgumentParser:
                    help="note whose body is the ore to mine")
     p.add_argument("-p", "--project")
     p.set_defaults(fn=cmd_propose)
+
+    p = sub.add_parser("reconcile",
+                       help="merge sibling proposals for one node (needs ≥2 sources)")
+    p.add_argument("--into", required=True, metavar="NODE",
+                   help="node whose open proposals to reconcile")
+    p.add_argument("-p", "--project")
+    p.set_defaults(fn=cmd_reconcile)
 
     p = sub.add_parser("ratify", help="append invention verdicts to the ratification log")
     p.add_argument("-p", "--project")

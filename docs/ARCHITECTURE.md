@@ -86,6 +86,10 @@ scribectl propose --into <node>        freeze a mining pack (extraction analog
           --source <ore>               of the context pack) + scaffold a
                                        quarantined fact_proposal; agents fill
                                        candidates that ratify --mine queues
+scribectl reconcile --into <node>      merge the node's open proposals (needs
+                                       ≥2 from distinct sources): freeze a
+                                       reconciliation pack + scaffold a merge
+                                       fact_proposal; the siblings retire
 scribectl ratify  [-p PROJECT]         append accepted/rejected/deferred
                                        inventions to the ratification log
                                        (sole writer of that file — see DESIGN)
@@ -104,7 +108,8 @@ to exactly one project, or when cwd is inside a project subtree.
 
 1. **Read-only over the vault** except designated outputs: `pack_output/`,
    `control/mining-packs/` + a quarantined `control/proposals/` scaffold via
-   `propose`, `control/Status.md`, ledger appends via `ratify`, stubs via
+   `propose` (and its merge variant `reconcile`), `control/Status.md`, ledger
+   appends via `ratify`, stubs via
    `adopt`/`init`, card + contract scaffolds via `new card`, and dated source
    notes under `sources/` via `capture` — which also grows the scribe-project
    note's `sources:` frontmatter list (the one config edit into a human-authored

@@ -98,13 +98,15 @@ def build_digest(vault: Vault, ts, inbox_text: str, ledger_text: str) -> Digest:
     d.unmined_reports = len(names)
     d.unmined_candidates = len(blocks)
 
-    # Open proposals (fact_proposal notes, docs/RATIFICATION.md build item 3):
-    # a proposal wikilinked from the ledger is swept and drops out; only the
-    # ones still awaiting the writer's verdict count. The section renders only
-    # when some exist — no fabrication.
+    # Open proposals (fact_proposal notes, docs/RATIFICATION.md build items 3–4):
+    # one wikilinked from the ledger is swept, one folded into a merge is
+    # reconciled; both drop out, leaving only the proposals still awaiting the
+    # writer. The section renders only when some exist — no fabrication.
     in_ledger = {t.strip() for t in WIKILINK.findall(ledger_text) if t.strip()}
+    reconciled = {s.strip() for p in vault.by_type("fact_proposal")
+                  for s in p.links("reconciles")}
     d.open_proposals = sum(1 for p in vault.by_type("fact_proposal")
-                           if p.name not in in_ledger)
+                           if p.name not in in_ledger and p.name not in reconciled)
     return d
 
 

@@ -244,7 +244,22 @@ has exactly the standing of the ore it was mined from, and no context pack cites
 it. Status advertises the queue: a stub node reads `stub (3 candidates pending)`
 and the proposal itself rows as `open` until its facts are swept. Proposal files
 are one-per-run and append-never, so N agents can mine N sources with zero write
-contention; a reconciler (#1093) flags where they disagree before you look.
+contention.
+
+When ≥2 open proposals from distinct sources target the same node (#1093):
+
+```
+scribectl reconcile --into "Fertile Flames Saga"
+```
+
+freezes a **reconciliation pack** — the same node frame, plus every sibling
+proposal's candidate set laid side by side — and scaffolds one merge proposal
+whose `reconciles:` names the siblings. An agent dedupes the overlaps and flags
+where the agents disagree *before you ever look*; the merged candidates ride
+the same `ratify --mine` path, and the reconciled siblings retire from every
+queue (status rows them `reconciled (folded into [[merge]])`). Fewer than two
+sources and the command refuses — nothing to reconcile until independent
+miners can actually disagree.
 
 ### Brainstorm / ideation
 
@@ -283,7 +298,8 @@ exist for scripting; if you are typing an escaped apostrophe, use the inbox.
 | agent-in-vault house rules | `AGENTS.md` dropped by `init` | — (#1089 done) |
 | VS Code one-keystroke tasks | workspace + tasks (`ops/vscode/`) | — (#1090 done) |
 | dispatch without a terminal open | `enable --now scribe-dispatch-watch.timer` | — (#1091 done) |
-| bulk-mine legacy ore into candidates | `scribectl propose --into <node> --source <ore>` → agent fills → `ratify --mine` | #1093 reconciler (#1092 done) |
+| bulk-mine legacy ore into candidates | `scribectl propose --into <node> --source <ore>` → agent fills → `ratify --mine` | — (#1092 done) |
+| merge parallel mines of one node | `scribectl reconcile --into <node>` → agent merges → `ratify --mine` | — (#1093 done) |
 | ideation captured into the loop | inbox jots | #1094 brainstorm skill |
 | local/no-cost model fills | claude runner only | #1075/#1076 vllm + routing |
 | dispatch in the real vault | engine only | after 1074 verdict → #1080 |

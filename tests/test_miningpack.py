@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from scribectl.core.miningpack import build_mining_pack
+from scribectl.core.miningpack import build_mining_pack, build_reconciliation_pack
 from scribectl.core.vault import Note, Vault
 
 
@@ -67,6 +67,48 @@ def test_rejects_non_node_target_and_missing_source(vault, fiction):
         build_mining_pack(vault, "Scene 01-01", "World Seed", fiction)  # a card, not a node
     with pytest.raises(ValueError, match="No note named"):
         build_mining_pack(vault, "Mara Vey", "No Such Ore", fiction)
+
+
+# -- reconciliation packs (docs/RATIFICATION.md, build item 4) -----------------
+
+def _sibling(name, source, cands, sha="aaa111aaa111"):
+    return Note(path=Path(f"control/proposals/{name}.md"),
+                meta={"type": "fact_proposal", "target": "[[Mara Vey]]",
+                      "source": f"[[{source}]]", "mining_pack_sha": sha},
+                body=f"## Candidate facts\n{cands}")
+
+
+def test_reconciliation_pack_lays_siblings_side_by_side(vault, fiction):
+    b = _sibling("Mara Vey — B", "Ore B",
+                 '<!-- scaffold guidance for the miner -->\n- "Fact from B"\n', sha="bbb222bbb222")
+    a = _sibling("Mara Vey — A", "Ore A", "")
+    rp = build_reconciliation_pack(vault, "Mara Vey", [b, a], fiction)
+    md = rp.markdown
+    # The same frame a mining pack gives: constraints + the target node.
+    assert "## World spine — hard constraints" in md
+    assert "## Target node — Mara Vey" in md
+    # One section per sibling, name-sorted regardless of call order, each
+    # heading carrying the sibling's source and frozen mining-pack sha.
+    ha = md.index("## Proposal [[Mara Vey — A]] — source [[Ore A]], mining pack aaa111aaa111")
+    hb = md.index("## Proposal [[Mara Vey — B]] — source [[Ore B]], mining pack bbb222bbb222")
+    assert ha < hb
+    assert '- "Fact from B"' in md
+    # Empty candidate sets say so; scaffold comments are the miner's, not the
+    # reconciler's, and never ride into the pack.
+    assert "_(no candidates)_" in md
+    assert "<!--" not in md
+    assert rp.source == "reconciliation"
+
+
+def test_reconciliation_pack_is_sha_stable_and_rejects_non_node(vault, fiction):
+    sibs = [_sibling("Mara Vey — A", "Ore A", '- "A fact"\n')]
+    a = build_reconciliation_pack(vault, "Mara Vey", sibs, fiction)
+    b = build_reconciliation_pack(vault, "Mara Vey", sibs, fiction)
+    assert a.markdown == b.markdown and a.sha == b.sha
+    stripped = a.markdown.replace(f"`reconciliation-pack-sha: {a.sha}`\n\n", "", 1)
+    assert hashlib.sha256(stripped.encode("utf-8")).hexdigest()[:12] == a.sha
+    with pytest.raises(ValueError, match="fact-bearing node"):
+        build_reconciliation_pack(vault, "Scene 01-01", sibs, fiction)  # a card
 
 
 def test_empty_source_warns():

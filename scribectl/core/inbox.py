@@ -212,9 +212,13 @@ def mine(vault, inbox_text: str, ledger_text: str) -> tuple[list[str], list[str]
     Both review reports and fact proposals propose canon; each is mined by its
     own extractor into the same pending inbox grammar. An artifact already
     wikilinked from the inbox or the ledger was mined before and is skipped —
-    idempotency by artifact content, nothing stored."""
+    idempotency by artifact content, nothing stored. A proposal folded into a
+    merge (named in some proposal's `reconciles:`) is skipped too: its
+    candidates ride the merge proposal, never the sibling."""
     seen = {t.strip() for text in (inbox_text, ledger_text)
             for t in WIKILINK.findall(text) if t.strip()}
+    for p in vault.by_type("fact_proposal"):
+        seen.update(s.strip() for s in p.links("reconciles"))
     blocks: list[str] = []
     names: list[str] = []
     for artifact_type, extract in (("review_report", mine_report),
