@@ -1,6 +1,9 @@
 # scribectl
 
 [![tests](https://github.com/bayleafwalker/scribectl/actions/workflows/test.yml/badge.svg)](https://github.com/bayleafwalker/scribectl/actions/workflows/test.yml)
+[![pages](https://github.com/bayleafwalker/scribectl/actions/workflows/pages.yml/badge.svg)](https://github.com/bayleafwalker/scribectl/actions/workflows/pages.yml)
+
+[Explore the interactive canonical fiction pipeline.](https://bayleafwalker.github.io/scribectl/)
 
 A contract runner for writing projects that live in an Obsidian vault. The
 vault is the world database and writing cockpit; scribectl assembles frozen
@@ -63,6 +66,7 @@ any OpenAI-compatible endpoint (e.g. a local vllm writer — see
 ## Layout
 
 ```
+site/index.html           interactive map of the canonical fiction pipeline
 docs/GUIDE.md             the writer's guide: surfaces (Obsidian / console /
                           VS Code / ambient watch) and session recipes
 docs/DESIGN.md            why it's shaped this way: the vault-integration
