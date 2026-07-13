@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{{ page.title | default: "Scribectl documentation" }} — Scribectl</title>
+  <style>
+    :root { color-scheme: light dark; --bg: light-dark(#ffffff, #181818); --fg: light-dark(#1a1c1f, #f7f7f7); --muted: light-dark(#62676f, #aaa); --border: light-dark(#e3e5e8, #383838); --accent: light-dark(#1769aa, #83c3ff); --code: light-dark(#f4f5f6, #242424); }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    header { position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); }
+    nav, main { width: min(100% - 32px, 920px); margin-inline: auto; }
+    nav { min-height: 56px; display: flex; align-items: center; gap: 18px; }
+    nav a { color: var(--fg); font-weight: 650; text-decoration: none; }
+    nav a:first-child { margin-right: auto; }
+    main { padding-block: 48px 80px; }
+    h1, h2, h3 { line-height: 1.2; margin-top: 1.7em; scroll-margin-top: 72px; }
+    h1 { font-size: clamp(2rem, 5vw, 3.4rem); margin-top: 0; letter-spacing: -.035em; }
+    h2 { border-bottom: 1px solid var(--border); padding-bottom: .3em; }
+    a { color: var(--accent); }
+    pre { overflow: auto; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--code); }
+    code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    :not(pre) > code { padding: .12em .35em; border-radius: 5px; background: var(--code); }
+    blockquote { margin-inline: 0; padding-left: 1rem; border-left: 3px solid var(--accent); color: var(--muted); }
+    table { display: block; width: 100%; overflow: auto; border-collapse: collapse; }
+    th, td { padding: .55rem .75rem; border: 1px solid var(--border); text-align: left; }
+    img { max-width: 100%; }
+    hr { border: 0; border-top: 1px solid var(--border); margin-block: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header><nav><a href="{{ site.baseurl }}/">Scribectl</a><a href="{{ site.baseurl }}/docs/">Docs</a><a href="https://github.com/bayleafwalker/scribectl">GitHub</a></nav></header>
+  <main>{{ content }}</main>
+</body>
+</html>
