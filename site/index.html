@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="fi" data-visualize-standalone>
+<html lang="en" data-visualize-standalone>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>Scribectl — kanoninen fiktioputki</title>
-<meta name="description" content="Interaktiivinen järjestelmäkartta Scribectlin kanonisesta fiktioputkesta, artefakteista, sopimuksista ja ratifioidusta iteroinnista.">
+<title>Scribectl — canonical fiction pipeline</title>
+<meta name="description" content="An interactive system map of Scribectl's canonical fiction pipeline, artifacts, contracts, and human-gated iteration.">
 <style>:root {
   color-scheme: light dark;
   background-color: transparent !important;
@@ -1509,62 +1509,62 @@ svg {
     <section class="sc-hero" id="overview">
       <div>
         <p class="sc-eyebrow">Vault → pack → draft → verdict → canon</p>
-        <h1>Fiktiota ilman hiljaista kanonirottoa.</h1>
-        <p class="sc-hero-lead">Scribectl erottaa kirjoittajan intentiot, ratifioidun totuuden ja agenttien ehdotukset. Kone kokoaa todisteet ja pitää kuitit; ihminen päättää, mikä maailmassa on totta.</p>
-        <div class="sc-pill-row" aria-label="Järjestelmän ydinperiaatteet">
-          <span class="sc-pill"><i class="sc-dot" aria-hidden="true"></i> tila johdetaan</span>
-          <span class="sc-pill"><i class="sc-dot" aria-hidden="true" style="background:var(--sc-mist)"></i> paketit jäädytetään</span>
-          <span class="sc-pill"><i class="sc-dot" aria-hidden="true" style="background:var(--sc-gold)"></i> kanoni ratifioidaan</span>
+        <h1>Fiction without quiet canon rot.</h1>
+        <p class="sc-hero-lead">Scribectl separates authored intent, ratified truth, and agent proposals. The machine assembles evidence and preserves receipts; the writer decides what is true in the world.</p>
+        <div class="sc-pill-row" aria-label="Core system principles">
+          <span class="sc-pill"><i class="sc-dot" aria-hidden="true"></i> state is derived</span>
+          <span class="sc-pill"><i class="sc-dot" aria-hidden="true" style="background:var(--sc-mist)"></i> packs are frozen</span>
+          <span class="sc-pill"><i class="sc-dot" aria-hidden="true" style="background:var(--sc-gold)"></i> canon is ratified</span>
         </div>
       </div>
       <aside class="sc-hero-aside">
-        <blockquote>“Vaarallinen virhe ei ole huono proosa. Se on proosa, joka muuttaa maailman sääntöjä huomaamatta.”</blockquote>
-        <p>Yksi kirjoittaja toimii makuporttina. Engine ei kutsu LLM:ää. Agentit eivät ratifioi, korjaa toisiaan tai kirjoita ihmisen tiedostojen päälle.</p>
+        <blockquote>“The dangerous failure mode is not bad prose — it is quiet canon rot.”</blockquote>
+        <p>The writer remains the taste gate. The engine never calls an LLM. Agents neither ratify nor edit one another, and they never overwrite a human-authored note.</p>
       </aside>
     </section>
 
-    <nav class="sc-nav" aria-label="Sivun osiot">
-      <a href="#boundaries">Rajat</a>
-      <a href="#pipeline">Putket</a>
-      <a href="#artifacts">Artefaktit</a>
-      <a href="#contracts">Sopimukset</a>
-      <a href="#example">Esimerkkivirta</a>
+    <nav class="sc-nav" aria-label="Page sections">
+      <a href="#boundaries">Boundaries</a>
+      <a href="#pipeline">Pipelines</a>
+      <a href="#artifacts">Artifacts</a>
+      <a href="#contracts">Contracts</a>
+      <a href="#example">Example flow</a>
     </nav>
 
     <section class="sc-section" id="boundaries">
       <div class="sc-section-head">
-        <div><p class="sc-eyebrow">01 / vastuurajat</p><h2>Kuka saa tehdä mitä?</h2></div>
-        <p>Valitse järjestelmän osa. Rajat ovat arkkitehtuurin varsinainen sisältö: missä data elää, kuka saa kirjoittaa ja missä päätösvalta pysyy.</p>
+        <div><p class="sc-eyebrow">01 / responsibility boundaries</p><h2>Who may do what?</h2></div>
+        <p>Select a system component. The boundaries are the architecture: where state lives, who may write, and where decision authority remains.</p>
       </div>
       <div class="sc-boundary">
-        <div class="sc-boundary-flow" id="sc-boundary-flow" aria-label="Scribectl-järjestelmän vastuurajat"></div>
+        <div class="sc-boundary-flow" id="sc-boundary-flow" aria-label="Scribectl responsibility boundaries"></div>
         <aside class="sc-detail" id="sc-boundary-detail" aria-live="polite"></aside>
       </div>
     </section>
 
     <section class="sc-section" id="pipeline">
       <div class="sc-section-head">
-        <div><p class="sc-eyebrow">02 / kaksi kanonista putkea</p><h2>Sama portti, eri raaka-aine.</h2></div>
-        <p>Tuotantoputki tekee kohtauksen olemassa olevasta kanonista. Maailmanrakennusputki louhii lähteistä uusia väitteitä. Molemmat päättyvät kirjoittajan samaan verdict inboxiin.</p>
+        <div><p class="sc-eyebrow">02 / two canonical pipelines</p><h2>One gate, different raw material.</h2></div>
+        <p>The production pipeline creates a scene from existing canon. The worldbuilding pipeline mines sources for new claims. Both terminate at the same writer-owned verdict inbox.</p>
       </div>
       <div class="sc-pipeline-frame">
-        <div class="sc-controls" role="group" aria-label="Valitse putki">
-          <button class="sc-btn sc-btn-primary" type="button" data-flow="production" aria-pressed="true">Kohtauksen tuotanto</button>
-          <button class="sc-btn" type="button" data-flow="worldbuilding" aria-pressed="false">Maailman rakentaminen</button>
+        <div class="sc-controls" role="group" aria-label="Select a pipeline">
+          <button class="sc-btn sc-btn-primary" type="button" data-flow="production" aria-pressed="true">Scene production</button>
+          <button class="sc-btn" type="button" data-flow="worldbuilding" aria-pressed="false">Worldbuilding</button>
         </div>
-        <div class="sc-flow-track" id="sc-flow-track" aria-label="Valitun putken vaiheet"></div>
+        <div class="sc-flow-track" id="sc-flow-track" aria-label="Selected pipeline stages"></div>
         <div class="sc-flow-detail" id="sc-flow-detail" aria-live="polite"></div>
       </div>
     </section>
 
     <section class="sc-section" id="artifacts">
       <div class="sc-section-head">
-        <div><p class="sc-eyebrow">03 / artefaktikartta</p><h2>Tiedosto kertoo myös luottamusluokkansa.</h2></div>
-        <p>Suodata artefaktit niiden auktoriteetin mukaan ja avaa kortti. Ratkaiseva ero kulkee ratifioidun, jäädytetyn, karanteenissa olevan ja vain johdetun tiedon välillä.</p>
+        <div><p class="sc-eyebrow">03 / artifact map</p><h2>Every file has a trust class.</h2></div>
+        <p>Filter artifacts by authority and inspect a card. The critical distinction is between canon, frozen, quarantined, gate-controlled, and merely derived information.</p>
       </div>
       <div class="sc-artifact-layout">
         <div>
-          <div class="sc-controls" id="sc-artifact-filters" role="group" aria-label="Suodata artefakteja"></div>
+          <div class="sc-controls" id="sc-artifact-filters" role="group" aria-label="Filter artifacts"></div>
           <div class="sc-artifact-grid" id="sc-artifact-grid"></div>
         </div>
         <aside class="sc-detail" id="sc-artifact-detail" aria-live="polite"></aside>
@@ -1573,10 +1573,10 @@ svg {
 
     <section class="sc-section" id="contracts">
       <div class="sc-section-head">
-        <div><p class="sc-eyebrow">04 / sopimuskerrokset</p><h2>Intentio muuttuu suoritettavaksi ilman että siitä tulee kanonia.</h2></div>
-        <p>Template set kertoo enginelle projektin muodon, scene card kertoo sisällöllisen tavoitteen ja per-card contract kertoo täsmälleen yhden agenttisuorituksen rajat.</p>
+        <div><p class="sc-eyebrow">04 / contract layers</p><h2>Intent becomes executable without becoming canon.</h2></div>
+        <p>The template set defines the project shape for the engine. The scene card defines the content objective. The per-card contract bounds exactly one agent run.</p>
       </div>
-      <div class="sc-controls" id="sc-contract-tabs" role="tablist" aria-label="Sopimuskerrokset"></div>
+      <div class="sc-controls" id="sc-contract-tabs" role="tablist" aria-label="Contract layers"></div>
       <div class="sc-contract-layout">
         <div class="sc-code-frame">
           <div class="sc-code-head"><span class="sc-window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="sc-code-name"></span></div>
@@ -1586,7 +1586,7 @@ svg {
           <p class="sc-eyebrow" id="sc-contract-kind"></p>
           <h3 id="sc-contract-title"></h3>
           <p id="sc-contract-copy"></p>
-          <div class="sc-field-list" id="sc-field-list" role="group" aria-label="Tarkastele kenttää"></div>
+          <div class="sc-field-list" id="sc-field-list" role="group" aria-label="Inspect a field"></div>
           <div class="sc-field-detail" id="sc-field-detail" aria-live="polite"></div>
         </aside>
       </div>
@@ -1594,18 +1594,18 @@ svg {
 
     <section class="sc-section" id="example">
       <div class="sc-section-head">
-        <div><p class="sc-eyebrow">05 / Fertile Flames</p><h2>Uusi maailma, ensimmäinen kanoninen kierros.</h2></div>
-        <p>Kulje esimerkin seitsemän vaihetta. Näet samalla, miten puuttuva kanonisolmu estää täytön, miten hash toimii kuittina ja missä kohdassa ehdotus saa luvan muuttua todeksi.</p>
+        <div><p class="sc-eyebrow">05 / Fertile Flames</p><h2>A new world, its first canonical pass.</h2></div>
+        <p>Walk through seven stages. The example shows how unresolved canon blocks a fill, how the hash acts as a receipt, and the exact point where a proposal may become true.</p>
       </div>
       <div class="sc-example-layout">
         <div class="sc-stepper">
           <p class="sc-eyebrow">Volcanic City-State Battling Demons and Mist</p>
-          <div class="sc-step-rail" id="sc-step-rail" aria-label="Esimerkkivirran vaiheet"></div>
+          <div class="sc-step-rail" id="sc-step-rail" aria-label="Example flow stages"></div>
           <div class="sc-progress" aria-hidden="true"><span id="sc-progress-bar"></span></div>
           <div class="sc-step-copy" id="sc-step-copy" aria-live="polite"></div>
           <div class="sc-step-controls">
-            <button class="sc-btn" id="sc-prev-step" type="button">← Edellinen</button>
-            <button class="sc-btn sc-btn-primary" id="sc-next-step" type="button">Seuraava →</button>
+            <button class="sc-btn" id="sc-prev-step" type="button">← Previous</button>
+            <button class="sc-btn sc-btn-primary" id="sc-next-step" type="button">Next →</button>
           </div>
         </div>
         <aside class="sc-vault-view">
@@ -1621,18 +1621,18 @@ svg {
 
     <section class="sc-section" aria-labelledby="sc-rules-title">
       <div class="sc-section-head">
-        <div><p class="sc-eyebrow">06 / iteroinnin rajat</p><h2 id="sc-rules-title">Kierros kasvaa sivulle, ei itsensä sisään.</h2></div>
-        <p>Scribectl sallii uuden aineiston, vaihtoehtoiset täytöt ja uudet katselmukset. Se ei salli agentin muuttaa omaa tuotostaan toisen agentin palautteen perusteella autonomisesti.</p>
+        <div><p class="sc-eyebrow">06 / iteration boundaries</p><h2 id="sc-rules-title">The loop grows sideways, not inward.</h2></div>
+        <p>Scribectl permits new source material, independent fill variants, and new review passes. It does not permit an agent to revise its own output autonomously from another agent's feedback.</p>
       </div>
       <div class="sc-rules">
-        <article class="sc-rule" style="--rule-color:var(--sc-mist)"><strong>Leveys on sallittu</strong><p>Useita itsenäisiä ehdotuksia samasta jäädytetystä lähteestä voidaan tuoda rinnakkain ihmisen arvioitavaksi.</p></article>
-        <article class="sc-rule" style="--rule-color:var(--sc-gold)"><strong>Palaute on manuaalinen</strong><p>Review raportoi. Kirjoittaja päättää, reworkkaa luonnoksen ja käynnistää tarvittaessa uuden erillisen suorituksen.</p></article>
-        <article class="sc-rule" style="--rule-color:var(--sc-ember)"><strong>Kanoni on yksisuuntainen portti</strong><p>Vain checkbox-verdict ja <code>ratify --sweep</code> siirtävät väitteen karanteenista ratifioituun solmuun ja lokiin.</p></article>
+        <article class="sc-rule" style="--rule-color:var(--sc-mist)"><strong>Breadth is allowed</strong><p>Several independent proposals from the same frozen source may land side by side for human judgment.</p></article>
+        <article class="sc-rule" style="--rule-color:var(--sc-gold)"><strong>Feedback is consumed manually</strong><p>A review reports. The writer decides, reworks the draft, and requests another bounded pass if needed.</p></article>
+        <article class="sc-rule" style="--rule-color:var(--sc-ember)"><strong>Canon is a one-way gate</strong><p>Only a checkbox verdict and <code>ratify --sweep</code> move a claim from quarantine into a ratified node and ledger.</p></article>
       </div>
     </section>
 
     <footer class="sc-footer">
-      <span>Perustuu Scribectlin ratifioituun DESIGN-, ARCHITECTURE-, DISPATCH- ja RATIFICATION-malliin.</span>
+      <span>Grounded in Scribectl's ratified DESIGN, ARCHITECTURE, DISPATCH, and RATIFICATION model.</span>
       <span class="sc-footer-links"><a href="../docs/DESIGN.md">DESIGN</a><a href="../docs/ARCHITECTURE.md">ARCHITECTURE</a><a href="../docs/DISPATCH.md">DISPATCH</a><a href="../docs/RATIFICATION.md">RATIFICATION</a></span>
     </footer>
   </div>
@@ -1656,104 +1656,104 @@ svg {
       const boundaryParts = [
         {
           id: "human",
-          name: "Kirjoittaja",
-          subtitle: "intentio + makuportti",
+          name: "Writer",
+          subtitle: "intent + taste gate",
           color: colors.gold,
-          role: "Omistaa maailman suunnan, proosan ja kaikki kanonipäätökset.",
-          does: "Kirjoittaa seedin, canon nodet, cardit ja contractit; reworkkaa draftit; lukee reviewt; rastittaa verdictin.",
-          never: "Ei joudu kopioimaan kanonia toiseen järjestelmään tai ylläpitämään status-enumeita.",
-          boundary: "Ainoa toimija, joka saa sanoa: tämä väite on nyt totta."
+          role: "Owns the direction of the world, the prose, and every canon decision.",
+          does: "Authors the seed, canon nodes, cards, and contracts; reworks drafts; reads reviews; records verdicts.",
+          never: "Does not copy canon into a second system or maintain status enums by hand.",
+          boundary: "The only actor allowed to say: this claim is now true."
         },
         {
           id: "vault",
           name: "Obsidian vault",
           subtitle: "world database + cockpit",
           color: colors.mist,
-          role: "Yksi näkyvä ja synkronoitu lähde maailmalle, rakenteelle, proosalle ja päätöskuiteille.",
-          does: "Säilyttää ihmisen muistiinpanot, ratifioidun kanonin, timeline-oraclen, kontraktit ja kaikki syntyneet artefaktit.",
-          never: "Ei sisällä toista tilakonetta Dataviewssa eikä erillistä kopioitavaa kanonirekisteriä.",
-          boundary: "Ihmisen tiedostoa ei kirjoiteta koneellisesti yli; vain nimetyt outputit luodaan tai ledgereihin appendataan."
+          role: "The visible, synchronized source for world state, structure, prose, and decision receipts.",
+          does: "Holds human-authored notes, ratified canon, the timeline oracle, contracts, and every generated artifact.",
+          never: "Does not host a second state machine in Dataview or a copied canon registry that can drift.",
+          boundary: "Human-authored notes are never overwritten; only designated outputs are created, and only designated ledgers are appended."
         },
         {
           id: "engine",
           name: "scribectl engine",
           subtitle: "assemble + derive + receipt",
           color: colors.green,
-          role: "Lukee vaultin, johtaa tilan ja jäädyttää minimaalisen kontekstin auditoitavaksi paketiksi.",
-          does: "Discover, status, pack, propose, reconcile, mine ja ratify; kirjoittaa vain nimettyihin output-polkuhin.",
-          never: "Ei kutsu LLM:ää, arvioi makua eikä päätä väitteen kanonisuutta.",
-          boundary: "Engine on deterministinen sopimusajuri, ei kirjoittaja."
+          role: "Reads the vault, derives state, and freezes minimal context into an auditable pack.",
+          does: "Discovers projects, derives status, freezes packs, scaffolds proposals, reconciles sources, mines candidates, and executes explicit ratification verdicts.",
+          never: "Never calls an LLM, judges taste, or decides whether a claim is canon.",
+          boundary: "The engine is a deterministic contract runner, not an author."
         },
         {
           id: "dispatch",
-          name: "scribe-dispatch + agentit",
+          name: "scribe-dispatch + agents",
           subtitle: "fill + review + propose",
           color: colors.ember,
-          role: "Valitsee derived staten perusteella yhden skillin, ajaa mallin ja laskee uuden artefaktin vaultiin.",
-          does: "Täyttää draftin, suorittaa canon/voice-reviewt ja voi tuottaa karanteeniin fact proposal -ehdotuksia.",
-          never: "Ei editoi ihmisen tiedostoa, ratifioi, kuluta omaa reviewtään tai rakenna agent-on-agent-palautesilmukkaa.",
-          boundary: "Automaattisuus koskee firing-vaihetta; consumption ja verdict pysyvät ihmisellä."
+          role: "Selects one skill from derived state, runs the model, and lands a new artifact in the vault.",
+          does: "Fills a draft, runs canon and voice reviews, and may emit quarantined fact proposals.",
+          never: "Never edits a human-authored file, ratifies, consumes its own review, or builds an agent-on-agent feedback loop.",
+          boundary: "Automation covers firing; consumption and verdict remain with the writer."
         }
       ];
 
       const flows = {
         production: {
-          label: "Kohtauksen tuotanto",
+          label: "Scene production",
           nodes: [
-            { id: "shape", title: "Rajaa intentio", short: "Scene card + contract", actor: "Kirjoittaja", reads: "World seed, ratifioitu canon", emits: "Scene card, per-card contract", command: "scribectl new card", detail: "Kirjoittaja määrittää POV:n, scope-linkit, entry/exit-statet, pakolliset beatit ja kovat poissulut. Contract kertoo yhden suorituksen moden, outputin ja review-lanet." },
-            { id: "freeze", title: "Jäädytä evidenssi", short: "Context pack + sha", actor: "scribectl", reads: "Card, ratifioidut faktat, prior timeline, voice", emits: "Frozen context pack", command: "scribectl pack \"Scene 01-01\"", detail: "Assembler vetää vain relevantin kanoniviipaleen. Open questions ja muu scaffolding jäävät pois. Hash sitoo myöhemmän draftin juuri siihen maailmantilaan, jonka agentti näki." },
-            { id: "fill", title: "Täytä kerran", short: "Draft + pack_sha", actor: "body_fill", reads: "Frozen pack, card, contract", emits: "Uusi draft-tiedosto", command: "scribe-dispatch run", detail: "Agentti tuottaa yhden luonnoksen. Pieni aistitekstuuri on sallittua; uudet erisnimet ja maailmaväitteet erotetaan Introduced candidates -osioon." },
-            { id: "review", title: "Katselmoi rinnakkain", short: "Canon + voice reports", actor: "review skills", reads: "Draft, pack, timeline / voice canon", emits: "Advisory review reports", command: "scribe-dispatch run", detail: "Canon- ja voice-reviewt laukeavat puuttuvien lane-artefaktien perusteella. Ne raportoivat, eivät korjaa. Punainen review ei blokkaa eikä käynnistä automaattista uudelleenkirjoitusta." },
-            { id: "ratify", title: "Päätä ja projisoi", short: "Inbox → canon + ledger", actor: "Kirjoittaja + scribectl", reads: "Review candidates, human verdict", emits: "Canon fact, append-only receipt", command: "scribectl ratify --mine && scribectl ratify --sweep", detail: "Ehdokkaat nostetaan inboxiin pending-tilassa. Kirjoittaja voi muotoilla väitteen uudelleen ja merkitä accept, reject tai defer. Sweep toteuttaa vain nämä eksplisiittiset verdictit." }
+            { id: "shape", title: "Bound the intent", short: "Scene card + contract", actor: "Writer", reads: "World seed, ratified canon", emits: "Scene card, per-card contract", command: "scribectl new card", detail: "The writer defines POV, scope links, entry and exit states, required beats, and hard exclusions. The contract fixes the mode, output target, and review lanes for one run." },
+            { id: "freeze", title: "Freeze the evidence", short: "Context pack + sha", actor: "scribectl", reads: "Card, ratified facts, prior timeline, voice canon", emits: "Frozen context pack", command: "scribectl pack \"Scene 01-01\"", detail: "The assembler pulls only the relevant canon slice. Open questions and authoring scaffolding stay out. The hash binds the later draft to the exact world state the agent saw." },
+            { id: "fill", title: "Fill once", short: "Draft + pack_sha", actor: "body_fill", reads: "Frozen pack, card, contract", emits: "New draft file", command: "scribe-dispatch run", detail: "The agent produces one draft. Minor sensory texture is allowed; new proper nouns and world claims are isolated under Introduced candidates." },
+            { id: "review", title: "Review independently", short: "Canon + voice reports", actor: "review skills", reads: "Draft, pack, timeline / voice canon", emits: "Advisory review reports", command: "scribe-dispatch run", detail: "Missing canon and voice lanes fire independently. They report; they do not repair. An issues verdict neither blocks the workflow nor triggers an autonomous rewrite." },
+            { id: "ratify", title: "Decide and project", short: "Inbox → canon + ledger", actor: "Writer + scribectl", reads: "Review candidates, writer verdict", emits: "Ratified fact, append-only receipt", command: "scribectl ratify --mine && scribectl ratify --sweep", detail: "Candidates enter the inbox as pending. The writer may rewrite the claim and mark it accept, reject, or defer. Sweep executes only those explicit verdicts." }
           ]
         },
         worldbuilding: {
-          label: "Maailman rakentaminen",
+          label: "Worldbuilding",
           nodes: [
-            { id: "ore", title: "Tuo malmi", short: "Legacy note / transcript", actor: "Kirjoittaja", reads: "Ideat, keskustelut, tutkimus", emits: "Source note", command: "scribectl capture \"Mist doctrine\"", detail: "Raaka lähde on ore, ei kanonia. Se saa olla ristiriitainen ja keskeneräinen, koska mikään fill ei saa siteerata sitä ratifioituna totuutena." },
-            { id: "mine", title: "Jäädytä louhinta", short: "Mining pack + sha", actor: "scribectl", reads: "Source, target node, hard constraints, project canon", emits: "Frozen mining pack", command: "scribectl propose --into \"The Mist\" --source \"Mist doctrine\"", detail: "Mining pack kehystää lähteen target noden avoimilla kysymyksillä ja nykyisellä kanonilla. Agentti saa vertailukohdan, mutta ei kirjoitusoikeutta canon nodeen." },
-            { id: "propose", title: "Ehdota karanteeniin", short: "Fact proposal(s)", actor: "agentti", reads: "Mining pack", emits: "Candidate facts + confidence + conflicts", command: "scribe-dispatch / proposal skill", detail: "Yksi tai useampi riippumaton agentti poimii väitteitä proposal-tiedostoihin. Ne eivät ole citable facts; status näyttää ne avoimina ehdokkaina." },
-            { id: "reconcile", title: "Sovita lähteet", short: "Reconciliation pack", actor: "scribectl + agentti", reads: "≥2 proposal-tiedostoa eri lähteistä", emits: "Merged proposal", command: "scribectl reconcile --into \"The Mist\"", detail: "Kun useampi lähde oikeasti tuottaa päällekkäisiä tai ristiriitaisia väitteitä, erillinen merge-pass deduplikoi ja liputtaa konfliktit. Se ei ratkaise niitä kirjoittajan puolesta." },
-            { id: "ratify", title: "Päätä ja projisoi", short: "Inbox → canon + ledger", actor: "Kirjoittaja + scribectl", reads: "Mined candidates, human verdict", emits: "Canon fact, append-only receipt", command: "scribectl ratify --mine && scribectl ratify --sweep", detail: "Proposal muuttuu faktaksi vasta, kun kirjoittaja hyväksyy täsmällisen sanamuodon. Hyväksytyn väitteen provenance säilyttää source-, pack- ja proposal-linkit." }
+            { id: "ore", title: "Capture the ore", short: "Legacy note / transcript", actor: "Writer", reads: "Ideas, conversations, research", emits: "Source note", command: "scribectl capture \"Mist doctrine\"", detail: "Raw source material is ore, not canon. It may be incomplete or contradictory because no fill may cite it as ratified truth." },
+            { id: "mine", title: "Freeze the mining frame", short: "Mining pack + sha", actor: "scribectl", reads: "Source, target node, hard constraints, project canon", emits: "Frozen mining pack", command: "scribectl propose --into \"The Mist\" --source \"Mist doctrine\"", detail: "The mining pack frames the source with the target node's open questions and current project canon. The agent gets evidence and constraints, but no write access to the canon node." },
+            { id: "propose", title: "Propose into quarantine", short: "Fact proposal(s)", actor: "Agent", reads: "Mining pack", emits: "Candidate facts + confidence + conflicts", command: "scribe-dispatch / proposal skill", detail: "One or more independent agents extract claims into proposal files. The claims are not citable facts; derived status keeps them visibly open." },
+            { id: "reconcile", title: "Reconcile the sources", short: "Reconciliation pack", actor: "scribectl + agent", reads: "≥2 proposals from distinct sources", emits: "Merged proposal", command: "scribectl reconcile --into \"The Mist\"", detail: "Once distinct sources produce overlapping or conflicting claims, a bounded merge pass deduplicates them and flags contradictions. It does not resolve those contradictions for the writer." },
+            { id: "ratify", title: "Decide and project", short: "Inbox → canon + ledger", actor: "Writer + scribectl", reads: "Mined candidates, writer verdict", emits: "Ratified fact, append-only receipt", command: "scribectl ratify --mine && scribectl ratify --sweep", detail: "A proposal becomes fact only when the writer accepts its exact wording. The accepted claim retains source, pack, and proposal provenance." }
           ]
         }
       };
 
       const artifacts = [
-        { id: "project", name: "Project note", type: "scribe-project", trust: "intent", path: "Fertile Flames.md", owner: "Kirjoittaja", color: colors.gold, summary: "Vaultissa elävä projektirekisteri ja path-konfiguraatio.", reads: "Engine discovery", writes: "Human; capture kasvattaa vain sources-listaa", rule: "Body pysyy ihmisen omana." },
-        { id: "seed", name: "World seed", type: "world_seed", trust: "intent", path: "world/World Seed.md", owner: "Kirjoittaja", color: colors.gold, summary: "Premissi, ensisijaiset jännitteet ja maailman kovat rajat.", reads: "Context/mining packs", writes: "Human", rule: "Suunnan lähde, ei tyhjien lore-solmujen tehdas." },
-        { id: "card", name: "Scene card", type: "scene_card", trust: "intent", path: "structure/scenes/Scene 01-01.md", owner: "Kirjoittaja", color: colors.gold, summary: "Yhden kohtauksen sisällöllinen sopimus: missä aloitetaan ja mihin päädytään.", reads: "Pack assembler + body_fill", writes: "Human", rule: "Täyttö ei käynnisty placeholder-scope-linkeillä." },
-        { id: "contract", name: "Per-card contract", type: "contract", trust: "intent", path: "control/contracts/fill-scene-01-01.md", owner: "Kirjoittaja", color: colors.gold, summary: "Yhden dispatchin suoritusspesifikaatio.", reads: "Dispatch policy + skill", writes: "Human", rule: "Puuttuva contract tarkoittaa skip, ei arvattua intentiota." },
-        { id: "canon", name: "Canon node", type: "canon_node", trust: "canon", path: "world/canon/The Mist.md", owner: "Human gate", color: colors.ember, summary: "Nimetty maailmanyksikkö, josta pakettiin lähtee vain One-line function + Ratified facts.", reads: "Context/mining packs + review", writes: "Human / accepted sweep", rule: "Open questions eivät koskaan vuoda fill-kontekstiin." },
-        { id: "timeline", name: "Timeline", type: "timeline", trust: "canon", path: "control/timeline/Timeline.md", owner: "Append-only", color: colors.ember, summary: "Kronologian oracle ja prior-events-filtterin lähde.", reads: "Pack assembler + canon review", writes: "Single writer, append only", rule: "Proosan aikajärjestys ei saa perustua mallin muistiin." },
-        { id: "voice", name: "Voice canon", type: "voice_canon", trust: "canon", path: "world/language/Prose Voice Canon.md", owner: "Kirjoittaja", color: colors.ember, summary: "Direktiivit, vältettävät maneerit ja hyväksytyt kadenssiesimerkit.", reads: "Context pack + voice review", writes: "Human", rule: "Exemplars painavat enemmän kuin abstraktit adjektiivit." },
-        { id: "pack", name: "Context pack", type: "context_pack", trust: "frozen", path: "control/context-packs/Scene-01-01-context.md", owner: "scribectl", color: colors.green, summary: "Minimaalinen, hashattu totuusviipale yhtä filliä varten.", reads: "Agent skills", writes: "Engine create-only", rule: "Regenerate to fill; freeze to audit; never hand-edit." },
-        { id: "mining", name: "Mining pack", type: "mining_pack", trust: "frozen", path: "control/mining-packs/<target> — <source>.md", owner: "scribectl", color: colors.green, summary: "Lähde + targetin kysymykset + nykyinen kanoni louhintaa varten.", reads: "Proposal agent", writes: "Engine create-only", rule: "Konteksti todistaa mitä ehdotusta tehtäessä tiedettiin." },
-        { id: "proposal", name: "Fact proposal", type: "fact_proposal", trust: "quarantine", path: "control/proposals/<target> — <source> — <date>.md", owner: "Agentti", color: colors.purple, summary: "Ehdokasfaktoja, lainauksia, luottamusta ja konflikteja — ei vielä kanonia.", reads: "ratify --mine / reconcile", writes: "Agent fills new file", rule: "Unswept proposal ei ole citable." },
-        { id: "draft", name: "Draft", type: "draft", trust: "quarantine", path: "body/drafts/ch01-sc01-draft-a.md", owner: "Agentti → ihminen", color: colors.purple, summary: "Yksi proosaluonnos ja sen pack_sha-kuitti.", reads: "Review skills + human rework", writes: "Agent creates; human owns thereafter", rule: "Dispatcher ei kirjoita laskeutunutta draftia uudelleen." },
-        { id: "review", name: "Review report", type: "review_report", trust: "quarantine", path: "reviews/canon|voice/<draft>-<kind>-review.md", owner: "Agentti", color: colors.purple, summary: "Neuvova löydöslista, verdict ja draftissa nähdyt uudet ehdokkaat.", reads: "Human + ratify --mine", writes: "Agent creates", rule: "Review informs; it neither blocks nor edits." },
-        { id: "inbox", name: "Ratification inbox", type: "ratification_inbox", trust: "gate", path: "control/ratification/Inbox.md", owner: "Kirjoittaja", color: colors.mist, summary: "Yksi checkbox-pinta kaikille kanoniehdokkaille.", reads: "Human + ratify --sweep", writes: "Engine mines; human edits verdict/wording", rule: "[x] accept, [-] reject, [>] defer, [ ] pending." },
-        { id: "ledger", name: "Ratification log", type: "ratification_log", trust: "canon", path: "control/ratification/Ratification Log.md", owner: "scribectl only", color: colors.ember, summary: "Append-only päätöskuitti: mitä hyväksyttiin, hylättiin tai lykättiin ja mistä se tuli.", reads: "Status + audit", writes: "ratify --sweep only", rule: "Yksi fakta, yksi osoitettava receipt." },
-        { id: "status", name: "Status view", type: "derived", trust: "derived", path: "control/Status.md", owner: "scribectl", color: colors.ash, summary: "Vaultista laskettu näkymä cardien, nodien ja proposalien todelliseen tilaan.", reads: "Human + dispatch policy", writes: "Regenerable cache", rule: "Mitään status-enumia ei tallenneta frontmatteriin." }
+        { id: "project", name: "Project note", type: "scribe-project", trust: "intent", path: "Fertile Flames.md", owner: "Writer", color: colors.gold, summary: "The in-vault project registry and path configuration.", reads: "Engine discovery", writes: "Writer; capture extends only the sources list", rule: "The body remains the writer's." },
+        { id: "seed", name: "World seed", type: "world_seed", trust: "intent", path: "world/World Seed.md", owner: "Writer", color: colors.gold, summary: "The premise, primary tensions, tone, and hard constraints.", reads: "Context and mining packs", writes: "Writer", rule: "A source of direction, not a factory for empty lore nodes." },
+        { id: "card", name: "Scene card", type: "scene_card", trust: "intent", path: "structure/scenes/Scene 01-01.md", owner: "Writer", color: colors.gold, summary: "The content contract for one scene: where it begins, what changes, and where it ends.", reads: "Pack assembler + body_fill", writes: "Writer", rule: "A fill never starts while scope still contains placeholders." },
+        { id: "contract", name: "Per-card contract", type: "contract", trust: "intent", path: "control/contracts/fill-scene-01-01.md", owner: "Writer", color: colors.gold, summary: "The execution specification for exactly one dispatch.", reads: "Dispatch policy + skill", writes: "Writer", rule: "A missing contract means skip, not inferred intent." },
+        { id: "canon", name: "Canon node", type: "canon_node", trust: "canon", path: "world/canon/The Mist.md", owner: "Writer gate", color: colors.ember, summary: "A named world entity from which only One-line function and Ratified facts enter a pack.", reads: "Context and mining packs + review", writes: "Writer / accepted sweep", rule: "Open questions never leak into fill context." },
+        { id: "timeline", name: "Timeline", type: "timeline", trust: "canon", path: "control/timeline/Timeline.md", owner: "Append-only", color: colors.ember, summary: "The chronology oracle and source for prior-event filtering.", reads: "Pack assembler + canon review", writes: "Single writer, append only", rule: "Prose chronology must not depend on model memory." },
+        { id: "voice", name: "Voice canon", type: "voice_canon", trust: "canon", path: "world/language/Prose Voice Canon.md", owner: "Writer", color: colors.ember, summary: "Directives, prohibited mannerisms, and accepted cadence exemplars.", reads: "Context pack + voice review", writes: "Writer", rule: "Exemplars carry more weight than abstract adjectives." },
+        { id: "pack", name: "Context pack", type: "context_pack", trust: "frozen", path: "control/context-packs/Scene-01-01-context.md", owner: "scribectl", color: colors.green, summary: "A minimal, hashed slice of truth for one fill.", reads: "Agent skills", writes: "Engine create-only", rule: "Regenerate to fill; freeze to audit; never hand-edit." },
+        { id: "mining", name: "Mining pack", type: "mining_pack", trust: "frozen", path: "control/mining-packs/<target> — <source>.md", owner: "scribectl", color: colors.green, summary: "A source, the target's open questions, and current canon framed for extraction.", reads: "Proposal agent", writes: "Engine create-only", rule: "The pack proves what was known when the proposal was made." },
+        { id: "proposal", name: "Fact proposal", type: "fact_proposal", trust: "quarantine", path: "control/proposals/<target> — <source> — <date>.md", owner: "Agent", color: colors.purple, summary: "Candidate facts, supporting quotations, confidence, and conflicts—not canon.", reads: "ratify --mine / reconcile", writes: "Agent fills a new file", rule: "An unswept proposal is not citable." },
+        { id: "draft", name: "Draft", type: "draft", trust: "quarantine", path: "body/drafts/ch01-sc01-draft-a.md", owner: "Agent → writer", color: colors.purple, summary: "One prose draft and its pack_sha receipt.", reads: "Review skills + writer rework", writes: "Agent creates; writer owns thereafter", rule: "The dispatcher never rewrites a landed draft." },
+        { id: "review", name: "Review report", type: "review_report", trust: "quarantine", path: "reviews/canon|voice/<draft>-<kind>-review.md", owner: "Agent", color: colors.purple, summary: "An advisory findings list, verdict, and introduced candidates observed in the draft.", reads: "Writer + ratify --mine", writes: "Agent creates", rule: "Review informs; it neither blocks nor edits." },
+        { id: "inbox", name: "Ratification inbox", type: "ratification_inbox", trust: "gate", path: "control/ratification/Inbox.md", owner: "Writer", color: colors.mist, summary: "One checkbox surface for every candidate claim.", reads: "Writer + ratify --sweep", writes: "Engine mines; writer edits verdict and wording", rule: "[x] accept, [-] reject, [>] defer, [ ] pending." },
+        { id: "ledger", name: "Ratification log", type: "ratification_log", trust: "canon", path: "control/ratification/Ratification Log.md", owner: "scribectl only", color: colors.ember, summary: "An append-only decision receipt: what was accepted, rejected, or deferred, and where it came from.", reads: "Status + audit", writes: "ratify --sweep only", rule: "One fact, one addressable receipt." },
+        { id: "status", name: "Status view", type: "derived", trust: "derived", path: "control/Status.md", owner: "scribectl", color: colors.ash, summary: "A vault-derived view of the actual state of cards, nodes, and proposals.", reads: "Writer + dispatch policy", writes: "Regenerable cache", rule: "No status enum is stored in frontmatter." }
       ];
 
       const trustLabels = {
-        all: "Kaikki",
-        intent: "Intentio",
-        canon: "Ratifioitu",
-        frozen: "Jäädytetty",
-        quarantine: "Karanteeni",
-        gate: "Päätösportti",
-        derived: "Johdettu"
+        all: "All",
+        intent: "Intent",
+        canon: "Canon",
+        frozen: "Frozen",
+        quarantine: "Quarantine",
+        gate: "Decision gate",
+        derived: "Derived"
       };
 
       const contracts = {
         scene: {
           tab: "Scene card",
-          kind: "Sisältösopimus",
-          title: "Mitä kohtauksen pitää saada aikaan?",
+          kind: "Content contract",
+          title: "What must the scene accomplish?",
           filename: "structure/scenes/Scene 01-01.md",
-          copy: "Card rajaa tarinallisen tehtävän mutta ei määrää valmista proosaa. Scope-linkit myös kertovat assemblerille, mikä kanoniviipale kuuluu mukaan.",
+          copy: "The card bounds the narrative task without prescribing finished prose. Its scope links also tell the assembler which canon slice belongs in the pack.",
           code: `---
 type: scene_card
 book: 1
@@ -1788,18 +1788,18 @@ Mara holds evidence and tells no one.
 - Explain the full demon system.
 - Reveal what the Mist wants.`,
           fields: {
-            canon_scope: { title: "canon_scope", copy: "Määrittää suoraan, mitkä canon nodet assembler yrittää vetää packiin. Ratkaisematon linkki tuottaa blocked_unresolved_scope-tilan." },
-            position: { title: "book / chapter / scene", copy: "Asemoi cardin timelineen. Vain tätä hetkeä aiemmat relevantit tapahtumat kuuluvat kontekstiin." },
-            states: { title: "Entry / Exit state", copy: "Muodostavat kohtauksen muutossopimuksen ja antavat canon-reviewlle konkreettisen jatkuvuusväitteen tarkistettavaksi." },
-            exclusions: { title: "Do not", copy: "Kovat poissulut viedään packiin sellaisenaan. Ne ovat täsmällisempi ohjaus kuin yleinen tyylipyyntö." }
+            canon_scope: { title: "canon_scope", copy: "Directly identifies the canon nodes the assembler must resolve into the pack. An unresolved link yields blocked_unresolved_scope." },
+            position: { title: "book / chapter / scene", copy: "Positions the card on the timeline. Only relevant events before that position enter the context." },
+            states: { title: "Entry / Exit state", copy: "Together they form the scene's change contract and give canon review a concrete continuity claim to test." },
+            exclusions: { title: "Do not", copy: "Hard exclusions enter the pack verbatim. They constrain the fill more precisely than a general style request." }
           }
         },
         contract: {
           tab: "Per-card contract",
-          kind: "Suoritussopimus",
-          title: "Miten yksi agenttisuoritus saa toimia?",
+          kind: "Execution contract",
+          title: "How may one agent run behave?",
           filename: "control/contracts/fill-scene-01-01.md",
-          copy: "Contract on authoring intent, ei agentin arvaama oletus. Se sitoo targetin, moden, outputin ja jälkikatselmukset yhteen idempotenttiin dispatchiin.",
+          copy: "The contract is authored intent, not an agent inference. It binds target, mode, output, and follow-up reviews into one idempotent dispatch.",
           code: `---
 type: contract
 contract_id: body-scene-01-01
@@ -1824,18 +1824,18 @@ Use only the supplied context pack and target note.
 Put new proper nouns or world facts under
 "Introduced candidates" — never assert them as settled canon.`,
           fields: {
-            target: { title: "target", copy: "Kytkee contractin täsmälleen yhteen cardiin. Dispatch ei kirjoita yleisesti 'seuraavaa lukua'." },
-            mode: { title: "mode + agent_profile", copy: "Valitsee skillin ja toimijan roolin. Engine ei silti tunne mallia eikä kutsu LLM:ää." },
-            output: { title: "output_target", copy: "Idempotency perustuu artefaktin olemassaoloon. Jos tiedosto on jo laskeutunut, fill ei aja uudelleen sen päälle." },
-            review_after: { title: "review_after", copy: "Määrittää lane-joukon ja järjestyksen. Reviewn firing voi olla automaattinen, mutta raportin consumption pysyy ihmisellä." }
+            target: { title: "target", copy: "Binds the contract to exactly one card. Dispatch never writes a generic 'next chapter'." },
+            mode: { title: "mode + agent_profile", copy: "Selects the skill and working role. The engine still knows nothing about the model and never calls an LLM." },
+            output: { title: "output_target", copy: "Idempotency is based on artifact existence. Once the file has landed, fill never reruns over it." },
+            review_after: { title: "review_after", copy: "Defines the review lanes and order. Firing may be automatic; report consumption remains manual." }
           }
         },
         template: {
           tab: "Template set",
-          kind: "Engine-sopimus",
-          title: "Mikä on tämän projektityypin rakenne?",
+          kind: "Engine contract",
+          title: "What is the shape of this project type?",
           filename: "scribectl/templates/fiction/set.yaml",
-          copy: "Template set tekee projektin muodosta dataa. Sama core pystyy ajamaan fiction- ja gamedev-projekteja ilman per-set-aliluokkia.",
+          copy: "The template set makes project shape data-driven. The same core can run fiction and gamedev projects without per-set subclasses.",
           code: `card_type: scene_card
 card_heading: Scene card
 node_types: [canon_node]
@@ -1865,119 +1865,119 @@ init:
     - reviews/canon
     - reviews/voice`,
           fields: {
-            types: { title: "card_type + node_types", copy: "Kertoo, mikä on täytettävä yksikkö ja mitkä tiedostotyypit kantavat ratifioituja faktoja." },
-            pull: { title: "pull", copy: "Määrittää frontmatter-linkit, joista scope, timeline-actors ja location johdetaan ilman set-kohtaista Python-logiikkaa." },
-            position: { title: "position", copy: "Antaa cardille järjestysavaimen. Ilman positiota card näkee koko timelinen; fiktiokohtaus näkee vain prior events." },
-            init: { title: "init", copy: "Listaa polut ja scaffoldit, jotka uuden projektin luonti saa tehdä. Tyhjiä lore-nodeja ei luoda varmuuden vuoksi." }
+            types: { title: "card_type + node_types", copy: "Identifies the fillable unit and the file types that carry ratified facts." },
+            pull: { title: "pull", copy: "Declares the frontmatter links from which scope, timeline actors, and location are derived without set-specific Python logic." },
+            position: { title: "position", copy: "Provides the card's ordering key. An unpositioned card sees the whole timeline; a fiction scene sees only prior events." },
+            init: { title: "init", copy: "Lists the paths and scaffolds project creation may instantiate. It does not generate empty lore nodes on speculation." }
           }
         }
       };
 
       const exampleSteps = [
         {
-          title: "Perusta projekti",
-          owner: "Kirjoittaja + scribectl",
+          title: "Create the project",
+          owner: "Writer + scribectl",
           state: "project discovered",
           command: "scribectl init \"Fertile Flames\" --set fiction",
-          copy: "Fiction-template set luo vain ansaitun rungon: world, structure, body, control, review-lanet sekä projektin scribe-project-noten. Vault on heti sekä world database että työpinta.",
+          copy: "The fiction template set creates only the earned skeleton: world, structure, body, control, review lanes, and the project's scribe-project note. The vault immediately becomes both world database and writing cockpit.",
           files: [
             ["Fertile Flames.md", "config", "new"],
             ["world/World Seed.md", "intent", "new"],
             ["control/timeline/Timeline.md", "oracle", "new"],
             ["control/ratification/Inbox.md", "gate", "new"]
           ],
-          gateTitle: "Ei kanonia automaattisesti",
-          gateCopy: "Init luo rakenteen, ei maailmaa täynnä tyhjiä solmuja.",
+          gateTitle: "Initialization does not create canon",
+          gateCopy: "Init creates structure, not a world full of empty nodes.",
           gateIcon: "○"
         },
         {
-          title: "Kirjoita maailman selkäranka",
-          owner: "Kirjoittaja",
+          title: "Author the world spine",
+          owner: "Writer",
           state: "awaiting authored scope",
           command: "edit world/World Seed.md + world/canon/*.md",
-          copy: "Seed lukitsee premissin: vulkaaninen kaupunkivaltio selviää demonipaineen ja muistia syövän sumun välissä. Vain ratifioidut faktat kirjataan canon noden Ratified facts -osioon.",
+          copy: "The seed fixes the premise: a volcanic city-state survives between infernal pressure and a memory-eroding Mist. Only ratified facts belong under a canon node's Ratified facts heading.",
           files: [
             ["world/World Seed.md", "hard constraints", "ready"],
             ["world/canon/The Volcanic City-State.md", "3 facts", "new"],
             ["world/canon/The Mist.md", "3 facts", "new"],
             ["world/canon/Mara Vey.md", "2 facts", "new"]
           ],
-          gateTitle: "Avoimet kysymykset eivät ole faktoja",
-          gateCopy: "Assembler vie filliin vain One-line function + Ratified facts.",
+          gateTitle: "Open questions are not facts",
+          gateCopy: "The assembler ships only One-line function and Ratified facts into a fill.",
           gateIcon: "≠"
         },
         {
-          title: "Rajaa ensimmäinen kohtaus",
-          owner: "Kirjoittaja",
+          title: "Bound the first scene",
+          owner: "Writer",
           state: "blocked_unresolved_scope",
           command: "scribectl new card \"A Routine That Lies\"",
-          copy: "Scene 1.1 tarvitsee Mara Veyn, kaupungin, Mistin ja Lower Ashmarketin. Kolme ensimmäistä löytyvät, mutta [[Lower Ashmarket]] on ratkaisematon linkki. Tila johdetaan vaultista ja fill pysähtyy oikein.",
+          copy: "Scene 1.1 requires Mara Vey, the city-state, the Mist, and Lower Ashmarket. The first three resolve; [[Lower Ashmarket]] does not. State is derived from the vault, so the fill stops for the right reason.",
           files: [
             ["structure/scenes/Scene 01-01.md", "card", "new"],
             ["control/contracts/fill-scene-01-01.md", "intent", "new"],
             ["world/canon/Lower Ashmarket.md", "missing", "missing"]
           ],
-          gateTitle: "Puuttuva scope on oikea blokkeri",
-          gateCopy: "Koordinaattori ei keksi puuttuvaa canon nodea eikä täytä unauthored cardia.",
+          gateTitle: "Unresolved scope is a real blocker",
+          gateCopy: "The coordinator neither invents the missing canon node nor fills an unauthored card.",
           gateIcon: "!"
         },
         {
-          title: "Ratkaise scope ja jäädytä pack",
-          owner: "Kirjoittaja + scribectl",
+          title: "Resolve scope and freeze the pack",
+          owner: "Writer + scribectl",
           state: "ready_for_fill → packed",
           command: "scribectl pack \"Scene 01-01\"",
-          copy: "Kun Lower Ashmarket saa ratifioidun canon noden, card muuttuu täyttökelpoiseksi. Pack kokoaa scene cardin, relevantit faktat, prior timeline -tapahtumat, voice canonin ja hard exclusions -listan yhteen auditoitavaan tiedostoon.",
+          copy: "Once Lower Ashmarket has a ratified canon node, the card becomes fillable. The pack combines the scene card, relevant facts, prior timeline events, voice canon, and hard exclusions in one auditable file.",
           files: [
             ["world/canon/Lower Ashmarket.md", "resolved", "new"],
             ["control/context-packs/Scene-01-01-context.md", "sha b1aa50b69a16", "new"],
             ["control/timeline/Timeline.md", "2 prior events", "ready"]
           ],
-          gateTitle: "Hash on proosan kuitti",
-          gateCopy: "Draft voi myöhemmin todistaa, minkä kanonitilan se todella näki.",
+          gateTitle: "The hash is the prose receipt",
+          gateCopy: "The draft can later prove which canon state it actually saw.",
           gateIcon: "#"
         },
         {
-          title: "Täytä luonnos kerran",
+          title: "Fill the draft once",
           owner: "body_fill agent",
           state: "has_draft",
           command: "scribe-dispatch run -p \"Fertile Flames\"",
-          copy: "body_fill saa packin polun, cardin ja contractin. Se laskee uuden draftin sovittuun output_targetiin pack_sha-frontmatterilla. Uusi väite — esimerkiksi paikallisen hälytyskellon rytmi — merkitään ehdokkaaksi, ei faktaksi.",
+          copy: "body_fill receives the pack path, card, and contract. It lands a new draft at output_target with a pack_sha receipt. A new claim—such as the cadence of a local alarm bell—is marked as a candidate, not a fact.",
           files: [
             ["body/drafts/ch01-sc01-draft-a.md", "pack_sha receipt", "new"],
             ["control/context-packs/Scene-01-01-context.md", "frozen", "ready"]
           ],
-          gateTitle: "Laskeutunut draft kuuluu ihmiselle",
-          gateCopy: "Seuraava dispatch ei kirjoita samaa tiedostoa uudelleen.",
+          gateTitle: "A landed draft belongs to the writer",
+          gateCopy: "The next dispatch will not overwrite the same file.",
           gateIcon: "✎"
         },
         {
-          title: "Katselmoi, älä korjaa",
+          title: "Review; do not repair",
           owner: "review_canon + review_voice",
           state: "reviewed",
           command: "scribe-dispatch run -p \"Fertile Flames\"",
-          copy: "Puuttuvat canon- ja voice-lanet laukeavat rinnakkain. Raportit vertaavat luonnosta timelineen, ratifioituihin faktoihin ja hyväksyttyyn kadenssiin. Löydökset sekä introduced candidates jäävät neuvoiksi.",
+          copy: "Missing canon and voice lanes fire independently. The reports compare the draft with the timeline, ratified facts, and accepted cadence. Findings and introduced candidates remain advisory.",
           files: [
             ["reviews/canon/ch01-sc01-draft-a-canon-review.md", "advisory", "new"],
             ["reviews/voice/ch01-sc01-draft-a-voice-review.md", "advisory", "new"],
             ["body/drafts/ch01-sc01-draft-a.md", "human-owned", "ready"]
           ],
-          gateTitle: "Ei agent-on-agent-silmukkaa",
-          gateCopy: "Kirjoittaja kuluttaa palautteen ja päättää reworkin itse.",
+          gateTitle: "No agent-on-agent loop",
+          gateCopy: "The writer consumes the feedback and decides the rework.",
           gateIcon: "↯"
         },
         {
-          title: "Ratifioi täsmällinen väite",
-          owner: "Kirjoittaja + scribectl",
+          title: "Ratify the exact claim",
+          owner: "Writer + scribectl",
           state: "canon projected",
           command: "scribectl ratify --mine && scribectl ratify --sweep",
-          copy: "Reviewn ehdokas nostetaan inboxiin pending-checkboxina. Kirjoittaja muotoilee väitteen, valitsee accept/reject/defer ja ajaa sweepin. Hyväksytty fakta lisätään target nodeen; päätös ja provenance appendataan lokiin. Seuraava pack näkee uuden kanonin.",
+          copy: "A review candidate enters the inbox as pending. The writer fixes its wording, selects accept, reject, or defer, and runs the sweep. An accepted fact is added to the target node; the decision and provenance are appended to the log. The next pack sees the new canon.",
           files: [
             ["control/ratification/Inbox.md", "[x] accepted", "new"],
             ["world/canon/The Volcanic City-State.md", "+1 ratified fact", "new"],
             ["control/ratification/Ratification Log.md", "+1 receipt", "new"]
           ],
-          gateTitle: "Tässä kohdassa ehdotus muuttuu todeksi",
-          gateCopy: "Mikään aikaisempi vaihe ei saa ylittää tätä porttia.",
+          gateTitle: "This is where a proposal becomes true",
+          gateCopy: "No earlier stage may cross this gate.",
           gateIcon: "◆"
         }
       ];
@@ -2008,10 +2008,10 @@ init:
           <h3>${selected.name}</h3>
           <p>${selected.role}</p>
           <div class="sc-do-dont">
-            <div class="sc-mini-panel"><b>Saa tehdä</b><span>${selected.does}</span></div>
-            <div class="sc-mini-panel"><b>Ei tee</b><span>${selected.never}</span></div>
+            <div class="sc-mini-panel"><b>May do</b><span>${selected.does}</span></div>
+            <div class="sc-mini-panel"><b>Does not</b><span>${selected.never}</span></div>
           </div>
-          <span class="sc-path">raja: ${selected.boundary}</span>`;
+          <span class="sc-path">boundary: ${selected.boundary}</span>`;
         flow.querySelectorAll("[data-boundary]").forEach((button) => {
           button.addEventListener("click", () => renderBoundaries(button.dataset.boundary));
         });
@@ -2034,9 +2034,9 @@ init:
         root.querySelector("#sc-flow-detail").innerHTML = `
           <div><p class="sc-eyebrow">${flow.label} / ${selected.actor}</p><h3>${selected.title}</h3><p>${selected.detail}</p></div>
           <div class="sc-receipt">
-            <div class="sc-receipt-row"><span>lukee</span><strong>${selected.reads}</strong></div>
-            <div class="sc-receipt-row"><span>tuottaa</span><strong>${selected.emits}</strong></div>
-            <div class="sc-receipt-row"><span>komento</span><code>${escapeHtml(selected.command)}</code></div>
+            <div class="sc-receipt-row"><span>reads</span><strong>${selected.reads}</strong></div>
+            <div class="sc-receipt-row"><span>emits</span><strong>${selected.emits}</strong></div>
+            <div class="sc-receipt-row"><span>command</span><code>${escapeHtml(selected.command)}</code></div>
           </div>`;
         track.querySelectorAll("[data-flow-node]").forEach((button) => {
           button.addEventListener("click", () => {
@@ -2085,7 +2085,7 @@ init:
             <span class="sc-artifact-type">${artifact.type}</span>
             <strong>${artifact.name}</strong>
             <span>${trustLabels[artifact.trust]}</span>
-          </button>`).join("") : '<div class="sc-empty">Ei artefakteja tällä suodattimella.</div>';
+          </button>`).join("") : '<div class="sc-empty">No artifacts match this filter.</div>';
         grid.querySelectorAll("[data-artifact]").forEach((button) => {
           button.addEventListener("click", () => {
             activeArtifact = button.dataset.artifact;
@@ -2102,7 +2102,7 @@ init:
           <p>${selected.summary}</p>
           <span class="sc-path">${escapeHtml(selected.path)}</span>
           <div><span class="sc-tag">owner: ${selected.owner}</span><span class="sc-tag">reads: ${selected.reads}</span><span class="sc-tag">writes: ${selected.writes}</span></div>
-          <div class="sc-mini-panel" style="margin-top:16px"><b>Luottamussääntö</b><span>${selected.rule}</span></div>`;
+          <div class="sc-mini-panel" style="margin-top:16px"><b>Trust rule</b><span>${selected.rule}</span></div>`;
       }
 
       let activeContract = "scene";
@@ -2123,7 +2123,7 @@ init:
         fieldList.innerHTML = Object.entries(current.fields).map(([id, field]) => `
           <button type="button" class="sc-field" data-field="${id}" aria-pressed="${id === activeField}">${field.title}</button>`).join("");
         const field = current.fields[activeField];
-        root.querySelector("#sc-field-detail").innerHTML = `<p class="sc-eyebrow">valittu kenttä</p><h3>${field.title}</h3><p>${field.copy}</p>`;
+        root.querySelector("#sc-field-detail").innerHTML = `<p class="sc-eyebrow">selected field</p><h3>${field.title}</h3><p>${field.copy}</p>`;
         tabs.querySelectorAll("[data-contract]").forEach((button) => {
           button.addEventListener("click", () => {
             activeContract = button.dataset.contract;
@@ -2144,7 +2144,7 @@ init:
       function renderExample() {
         const rail = root.querySelector("#sc-step-rail");
         rail.innerHTML = exampleSteps.map((step, index) => `
-          <button type="button" class="sc-step-dot" data-step="${index}" aria-label="Vaihe ${index + 1}: ${step.title}" aria-current="${index === activeStep ? "step" : "false"}" data-complete="${index < activeStep}">${String(index + 1).padStart(2, "0")}</button>`).join("");
+          <button type="button" class="sc-step-dot" data-step="${index}" aria-label="Step ${index + 1}: ${step.title}" aria-current="${index === activeStep ? "step" : "false"}" data-complete="${index < activeStep}">${String(index + 1).padStart(2, "0")}</button>`).join("");
         const step = exampleSteps[activeStep];
         root.querySelector("#sc-progress-bar").style.width = `${((activeStep + 1) / exampleSteps.length) * 100}%`;
         root.querySelector("#sc-step-copy").innerHTML = `
@@ -2160,7 +2160,7 @@ init:
         root.querySelector("#sc-gate-icon").textContent = step.gateIcon;
         root.querySelector("#sc-prev-step").disabled = activeStep === 0;
         root.querySelector("#sc-next-step").disabled = activeStep === exampleSteps.length - 1;
-        root.querySelector("#sc-next-step").textContent = activeStep === exampleSteps.length - 1 ? "Valmis" : "Seuraava →";
+        root.querySelector("#sc-next-step").textContent = activeStep === exampleSteps.length - 1 ? "Complete" : "Next →";
         rail.querySelectorAll("[data-step]").forEach((button) => {
           button.addEventListener("click", () => {
             activeStep = Number(button.dataset.step);
