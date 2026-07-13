@@ -141,3 +141,40 @@ Two gamedev-specific decisions worth stating:
   multi-agent, no empty stub farms.
 - The engine never calls an LLM. Agents are dispatched outside it (see
   ARCHITECTURE.md, "The agent boundary").
+
+## Addendum — mining the edges (2026-07-13)
+
+An assessment of the not-built lists (this note, PLAN.md, DISPATCH.md,
+RATIFICATION.md) sorted them into two kinds of line, and it clarifies rather
+than amends the ratified design:
+
+- **Constitutive bans never lift** — they are the system's identity, not
+  gates: no auto-ratify, no LLM client in the engine, no editable copy-out,
+  no second implementation of derived state (Dataview, status enums), no
+  auto-canon-from-prose, no consensus-laundering multi-agent.
+- **Evidence gates lift when a real project earns them** — the DISPATCH.md
+  pattern (watch mode, real-vault dispatch, actionq integration were all
+  struck through and landed this way; the gamedev set lifted "no second
+  template set on spec" identically).
+
+The proven recipe for mining value out of banned space without crossing a
+constitutive line — used by propose, reconcile, and brainstorm — is:
+quarantine the output, keep agents independent and parallel (never
+conversational), and route every verdict through the writer's checkbox.
+
+Two standing clarifications that fall out of the constitutive bans:
+
+- **Render-out is not copy-out.** The rejected integration option 2 bans
+  *editable* second copies that drift. A one-way derived artifact —
+  `control/Status.md`, a Longform compile, a beta-reader manuscript render —
+  is regenerable, clearly generated, and read back by nothing: the Status.md
+  trust class. The distinction is "does anything downstream edit or consume
+  it"; if yes, it's banned.
+- **Any Dataview-shaped want is answered with a generated view.** A new
+  slice of derived state (per-character scene index, ratified-fact index,
+  cross-project rollup) becomes another `status --write` view note, earned
+  one real need at a time — never a view framework on spec, never a second
+  state implementation. Likewise the plugin table's "ergonomics only, never
+  state" row extends to command bridges (Shell Commands / QuickAdd macros
+  that *invoke* scribectl): the plugin may be a dumb button; the engine
+  stays the only implementation.

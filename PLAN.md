@@ -165,3 +165,44 @@ Added at the scribectl level:
 - **No LLM client in the engine.** Dispatch is the skills layer's job.
 - **No second template set on spec.** Shapes are earned by projects, not
   predicted.
+
+## Mining the edges — assessed 2026-07-13
+
+The not-built lists (above, the fertile-flames original, DISPATCH.md,
+RATIFICATION.md) are two different kinds of line. **Constitutive bans**
+protect the system's identity and never lift: no auto-ratify, no LLM client
+in the engine, no editable copy-out, no second implementation of derived
+state, no auto-canon-from-prose, no consensus-laundering multi-agent.
+**Evidence gates** lift when a real project earns them — three of
+DISPATCH.md's five items were struck through and landed this way, and the
+gamedev set lifted "no second template set on spec" identically.
+
+The recipe that has now mined banned space three times (propose, reconcile,
+brainstorm) without crossing a constitutive line: **quarantine the output,
+keep agents independent and parallel — never conversational — and route
+every verdict through the writer's checkbox.** See the DESIGN.md addendum
+for the render-out/copy-out and generated-view clarifications that fall out.
+
+Filed on that recipe (cairn 403), in rough value order:
+
+1. #1100 variant fills — breadth without iteration: N independent fills of
+   one card from the same frozen pack, writer picks. Mines "no autonomous
+   chapter iteration" and "no writers-room" (dispatch track).
+2. #1101 watch invokes `ratify --mine` — ambient candidate flow; the
+   dispatcher still never parses a report or touches the inbox (dispatch
+   track; the invoke-vs-do line gets decided in DISPATCH.md).
+3. #1102 Shell Commands / QuickAdd macros invoking scribectl — one-motion
+   sweep and status from inside Obsidian; the plugin is a dumb button under
+   DESIGN.md's ergonomics-only doctrine (surfaces track).
+4. #1103 beta pack — the render-out lane: one-way sha-stamped manuscript
+   render for beta readers, read back by nothing; coordinates with Longform
+   #1065 (engine track).
+5. #1104 inbox ordering — verdict ergonomics: conflicts-first /
+   by-confidence presentation; threshold-accept is auto-ratify in a hat and
+   stays refused (engine track).
+
+Judged not worth mining: engine-side LLM anything (every tempting case has a
+skills-layer answer — e.g. an agent skill *proposing* `scope:` links if pack
+bloat ever gets real), status enums and stub farms (derived state and
+adopt-from-real-ore won outright), and the essay set (already correctly
+gated as #1068).

@@ -154,6 +154,12 @@ the real vault.
   candidates"; the *engine's* `scribectl ratify --mine` lifts them into the
   ratification Inbox as pending candidates (RATIFICATION.md build item 2,
   landed 2026-07-12). The dispatcher itself still never touches the inbox.
+  Gate under assessment (#1101): watch *invoking* `scribectl ratify
+  --mine` after reviews land — ambient candidate flow. The line's purpose is
+  one implementation of mining; the engine CLI is the dispatcher's whole API
+  and `--mine` is idempotent (via-link marker), so invoke-vs-do may be a
+  legitimate lift. Deciding it means writing the answer into this paragraph,
+  not just shipping the call.
 - ~~**No real-vault dispatch** until the fixture loop and the live smoke both
   hold.~~ Gate lifted 2026-07-12: the F.5 smoke draft passed the operator's
   voice verdict (canon + voice lanes clean), and the first real-vault
@@ -162,7 +168,12 @@ the real vault.
   still production: machine policy lives in `~/.config/scribectl/dispatch.yaml`
   (runner: claude), and every hard line above applies with no fixture net.
 - **No agent-on-agent loops, no retries-with-feedback.** A bad draft is
-  information for the writer, not fuel for the coordinator.
+  information for the writer, not fuel for the coordinator. The sanctioned
+  neighbor (#1100) is *variant fills*: N independent fills of one card
+  from the same frozen pack — different routes, temperatures, or contract
+  emphases — landed side by side for the writer to pick from. Breadth, not
+  iteration: no agent judges another, no feedback loop, one human gate. The
+  writer bake-off already proved the judging harness by hand.
 - ~~**No actionq/cockpit integration yet.**~~ Landed 2026-07-12, once dispatch
   proved out: `scribectl.dispatch.json` (repo root; staged copy in
   `agentops/templates/dispatch/examples/`) registers the repo at adoption
