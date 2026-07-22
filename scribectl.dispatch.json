@@ -4,7 +4,7 @@
   "adoption_level": "observable",
   "dispatch_group_id": "scribectl-dispatch",
   "routing": {
-    "default_harness": "claude",
+    "default_harness": "caller",
     "default_model_alias": "frontier-default",
     "action_classes": {
       "plan": { "enabled": false },
