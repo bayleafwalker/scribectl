@@ -11,22 +11,21 @@ at `/media/Creative/`. Generalization of `fertile-flames-pipeline/` (the proven
 before implementing anything — the design is ratified; don't re-litigate it in
 code.
 
-## Sprint workflow (sprintctl, remote mode)
+## Sprint workflow (sprintctl, served mode)
 
-Execution state lives in the **shared homelab postgres**, tenant-scoped by
-`repo_id: scribectl` (`.sprintctl/backend.json`). Same wiring as
-homelab-analytics.
+Execution state is reached through the **Vuoro shared work adapter**,
+tenant-scoped by `repo_id: scribectl` (`.sprintctl/backend.json`).
 
 | Var | Value | Source |
 |-----|-------|--------|
-| `SPRINTCTL_BACKEND` | `remote` | `.envrc` |
-| `SPRINTCTL_URL` | credentialed postgres URL | `.env.sprintctl.local` (gitignored) |
+| `SPRINTCTL_BACKEND` | `served` | `.envrc` |
+| `SPRINTCTL_VUORO_PROFILE` | Vuoro shared profile JSON path | `.envrc` |
 | `AUDITCTL_DB` / `AUDITCTL_ARTIFACTS_ROOT` | repo-local / `/projects/dev` | `.envrc` |
 
 **Load:** `direnv allow` or `source .envrc` from repo root, once per shell —
-never hand-prefix env onto individual commands. If `SPRINTCTL_URL` is missing,
-copy `.env.sprintctl.local` from homelab-analytics or inject the secret; the
-`.envrc` fails fast on purpose.
+never hand-prefix env onto individual commands. The served profile resolves
+its credential from the host-local mode-0600 file it references; do not put a
+database URL or a credential in this repository's environment files.
 
 **If `sprintctl` is missing or stale** (private tool, not on PyPI):
 
@@ -35,9 +34,8 @@ uv tool install --force --reinstall /projects/dev/sprintctl --python python3
 ```
 
 **Validate before use:** `sprintctl usage --context --json` must show the
-scribectl sprint, not another repo's. Remote mode means claims are shared
-state — TTL discipline matters (`--ttl` ≥ 2× expected duration, heartbeat at
-half-TTL).
+scribectl sprint, not another repo's. Served claims are shared state — TTL
+discipline matters (`--ttl` ≥ 2× expected duration, heartbeat at half-TTL).
 
 ### Session entry
 
@@ -102,7 +100,7 @@ after the Phase C slice holds.
 
 ## Source-of-truth order
 
-1. sprintctl (remote db) — execution state, claims, item status
+1. sprintctl (served Vuoro authority) — execution state, claims, item status
 2. `docs/DESIGN.md` / `docs/ARCHITECTURE.md` — ratified design
 3. `PLAN.md` — sequencing
 4. `docs/sprint/current.md` — rendered snapshot (may lag the db; regenerate,
@@ -119,4 +117,4 @@ after the Phase C slice holds.
 - Don't edit `docs/sprint/current.md` by hand — it's `sprintctl render` output.
 - Don't start Phase D/E backlog items while Phase C is unproven.
 - Don't run `sprintctl init` — no such command; don't create a local sqlite db
-  here — this repo is locked to remote mode by `.sprintctl/backend.json`.
+  here — this repo is locked to served mode by `.sprintctl/backend.json`.
