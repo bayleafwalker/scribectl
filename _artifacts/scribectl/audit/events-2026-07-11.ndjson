@@ -1,0 +1,1 @@
+{"actor":"bayleaf","created_at":"2026-07-11T19:31:52Z","detail":null,"id":"ad:01KX9AMC118J2V0S0HSGZTSP6E","metadata":{"event_type":"knowledge-landed","knowledge_event_id":792,"note_type":"decision","sprint_id":401},"refs":["sprint:401","ka:792"],"source":"sprintctl","summary":"Knowledge event #792 (decision) on item #1069","ts":"2026-07-11T19:31:52Z","type":"knowledge.landed"}
