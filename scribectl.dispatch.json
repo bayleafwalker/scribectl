@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "repo_id": "scribectl",
+  "authority_repo_uuid": "cc38d8fe-34e5-434d-9c92-9c867b4b7cc3",
   "adoption_level": "observable",
   "dispatch_group_id": "scribectl-dispatch",
   "routing": {
