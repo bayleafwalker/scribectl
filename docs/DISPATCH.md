@@ -200,8 +200,8 @@ the real vault.
   variant. The writer's rework of the pick lands untagged, which returns
   reviews to newest-only.
 - ~~**No actionq/cockpit integration yet.**~~ Landed 2026-07-12, once dispatch
-  proved out: `scribectl.dispatch.json` (repo root; staged copy in
-  `agentops/templates/dispatch/examples/`) registers the repo at adoption
+  proved out: `scribectl.dispatch.json` (repo root; a copy was also staged as
+  an example in agentops, since retired) registers the repo at adoption
   level `observable` — the cockpit's `/cockpit/api/dispatch-manifests` serves
   it, all actionq action classes are `enabled: false`, and the manifest's
   own out_of_scope lines restate the hard lines. Observability, not a
