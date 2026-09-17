@@ -49,8 +49,8 @@ discipline matters (`--ttl` ≥ 2× expected duration, heartbeat at half-TTL).
 
 ## Sprint naming
 
-`YYYY-SNN-<anchor>-<focus>-<phase>` per the sprintctl-bootstrap-template
-vocabulary (hearth/forge/harbor…, workflow/core/docs…, overture/build/weave…).
+`YYYY-SNN-<anchor>-<focus>-<phase>` vocabulary
+(hearth/forge/harbor…, workflow/core/docs…, overture/build/weave…).
 Current: `2026-S01-forge-core-overture`. Backlog sprint:
 `2026-S00-cairn-backlog` (kind=backlog) — pull Phase D/E items from it only
 after the Phase C slice holds.
