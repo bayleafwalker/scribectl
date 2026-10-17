@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+import tempfile
 from datetime import date
 from pathlib import Path
 
@@ -377,6 +379,32 @@ def _append_ledger(ledger: Path, groups: list[tuple[str, list[str]]]) -> int:
     return sum(len(e) for _, e in groups)
 
 
+def _replace_text_atomic(path: Path, text: str) -> None:
+    """Replace one derived/inbox note without exposing a truncated file.
+
+    The temporary is in the destination directory, so ``os.replace`` stays on
+    one filesystem. This protects interrupted local writes; it does not claim
+    compare-and-swap against a simultaneous human or livesync writer.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    mode = path.stat().st_mode & 0o777 if path.exists() else None
+    tmp_name = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=path.parent,
+                prefix=f".{path.name}.", suffix=".tmp", delete=False) as f:
+            tmp_name = f.name
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        if mode is not None:
+            os.chmod(tmp_name, mode)
+        os.replace(tmp_name, path)
+    finally:
+        if tmp_name and os.path.exists(tmp_name):
+            os.unlink(tmp_name)
+
+
 def _mine(cfg: ProjectConfig, dry_run: bool, standalone: bool = False) -> int:
     """Queue review-report candidates into the inbox as pending (mining is
     mechanics: only the writer's checkbox ever decides). Creates the inbox
@@ -463,24 +491,48 @@ def _sweep(cfg: ProjectConfig, dry_run: bool) -> int:
         print(f"\nwould clear {len(ok)} candidate{'s' if len(ok) != 1 else ''} from {inbox.name}; {pending} pending would remain")
         return 0
 
+    # Validate the later write before touching any canon node. A sweep can
+    # commit several files before it reaches the ledger, so discover this
+    # deterministic failure before the first effect.
+    if ok and not cfg.ratification_log.is_file():
+        raise CLIError(f"ratification log missing: {cfg.ratification_log}")
+
     for target, cs in by_node.items():
         node = vault.resolve(target)
+        original = node.path.read_text(encoding="utf-8")
         try:
-            new = append_bullets(node.path.read_text(encoding="utf-8"),
-                                 "Ratified facts", [c.fact for c in cs])
+            new = append_bullets(original, "Ratified facts", [c.fact for c in cs])
         except ValueError as e:
             print(f"scribectl: warning: [[{target}]]: {e} — "
                   f"candidate stays in the inbox", file=sys.stderr)
             ok = [c for c in ok if c.target != target or c.verdict != "accept"]
             continue
-        node.path.write_text(new, encoding="utf-8")
-        print(f"ratified {len(cs)} fact{'s' if len(cs) != 1 else ''} into [[{target}]]")
-    groups = [(title, [receipt(c) for c in ok if c.verdict == v])
+        if new == original:
+            print(f"facts already present in [[{target}]]; replay is idempotent")
+        else:
+            _replace_text_atomic(node.path, new)
+            print(f"ratified {len(cs)} fact{'s' if len(cs) != 1 else ''} into [[{target}]]")
+    # The sweep is a small recoverable multi-file protocol, not a filesystem
+    # transaction. If interrupted after a canon write or receipt append, the
+    # checkbox is still present. Replaying must fill the missing later step
+    # without appending a duplicate receipt. Exact receipt lines are stable
+    # across retries because candidate wording and provenance remain in the
+    # inbox until this final clear.
+    old_receipts = {
+        line[2:].strip() for line in cfg.ratification_log.read_text(encoding="utf-8").splitlines()
+        if line.startswith("- ")
+    } if ok else set()
+    groups = [(title, [receipt(c) for c in ok if c.verdict == v
+                       and receipt(c) not in old_receipts])
               for title, v in (("Accepted", "accept"), ("Rejected", "reject"), ("Deferred", "defer"))]
     if ok:
-        n = _append_ledger(cfg.ratification_log, groups)
-        print(f"appended {n} receipt{'s' if n != 1 else ''} to {cfg.ratification_log.name}")
-        inbox.write_text(remove_candidates(text, ok), encoding="utf-8")
+        n = sum(len(entries) for _, entries in groups)
+        if n:
+            _append_ledger(cfg.ratification_log, groups)
+            print(f"appended {n} receipt{'s' if n != 1 else ''} to {cfg.ratification_log.name}")
+        else:
+            print(f"receipts already present in {cfg.ratification_log.name}; replay is idempotent")
+        _replace_text_atomic(inbox, remove_candidates(text, ok))
     print(f"cleared {len(ok)} candidate{'s' if len(ok) != 1 else ''} from {inbox.name}; {pending} pending remain")
     return 0
 

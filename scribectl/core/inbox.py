@@ -312,12 +312,25 @@ def append_bullets(text: str, section: str, bullets: list[str]) -> str:
             start = m.end()
             end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
             seg = text[start:end].splitlines()
+            # A sweep can be rerun after the node write committed but before
+            # its ledger receipt or inbox clear did. Treat each exact fact
+            # bullet as an idempotency key so replay repairs the later writes
+            # without duplicating canon.
+            present = {line[2:].strip() for line in seg
+                       if line.startswith("- ")}
+            additions: list[str] = []
+            for bullet in bullets:
+                if bullet not in present:
+                    additions.append(bullet)
+                    present.add(bullet)
+            if not additions:
+                return text
             seg = [l for l in seg if not l.strip().startswith("_(none")]
             while seg and not seg[-1].strip():
                 seg.pop()
             if not seg or seg[0].strip():  # keep the newline after the heading
                 seg.insert(0, "")
-            seg += [f"- {b}" for b in bullets]
+            seg += [f"- {b}" for b in additions]
             tail = "\n\n" if end < len(text) else "\n"
             return text[:start] + "\n".join(seg) + tail + text[end:]
     raise ValueError(f"no `## {section}` section")

@@ -267,6 +267,70 @@ def test_sweep_dry_run_writes_nothing(run, scratch_root, scratch_project, inbox)
                         for p in scratch_project.rglob("*.md")}
 
 
+def test_sweep_replay_repairs_receipt_after_node_write(run, scratch_root,
+                                                       scratch_project, inbox,
+                                                       monkeypatch):
+    """A crash after canon lands leaves the checkbox as the recovery record.
+
+    Replaying the checked inbox entry appends its missing receipt and clears
+    the entry, while exact fact bullets make the already-committed node write
+    idempotent. This uses only a copied fixture vault.
+    """
+    import scribectl.cli as cli
+
+    monkeypatch.setattr(cli, "_mine", lambda *args, **kwargs: 0)
+    append = cli._append_ledger
+    monkeypatch.setattr(cli, "_append_ledger",
+                        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("simulated stop")))
+    with pytest.raises(RuntimeError, match="simulated stop"):
+        run("ratify", "--sweep", vault=scratch_root)
+
+    node = scratch_project / "world/canon/The Volcanic City-State.md"
+    log = scratch_project / "control/ratification/Ratification Log.md"
+    fact = "- Ash-line ledgers track heat debts by family."
+    assert node.read_text(encoding="utf-8").count(fact) == 1
+    assert "Ash-line ledgers track heat debts by family." in inbox.read_text(encoding="utf-8")
+
+    monkeypatch.setattr(cli, "_append_ledger", append)
+    code, _, _ = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0
+    assert node.read_text(encoding="utf-8").count(fact) == 1
+    assert log.read_text(encoding="utf-8").count("Ash-line ledgers track heat debts by family.") == 1
+    assert fact not in inbox.read_text(encoding="utf-8")
+
+
+def test_sweep_replay_does_not_duplicate_receipt_after_ledger_write(
+        run, scratch_root, scratch_project, inbox, monkeypatch):
+    """An interruption before inbox clearing is safe to resume as well."""
+    import scribectl.cli as cli
+
+    monkeypatch.setattr(cli, "_mine", lambda *args, **kwargs: 0)
+    replace = cli._replace_text_atomic
+
+    def stop_before_inbox(path, text):
+        if path == inbox:
+            raise RuntimeError("simulated stop")
+        replace(path, text)
+
+    monkeypatch.setattr(cli, "_replace_text_atomic", stop_before_inbox)
+    with pytest.raises(RuntimeError, match="simulated stop"):
+        run("ratify", "--sweep", vault=scratch_root)
+
+    log = scratch_project / "control/ratification/Ratification Log.md"
+    node = scratch_project / "world/canon/The Volcanic City-State.md"
+    fact = "- Ash-line ledgers track heat debts by family."
+    assert "Ash-line ledgers track heat debts by family." in inbox.read_text(encoding="utf-8")
+    assert node.read_text(encoding="utf-8").count(fact) == 1
+    assert log.read_text(encoding="utf-8").count("Ash-line ledgers track heat debts by family.") == 1
+
+    monkeypatch.setattr(cli, "_replace_text_atomic", replace)
+    code, out, _ = run("ratify", "--sweep", vault=scratch_root)
+    assert code == 0 and "already present" in out
+    assert node.read_text(encoding="utf-8").count(fact) == 1
+    assert log.read_text(encoding="utf-8").count("Ash-line ledgers track heat debts by family.") == 1
+    assert fact not in inbox.read_text(encoding="utf-8")
+
+
 def test_sweep_unresolved_target_stays_in_inbox(run, scratch_root, scratch_project, inbox):
     inbox.write_text(SWEEP_INBOX.replace("[[Mara Vey]]", "[[No Such Node]]").replace(
         "- [>] \"Gate-warden guild", "- [x] \"Gate-warden guild"), encoding="utf-8")
