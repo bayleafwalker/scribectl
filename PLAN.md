@@ -213,3 +213,7 @@ skills-layer answer — e.g. an agent skill *proposing* `scope:` links if pack
 bloat ever gets real), status enums and stub farms (derived state and
 adopt-from-real-ore won outright), and the essay set (already correctly
 gated as #1068).
+
+## Goal-derived delivery roadmap
+
+The [KAOS roadmap](docs/plans/2026-10-18-kaos-roadmap.md) traces ecosystem goals to this project's implementation, product onboarding, dependencies and acceptance work. It records planned scope, not deployed capability.
