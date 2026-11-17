@@ -788,8 +788,11 @@ def _version() -> str:
     from importlib.metadata import PackageNotFoundError, version
     try:
         return version("scribectl")
-    except PackageNotFoundError:
-        return "unknown"
+    except PackageNotFoundError:  # running from a source checkout
+        import re
+        pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+        found = re.search(r'(?m)^version\s*=\s*"([^"]+)"', pyproject.read_text()) if pyproject.exists() else None
+        return found.group(1) if found else "unknown"
 
 
 def _parser() -> argparse.ArgumentParser:
