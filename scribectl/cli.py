@@ -784,9 +784,21 @@ def cmd_capture(args) -> int:
 
 # -- entry ---------------------------------------------------------------------
 
+def _version() -> str:
+    from importlib.metadata import PackageNotFoundError, version
+    try:
+        return version("scribectl")
+    except PackageNotFoundError:  # running from a source checkout
+        import re
+        pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+        found = re.search(r'(?m)^version\s*=\s*"([^"]+)"', pyproject.read_text()) if pyproject.exists() else None
+        return found.group(1) if found else "unknown"
+
+
 def _parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="scribectl",
                                  description="contract runner for vault-resident writing projects")
+    ap.add_argument("--version", action="version", version=f"%(prog)s {_version()}")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("projects", help="list discovered projects").set_defaults(fn=cmd_projects)
