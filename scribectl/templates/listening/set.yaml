@@ -8,6 +8,10 @@ card_type: fragment_card
 card_heading: Fragment card
 node_types: [canon_node]
 knowledge: scoped
+# Earlier fragments heard at the same listening position ship as ambient
+# context, never canon, so recurring talk can vary instead of repeating. One is
+# left out when its source knew anything this fragment's source does not.
+already_heard: position
 pull:
   scope: [canon_scope, source, position]   # order is pack order
   actors: [source]       # a person-source knows events it took part in or heard

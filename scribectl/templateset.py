@@ -40,6 +40,9 @@ class TemplateSet:
     card_dir: str                     # … and where it lands, project-relative
     knowledge: str = "open"           # "scoped": packs hold one source's knowledge,
                                       # never the whole timeline (listening set)
+    already_heard: str | None = None  # card link field naming where a fragment is
+                                      # heard; earlier canon-clean fragments heard
+                                      # there ship as ambient context (scoped sets)
 
     @property
     def dir(self) -> Path:
@@ -79,4 +82,5 @@ def load_set(name: str) -> TemplateSet:
         card_template=m["new"]["card_template"],
         card_dir=m["new"]["card_dir"],
         knowledge=m.get("knowledge", "open"),
+        already_heard=m.get("already_heard"),
     )

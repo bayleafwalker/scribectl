@@ -1,18 +1,19 @@
 """Re-run the iteration-2 script checks over the drafts kept in this record.
 
-    uv run python docs/experiments/2026-11-19-first-ice-iteration-2/check_cue_sheets.py  # from the repo root
+    uv run python docs/experiments/2026-11-19-first-ice-iteration-2/check_cue_sheets.py [RECORD_DIR]  # from the repo root
 
 Per voiced cue sheet: clock fidelity (every cue inside the card's real-time
 window, in order, anchor events at their recorded times), the card's leak
 oracle, sounds from the water, road traffic at the landing, and whether the
 standing cold, the regulars and the evening programme are audible. Cards come
-from the committed fixture; drafts from drafts/ and repair/ beside this file."""
+from the committed fixture; drafts from drafts/ and repair/ of RECORD_DIR
+(default: this record; later First Ice records reuse the checks)."""
 import re
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[2]
+HERE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent
+REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "tests"))
 from test_listening import FORBIDDEN  # noqa: E402
 

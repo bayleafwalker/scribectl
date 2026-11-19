@@ -192,10 +192,18 @@ listener could observe stay three separate things. A fragment is real time
 over `[window_from, clock)`: its fill is a clock-stamped cue sheet, not a
 compressed montage. Because events record only what changed, what persists
 (the cold holding into a second evening) is recorded as an event too, or no
-source knows it lasted. Sets that declare no
-`knowledge:` are byte-for-byte unaffected; `fixtures/listening-post/` holds
-event sheet 001, and `tests/test_listening.py` checks every Thursday pack
-against the sheet's knowledge-boundary table and a leak oracle.
+source knows it lasted. With `already_heard: position`, a pack also carries
+the earlier fragments heard at the same listening position, so recurring talk
+can vary instead of each independent voicer reinventing it word for word.
+That text is ambient, not canon, and never a knowledge channel. An earlier
+fragment ships only when everything its source knew is also known to this
+card's source. Only its latest canon-clean draft ships, cut before the
+voicer's notes. In practice the café hears its own and its staff's evenings,
+but never the radio bulletins the café's knowledge excludes. Sets that
+declare no `knowledge:` are byte-for-byte unaffected.
+`fixtures/listening-post/` holds event sheet 001. `tests/test_listening.py`
+checks every pack against the sheet's knowledge-boundary table and a leak
+oracle, unvoiced and again with the iteration-2 voicings heard.
 
 ## Testing
 

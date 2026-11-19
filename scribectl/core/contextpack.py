@@ -16,6 +16,13 @@ Which frontmatter fields are pulled, and which note types count as the card
 and as fact-bearing nodes, comes from the project's TemplateSet — this module
 stays shape-agnostic and never reads the manifests itself.
 
+Scoped sets may also declare `already_heard`: earlier fragments heard at the
+same listening position ship under "Already heard here", so recurring talk can
+vary instead of each voicer reinventing it word for word. That text is ambient,
+never canon, and never a knowledge channel: an earlier fragment is left out
+unless everything its source knew is also known to this card's source, and
+only a draft with a clean canon review counts as heard.
+
 Dual identity, resolved explicitly:
   - regenerate to fill   (it's an impl-cache: rebuild fresh per draft)
   - freeze to audit      (the emitted file + content hash is the provenance
@@ -25,12 +32,13 @@ Dual identity, resolved explicitly:
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass
 from datetime import date
 
 from .vault import Vault, Note
 from .timeline import prior_relevant
-from .project import canon_status, ledger_accepted
+from .project import canon_status, card_artifacts, ledger_accepted
 
 
 @dataclass
@@ -54,12 +62,8 @@ def _node_brief(note: Note) -> str:
     return "\n".join(out)
 
 
-def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
-    """ts is a TemplateSet (or anything with its shape attributes)."""
-    card = vault.resolve(card_name)
-    if card is None or card.type != ts.card_type:
-        raise ValueError(f"No {ts.card_type} named {card_name!r}")
-
+def _scope_of(card: Note, ts) -> tuple[tuple[int, ...], set[str], str | None]:
+    """A card's timeline cut-off, actors and location, as the set declares them."""
     m = card.meta
     if any(f in m for f in ts.position_fields):
         pos = tuple(int(m.get(f, 0)) for f in ts.position_fields)
@@ -67,6 +71,57 @@ def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
         # A card that carries no position (a blog post, a research digest)
         # sits after everything: the whole timeline is prior and relevant.
         pos = (2**31,) * (len(ts.position_fields) or 3)
+    actors = {a for f in ts.actor_fields for a in card.links(f)}
+    location = ((card.links(ts.location_field) or [None])[0]
+                if ts.location_field else None)
+    return pos, actors, location
+
+
+def _event_key(e) -> tuple:
+    return (e.pos, e.location, e.fact)
+
+
+def _heard_text(vault: Vault, card_name: str) -> str | None:
+    """What the listener heard of a card: its latest draft with a clean canon
+    review, cut before the first `##` section (candidates and uncertainties
+    are the voicer's notes, not part of the fragment)."""
+    art = card_artifacts(vault, card_name)
+    clean = {r["draft"] for r in art["reviews"]
+             if r["kind"] == "canon" and r["verdict"].lower() == "clean"}
+    names = [d for d in art["drafts"] if d in clean]
+    draft = vault.resolve(names[-1]) if names else None
+    if draft is None:
+        return None
+    text = re.split(r"(?m)^## ", draft.body, maxsplit=1)[0]
+    return re.sub(r"\A\s*# .*\n", "", text).strip() or None
+
+
+def _already_heard(vault: Vault, card: Note, ts, pos, known: set) -> list[tuple[str, str]]:
+    """Earlier fragments heard at this card's listening position whose source's
+    knowledge (at their own cut-off) is contained in `known`, oldest first."""
+    here = card.links(ts.already_heard)[:1]
+    if not here:
+        return []
+    out = []
+    for other in vault.by_type(ts.card_type):
+        if other.name == card.name or other.links(ts.already_heard)[:1] != here:
+            continue
+        opos, oactors, oloc = _scope_of(other, ts)
+        if opos >= pos:
+            continue
+        theirs = {_event_key(e) for e in prior_relevant(vault, opos, oactors, oloc, scoped=True)}
+        if theirs <= known and (text := _heard_text(vault, other.name)):
+            out.append((opos, other.name, text))
+    return [(name, text) for _, name, text in sorted(out)]
+
+
+def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
+    """ts is a TemplateSet (or anything with its shape attributes)."""
+    card = vault.resolve(card_name)
+    if card is None or card.type != ts.card_type:
+        raise ValueError(f"No {ts.card_type} named {card_name!r}")
+
+    pos, actors, location = _scope_of(card, ts)
 
     # Resolve everything in scope by link.
     scope_links = list(dict.fromkeys(
@@ -100,10 +155,6 @@ def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
             warnings.append(f"[[{n.name}]] is seeded, not ratified — its facts ship without a ledger receipt")
         elif s == "ratified_empty":
             warnings.append(f"[[{n.name}]] is ledger-accepted but carries no facts — paste them into the node")
-
-    actors = {a for f in ts.actor_fields for a in card.links(f)}
-    location = ((card.links(ts.location_field) or [None])[0]
-                if ts.location_field else None)
 
     # Scoped sets (a world overheard through partial sources) never ship the
     # whole timeline: the pack is the source's knowledge boundary, not the world.
@@ -144,6 +195,14 @@ def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
                      "_Only what this source took part in, was told, or could perceive "
                      "before the observation time. The rest of the world is unknown to it._\n\n"
                      + ("\n".join(lines) or "_(nothing yet)_"))
+        if getattr(ts, "already_heard", None):
+            heard = _already_heard(vault, card, ts, pos, {_event_key(e) for e in events})
+            parts.append("## Already heard here (ambient, not canon)\n"
+                         "_Earlier fragments the listener heard at this listening position. "
+                         "They are not canon and add nothing to what this source knows: a "
+                         "fragment is left out when its source knew anything this one does not._\n\n"
+                         + ("\n\n".join(f"### {n}\n{t}" for n, t in heard)
+                            or "_(nothing heard here before)_"))
     elif events:
         lines = [f"- {e.pos_label} · {', '.join(e.actors) or 'global'} · {e.fact}" for e in events]
         parts.append("## Prior relevant events (timeline)\n" + "\n".join(lines))
