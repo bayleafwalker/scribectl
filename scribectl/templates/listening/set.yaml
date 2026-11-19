@@ -1,0 +1,42 @@
+# Engine-facing shape of the listening set: a small place overheard through
+# partial sources. The timeline is world truth that no narrator holds whole
+# (`knowledge: scoped`); a fragment card projects ONE source at ONE moment,
+# heard from ONE listening position, and its pack carries only what reached
+# that source. What happened, who learned it, and what the listener could
+# observe stay three different things. See ARCHITECTURE.md, "Template sets".
+card_type: fragment_card
+card_heading: Fragment card
+node_types: [canon_node]
+knowledge: scoped
+pull:
+  scope: [canon_scope, source, position]   # order is pack order
+  actors: [source]       # a person-source knows events it took part in or heard
+  location: source       # a place-source (ambience) knows what happens at it
+# Sheet, evening and clock (HHMM) map onto the timeline's B.C.S headings:
+# `## B1.C1.S1912` is event sheet 1, first evening, 19:12. A fragment sees
+# only events strictly before its clock.
+position: [sheet, evening, clock]
+new:
+  card_template: fragment_card.md
+  card_dir: structure/fragments
+init:
+  dirs:
+    - world/canon
+    - world/language
+    - structure/fragments
+    - body/drafts
+    - control/timeline
+    - control/ratification
+    - control/context-packs
+    - control/mining-packs
+    - control/proposals
+    - reviews/canon
+    - reviews/voice
+    - reviews/beta
+  files:
+    timeline.md: control/timeline/Timeline.md
+    ratification_log.md: control/ratification/Ratification Log.md
+    ratification_inbox.md: control/ratification/Inbox.md
+    voice_canon.md: world/language/Prose Voice Canon.md
+    world_seed.md: world/World Seed.md
+    agents.md: AGENTS.md   # house rules for any console agent opened in the vault

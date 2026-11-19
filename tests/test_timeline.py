@@ -50,3 +50,48 @@ def test_prior_relevant_filters_by_actor_and_location(vault):
 
 def test_prior_relevant_is_strictly_before(vault):
     assert prior_relevant(vault, (-1, -1, -1), {"Mara Vey"}, "Lower Ashmarket") == []
+
+
+# -- scoped knowledge (the listening set) -------------------------------------
+
+def _tl_vault(tmp_path, body: str):
+    from scribectl.core.vault import Vault
+
+    (tmp_path / "Timeline.md").write_text("---\ntype: timeline\n---\n" + body, encoding="utf-8")
+    return Vault.load(tmp_path)
+
+
+SCOPED_TL = (
+    "## B1.C1.S1812\n"
+    "- actors: Tavi | loc: Landing | heard: Café | The horn sounds.\n"
+    "- loc: Landing | Slush packs against the pilings.\n"
+    "- actors: Ferry operator, Leena | The crossing is cancelled.\n"
+    "- The world turns.\n"
+)
+
+
+def test_heard_prefix_parses_and_stays_out_of_the_fact():
+    horn = load_events(_note(SCOPED_TL))[0]
+    assert horn.heard == ["Café"]
+    assert horn.fact == "The horn sounds."
+    assert load_events(_note("## pre\n- actors: A | x\n"))[0].heard == []
+
+
+def test_scoped_knowledge_has_no_global_events(tmp_path):
+    v = _tl_vault(tmp_path, SCOPED_TL)
+    facts = lambda evs: [e.fact for e in evs]
+    # Unscoped (every pre-existing set): actor-less events stay global.
+    assert "The world turns." in facts(prior_relevant(v, (9, 9, 9), {"Nobody"}, None))
+    # Scoped: a place hears what happens at it, and what is heard from it.
+    assert facts(prior_relevant(v, (9, 9, 9), set(), "Landing", scoped=True)) == [
+        "The horn sounds.", "Slush packs against the pilings."]
+    assert facts(prior_relevant(v, (9, 9, 9), set(), "Café", scoped=True)) == ["The horn sounds."]
+    # A person knows what they took part in — and nothing that names nobody.
+    assert facts(prior_relevant(v, (9, 9, 9), {"Leena"}, "Leena", scoped=True)) == [
+        "The crossing is cancelled."]
+    assert prior_relevant(v, (9, 9, 9), {"Nobody"}, None, scoped=True) == []
+
+
+def test_heard_reaches_people_too(tmp_path):
+    v = _tl_vault(tmp_path, "## B1.C1.S1\n- actors: A | heard: B | Told in passing.\n")
+    assert len(prior_relevant(v, (2, 0, 0), {"B"}, None, scoped=True)) == 1

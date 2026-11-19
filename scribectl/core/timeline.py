@@ -13,11 +13,22 @@ under a `## ` story-position heading of the form `B<book>.C<chapter>.S<scene>`
 
 `actors:` and `loc:` are optional prefixes; everything after the last `|` is the
 fact. Append new events; never edit or reorder existing ones.
+
+An optional `heard:` prefix names who or where an event reaches without
+taking part — the café hearing a horn across the water, a presenter receiving
+a bulletin's news second-hand:
+
+    - actors: Tavi | loc: Landing | heard: Café | The Tavi's horn sounds.
+
+Sets that declare `knowledge: scoped` (worlds overheard through partial
+sources) treat the timeline as world truth that no narrator holds whole: an
+event reaches a pack only through its actors, its location or its `heard:`
+list, and an event naming none of them reaches nobody.
 """
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .vault import Vault, Note
 
@@ -31,6 +42,7 @@ class Event:
     actors: list[str]
     location: str | None
     fact: str
+    heard: list[str] = field(default_factory=list)  # reached without taking part
 
 
 def _pos_key(label: str) -> tuple[int, int, int] | None:
@@ -42,20 +54,27 @@ def _pos_key(label: str) -> tuple[int, int, int] | None:
     return (int(m.group(2)), int(m.group(3)), int(m.group(4)))
 
 
-def _parse_bullet(text: str) -> tuple[list[str], str | None, str]:
+def _names(p: str) -> list[str]:
+    return [a.strip() for a in p.split(":", 1)[1].split(",") if a.strip()]
+
+
+def _parse_bullet(text: str) -> tuple[list[str], str | None, str, list[str]]:
     actors: list[str] = []
+    heard: list[str] = []
     loc: str | None = None
     parts = [p.strip() for p in text.split("|")]
     fact_parts = []
     for p in parts:
         low = p.lower()
         if low.startswith("actors:"):
-            actors = [a.strip() for a in p.split(":", 1)[1].split(",") if a.strip()]
+            actors = _names(p)
+        elif low.startswith("heard:"):
+            heard = _names(p)
         elif low.startswith("loc:"):
             loc = p.split(":", 1)[1].strip()
         else:
             fact_parts.append(p)
-    return actors, loc, " | ".join(fact_parts).strip()
+    return actors, loc, " | ".join(fact_parts).strip(), heard
 
 
 def load_events(note: Note) -> list[Event]:
@@ -68,14 +87,19 @@ def load_events(note: Note) -> list[Event]:
             key = _pos_key(label)
             current_label, current_key = (label, key) if key else (None, None)
         elif line.strip().startswith("- ") and current_key is not None:
-            actors, loc, fact = _parse_bullet(line.strip()[2:])
-            events.append(Event(current_key, current_label, actors, loc, fact))
+            actors, loc, fact, heard = _parse_bullet(line.strip()[2:])
+            events.append(Event(current_key, current_label, actors, loc, fact, heard))
     return events
 
 
 def prior_relevant(vault: Vault, before: tuple[int, int, int],
-                   actors: set[str], location: str | None) -> list[Event]:
-    """Events strictly before `before` touching any actor in scope or the location."""
+                   actors: set[str], location: str | None,
+                   scoped: bool = False) -> list[Event]:
+    """Events strictly before `before` touching any actor in scope or the location.
+
+    Unscoped (the default), an event naming no actors is global and always
+    relevant. Scoped, nothing is global: the pack holds only what reached its
+    actors or location — the knowledge boundary of one source."""
     tl = vault.one("timeline")
     if not tl:
         return []
@@ -83,7 +107,8 @@ def prior_relevant(vault: Vault, before: tuple[int, int, int],
     for e in load_events(tl):
         if e.pos >= before:
             continue
-        hit = bool(set(e.actors) & actors) or (location and e.location == location)
-        if hit or not e.actors:  # global events (no actors) always relevant
+        hit = bool((set(e.actors) | set(e.heard)) & actors) or (
+            location and (e.location == location or location in e.heard))
+        if hit or (not e.actors and not scoped):  # unscoped: actor-less = global
             out.append(e)
     return sorted(out, key=lambda e: e.pos)

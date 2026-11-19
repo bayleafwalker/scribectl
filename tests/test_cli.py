@@ -59,7 +59,7 @@ def test_status_matches_ff_baseline(run, fixture_root):
 
 
 def test_status_infers_single_project(run, fixture_root):
-    # Scoped to the project dir itself: fixtures/ now holds two projects.
+    # Scoped to the project dir itself: fixtures/ holds several projects.
     code, out, _ = run("status", vault=fixture_root)
     assert code == 0
     assert out == BASELINE_STATUS

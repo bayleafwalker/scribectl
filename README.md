@@ -42,7 +42,7 @@ you tick it.
 
 ## Try it
 
-The repo ships two fixture vaults, so nothing touches a real vault:
+The repo ships three fixture vaults, so nothing touches a real vault:
 
 ```
 uv venv && uv pip install -e . --python .venv/bin/python
@@ -55,8 +55,9 @@ For a real install, `uv tool install --editable .` puts `scribectl` and
 `scribe-dispatch` on PATH, and `scribectl doctor` health-checks the device.
 The vault root defaults to `/media/Creative`; set `SCRIBECTL_VAULT` to yours.
 Start a project inside it with `scribectl init "<name>" --set fiction`
-(or `--set gamedev`, or `--set essay` for standalone nonfiction drafted from
-captured notes), then read [docs/GUIDE.md](docs/GUIDE.md) — the writer's
+(or `--set gamedev`, `--set essay` for standalone nonfiction drafted from
+captured notes, or `--set listening` for a place overheard through partial
+sources), then read [docs/GUIDE.md](docs/GUIDE.md) — the writer's
 guide is the front door.
 
 Dispatch (the agent layer) is optional and pluggable: the default runner
@@ -87,6 +88,8 @@ ops/                      per-surface packaging: Obsidian QuickAdd, VS Code
 fixtures/fertile-flames/  the volcanic city-state test vault (fiction set)
 fixtures/runosong/        the rhythm-game test vault (gamedev set: canon +
                           mechanic nodes, kind-parameterized output cards)
+fixtures/listening-post/  a village overheard (listening set: event sheet
+                          001 as world truth, packs scoped to one source)
 tests/                    contact tests — every core change runs here before
                           it touches a real vault
 ```

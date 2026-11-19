@@ -38,6 +38,8 @@ class TemplateSet:
     init_files: dict[str, str]        # template file in the set → project-relative dest
     card_template: str                # what `new card` instantiates …
     card_dir: str                     # … and where it lands, project-relative
+    knowledge: str = "open"           # "scoped": packs hold one source's knowledge,
+                                      # never the whole timeline (listening set)
 
     @property
     def dir(self) -> Path:
@@ -76,4 +78,5 @@ def load_set(name: str) -> TemplateSet:
         init_files=dict(m.get("init", {}).get("files", {})),
         card_template=m["new"]["card_template"],
         card_dir=m["new"]["card_dir"],
+        knowledge=m.get("knowledge", "open"),
     )
