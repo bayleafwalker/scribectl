@@ -105,7 +105,10 @@ def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
     location = ((card.links(ts.location_field) or [None])[0]
                 if ts.location_field else None)
 
-    events = prior_relevant(vault, pos, actors, location)
+    # Scoped sets (a world overheard through partial sources) never ship the
+    # whole timeline: the pack is the source's knowledge boundary, not the world.
+    scoped = getattr(ts, "knowledge", "open") == "scoped"
+    events = prior_relevant(vault, pos, actors, location, scoped=scoped)
 
     seed = vault.one("world_seed")
     voice = vault.one("voice_canon")
@@ -132,7 +135,16 @@ def build_pack(vault: Vault, card_name: str, ts) -> ContextPack:
         parts.append("## ⚠ Unresolved scope links\n"
                      + "\n".join(f"- [[{l}]] — referenced but no note exists" for l in missing))
 
-    if events:
+    if scoped:
+        # Who else an event reached is routing, not content: listing co-actors
+        # would tell this source what others know. Where and what only.
+        lines = [f"- {e.pos_label}{' @ ' + e.location if e.location else ''} · {e.fact}"
+                 for e in events]
+        parts.append("## Known to this source (timeline, scoped)\n"
+                     "_Only what this source took part in, was told, or could perceive "
+                     "before the observation time. The rest of the world is unknown to it._\n\n"
+                     + ("\n".join(lines) or "_(nothing yet)_"))
+    elif events:
         lines = [f"- {e.pos_label} · {', '.join(e.actors) or 'global'} · {e.fact}" for e in events]
         parts.append("## Prior relevant events (timeline)\n" + "\n".join(lines))
     else:

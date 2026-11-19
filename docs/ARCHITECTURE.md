@@ -177,6 +177,22 @@ research. Ore fields gate the card exactly like scope fields (placeholders
 derive `awaiting_scope`, unresolved links block the fill); sets that declare
 no `ore:` are byte-for-byte unaffected.
 
+`listening/` declares fragment cards for a small place overheard through
+partial sources (the Listening Post). Its manifest sets `knowledge: scoped`:
+the timeline is world truth that no narrator holds whole, and a fragment's
+pack carries only what reached its `source` before its `clock` — events the
+source took part in (`actors:`; learning is taking part), events at the
+source when the source is a place (`loc:`), and events that reached it
+without taking part (the `heard:` prefix: a horn across the water, news
+second-hand). An actor-less event is no longer global; it reaches only its
+location. Scoped packs print where and what, never the list of who else
+knew. The card's `position` (the listening position) ships as canon in scope
+for what is audible there. What happened, who learned it, and what the
+listener could observe stay three separate things. Sets that declare no
+`knowledge:` are byte-for-byte unaffected; `fixtures/listening-post/` holds
+event sheet 001, and `tests/test_listening.py` checks every Thursday pack
+against the sheet's knowledge-boundary table and a leak oracle.
+
 ## Testing
 
 The fixture vault moves to `fixtures/fertile-flames/` and the existing contact

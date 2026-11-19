@@ -6,6 +6,7 @@ import pytest
 REPO = Path(__file__).resolve().parent.parent
 FIXTURE = REPO / "fixtures" / "fertile-flames"
 RUNOSONG = REPO / "fixtures" / "runosong"
+LISTENING = REPO / "fixtures" / "listening-post"
 
 
 @pytest.fixture
@@ -16,6 +17,11 @@ def fixture_root() -> Path:
 @pytest.fixture
 def runosong_root() -> Path:
     return RUNOSONG
+
+
+@pytest.fixture
+def listening_root() -> Path:
+    return LISTENING
 
 
 @pytest.fixture

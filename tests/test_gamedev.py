@@ -51,7 +51,7 @@ def rs_vault(runosong_root):
 # -- the set itself -----------------------------------------------------------
 
 def test_all_sets_discoverable():
-    assert list_sets() == ["essay", "fiction", "gamedev"]
+    assert list_sets() == ["essay", "fiction", "gamedev", "listening"]
     gd = load_set("gamedev")
     assert gd.card_type == "output_card"
     assert gd.node_types == ("canon_node", "mechanic_node")
