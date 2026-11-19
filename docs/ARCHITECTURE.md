@@ -120,7 +120,9 @@ to exactly one project, or when cwd is inside a project subtree.
 3. **Packs are frozen and hashed.** A pack's sha is the reproducibility
    receipt; agents consume the frozen file, never live vault state.
 4. **Ledgers are append-only.** Timeline and ratification log grow; they do
-   not get rewritten. This is also the livesync safety property.
+   not get rewritten. This is also the livesync safety property. A wrong
+   timeline entry is corrected by a later `supersedes:` bullet, which drops
+   it from every pack and oracle query while the line stays as history.
 5. **The engine never calls an LLM.** No API client in this package, ever.
 
 ## The agent boundary

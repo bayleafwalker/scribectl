@@ -1,7 +1,7 @@
 """Timeline parsing and the prior-relevant oracle query."""
 from pathlib import Path
 
-from scribectl.core.timeline import _pos_key, load_events, prior_relevant
+from scribectl.core.timeline import _pos_key, dangling_supersedes, load_events, prior_relevant
 from scribectl.core.vault import Note
 
 
@@ -95,3 +95,54 @@ def test_scoped_knowledge_has_no_global_events(tmp_path):
 def test_heard_reaches_people_too(tmp_path):
     v = _tl_vault(tmp_path, "## B1.C1.S1\n- actors: A | heard: B | Told in passing.\n")
     assert len(prior_relevant(v, (2, 0, 0), {"B"}, None, scoped=True)) == 1
+
+
+def test_supersede_corrects_by_appending():
+    tl = (
+        "## B1.C3.S1950\n"
+        "- actors: Customers | loc: Café | Plans around the bus; the closure comes up in passing.\n"
+        "## B1.C3.S1812\n"
+        "- loc: Landing | No engine, no horn.\n"
+        "- loc: Landing | Slush at the ramp.\n"
+        "## Corrections\n"
+        "## B1.C3.S1950\n"
+        "- supersedes: B1.C3.S1950 | actors: Customers | loc: Café | Plans around the bus.\n"
+        "## B1.C3.S1812\n"
+        "- supersedes: B1.C3.S1812\n"
+        "- loc: Landing | Slush at the ramp, thicker.\n"
+    )
+    events = load_events(_note(tl))
+    # The correction stands in place of the old entry; a bare supersedes
+    # retracts; a bullet after it at the same position is a plain restatement.
+    assert [(e.pos_label, e.fact) for e in events] == [
+        ("B1.C3.S1950", "Plans around the bus."),
+        ("B1.C3.S1812", "Slush at the ramp, thicker."),
+    ]
+    assert events[0].actors == ["Customers"] and events[0].location == "Café"
+    assert dangling_supersedes(_note(tl)) == []
+
+
+def test_supersede_moves_an_event_and_never_reaches_forward():
+    tl = (
+        "## B1.C2.S2004\n- loc: Café | Crates come in.\n"
+        "## B1.C2.S2005\n- supersedes: B1.C2.S2004 | loc: Café | Crates come in.\n"
+        "## B1.C2.S2010\n- supersedes: B1.C2.S2015 | loc: Café | Closing.\n"
+        "## B1.C2.S2015\n- loc: Café | Lights off.\n"
+    )
+    events = load_events(_note(tl))
+    assert [e.pos_label for e in events] == ["B1.C2.S2005", "B1.C2.S2010", "B1.C2.S2015"]
+    # S2015 had no bullet before the correction, so it corrected nothing.
+    assert dangling_supersedes(_note(tl)) == ["B1.C2.S2015"]
+    assert dangling_supersedes(_note("## pre\n- supersedes: Chapter One | x\n")) == ["Chapter One"]
+
+
+def test_supersede_one_bullet_by_ordinal():
+    tl = (
+        "## pre\n- The founding lie.\n- The old bridge.\n"
+        "## B1.C1.S1\n- They met.\n"
+        "## pre\n- supersedes: pre#2 | The old ferry.\n"
+    )
+    assert [e.fact for e in load_events(_note(tl))] == ["The founding lie.", "They met.", "The old ferry."]
+    assert dangling_supersedes(_note(tl)) == []
+    # Ordinals count bullets already written, so a later one cannot be named early.
+    assert dangling_supersedes(_note("## pre\n- a\n- supersedes: pre#3 | b\n- c\n")) == ["pre#3"]

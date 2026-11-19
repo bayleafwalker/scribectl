@@ -10,6 +10,9 @@ heading, or `## pre` for world history and myth-time — for a game project,
 Sequenced tie-ins map their own ordering onto B.C.S (season.episode.part,
 act.quest.beat — pick one mapping and keep it). Never edit or reorder
 existing bullets.
+To correct a bullet, append one that starts `supersedes: <position> |` (every
+bullet written earlier at that position) or `supersedes: <position>#<n> |`
+(its n-th bullet, in file order); restate under it whatever still holds.
 Format: `- actors: A, B | loc: Place | fact`
 (Any bullet under a position heading is a real event and ships into packs —
 which is why this template seeds no example bullet.)

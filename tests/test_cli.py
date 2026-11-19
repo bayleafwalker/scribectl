@@ -3,6 +3,7 @@
 Write discipline under test throughout: the engine only creates files in
 designated outputs and appends to ledgers; it never rewrites a note.
 """
+import shutil
 from pathlib import Path
 
 import pytest
@@ -1011,3 +1012,15 @@ def test_status_write_still_leads_with_digest(run, scratch_root, scratch_project
     # Still a pure cache: the derived rows the console prints are unchanged.
     code, out, _ = run("status", vault=scratch_root)
     assert out == BASELINE_STATUS
+
+
+def test_doctor_warns_on_a_supersede_that_corrects_nothing(run, tmp_path, doctor_env):
+    root = tmp_path / "listening-post"
+    shutil.copytree(Path(__file__).resolve().parents[1] / "fixtures" / "listening-post", root)
+    tl = root / "control" / "timeline" / "Timeline.md"
+    code, out, _ = run("doctor", vault=root)
+    assert "correcting nothing" not in out
+    tl.write_text(tl.read_text(encoding="utf-8")
+                  + "\n## B1.C3.S1951\n- supersedes: B1.C3.S1590 | loc: Café | x\n", encoding="utf-8")
+    code, out, _ = run("doctor", vault=root)
+    assert "correcting nothing" in out and "B1.C3.S1590" in out
