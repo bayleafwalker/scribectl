@@ -10,8 +10,9 @@ canon_scope:
   - "[[Supplier]]"
   - "[[Café staff]]"
   - "[[Inlet road]]"
+  - "[[Evening programme]]"
 mode: body_fill
-target_seconds: 75
+window_from: 2000   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 2.2010 — Café: Café

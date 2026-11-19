@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: 80f2d49ef24f`
+`pack-sha: 036645b914fc`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -35,13 +35,13 @@ or the café — and never affects it.
 # Fragment 1.1922 — Café: Radio presenter
 
 ## Observation
-Thursday, 19:20–19:25. The local radio, as heard inside the café under the room's own sounds.
+Thursday, 19:20–19:22. The local radio, as heard inside the café under the room's own sounds.
 
 ## Brief
 Between records, the presenter passes on the ferry operator's bulletin, then goes back to the music.
 
 ## Permissible speech act
-Report the bulletin as received. The presenter knows nothing beyond it and adds nothing.
+Report the bulletin as received. It reaches the station after the crossing's time has passed; the presenter may say it has only just come in, reads it as it came, and adds nothing.
 
 ## Do not
 - Add nothing to the bulletin: no reason, no forecast, no speculation about the ferry or what happens next.
@@ -61,15 +61,24 @@ The small passenger ferry that makes the short crossing of the inlet to the vill
 - In season she approaches the village landing at 18:12 and 19:12 each evening.
 - Her approach is heard as her engine and then her horn.
 
+### Evening programme
+The local radio's evening programme, heard most evenings in the café.
+**Ratified facts**
+- Mostly accordion and guitar records, with a fiddle tune now and then.
+- Between records the presenter reads listeners' song dedications and short community notices.
+- Notices are kept brief, and then it is back to the music.
+
 ### Radio presenter
 The presenter on the local radio's evening programme.
 **Ratified facts**
 - Plays records and reads community notices between them.
+- A man with a low, unhurried voice; he has the evening programme all week.
 - Knows what reaches the station: published notices and local reports, once received.
 
 ### Café
 The village café by the road, and the other listening position.
 **Ratified facts**
+- The radio sits on a shelf behind the counter; the coffee machine hisses when it runs.
 - Audible here: crockery, customers, quiet kitchen activity, the local radio, traffic on the inlet road.
 - When the ferry comes, she is heard here only distantly, partly masked. The landing's mechanical sounds cannot be heard.
 
@@ -81,9 +90,15 @@ _Only what this source took part in, was told, or could perceive before the obse
 
 ## Voice canon
 **Preferred**
-- A fragment is a listening script: what the ear receives at the listening
-  position, in order, with rough timestamps. Sounds in square brackets;
-  speech as short quoted lines tagged with the speaker's role.
+- A fragment is a real-time cue sheet over its whole observation window:
+  what the ear receives at the listening position, cue by cue, stamped with
+  clock time ([18:12:40]). Between cues the bed runs on unchanged. Cues are
+  sparse (one every half minute or so is plenty) and a quiet minute stays
+  quiet.
+- Events sit at their recorded times: if the pack puts something at 18:12, it
+  happens at 18:12 here.
+- Sounds in square brackets; speech as short quoted lines tagged with the
+  speaker's role.
 - Ordinary first. The place sounds like itself before anything in it is
   noticed.
 - Speech is overheard, not delivered: half-sentences, people talking to each
@@ -104,19 +119,21 @@ _Only what this source took part in, was told, or could perceive before the obse
 From an earlier, ordinary autumn — cadence targets, not events.
 
 ```
-[0:00] Wind off the water, steady. A rope creaks on a bollard and settles.
-[0:06] Water knocks under the planks, slow, uneven.
-[0:13] Two pairs of footsteps, unhurried. They stop.
-       MAN: "— said she'd bring it Sunday."
-       WOMAN: "She always says Sunday."
-[0:20] The footsteps go on. Wind.
+[16:41:00] Wind off the water, steady. A rope creaks on a bollard and settles.
+[16:41:20] Water knocks under the planks, slow, uneven.
+[16:42:05] Two pairs of footsteps, unhurried. They stop.
+           MAN: "— said she'd bring it Sunday."
+           WOMAN: "She always says Sunday."
+[16:42:30] The footsteps go on.
+[16:44:10] Wind.
 ```
 
 ```
-[0:00] A cup on a saucer, then another. The coffee machine hisses, briefly.
-[0:04] Under it, the radio low: an accordion tune, mostly lost.
-[0:09] A chair scrapes. CUSTOMER: "Is this one free?" STAFF: "Go ahead."
-[0:15] Outside, a car passes on the road and is gone.
+[10:15:00] A cup on a saucer, then another. The coffee machine hisses, briefly.
+[10:15:10] Under it, the radio low: an accordion tune, mostly lost.
+[10:15:40] A chair scrapes. CUSTOMER: "Is this one free?" STAFF: "Go ahead."
+[10:16:30] Outside, a car passes on the road and is gone.
+[10:18:05] The accordion ends; a guitar record starts.
 ```
 
 ## Hard exclusions

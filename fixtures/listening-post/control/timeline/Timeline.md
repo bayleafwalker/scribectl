@@ -83,3 +83,14 @@ to its winter transport. Thursday is C1, Friday C2, Saturday C3.
 
 ## B1.C3.S2015
 - actors: Café staff | loc: Café | The café closes normally.
+
+## Standing conditions (appended 2026-11-19)
+
+Events record what changed; these record what persisted, so a source knows the
+cold outlasted the evening it began.
+
+## B1.C2.S1700
+- actors: Leena, Ferry operator, Radio presenter, Café staff | loc: Harmaasalmi | heard: Landing, Café, Café customers | The cold holds into Friday: still below freezing, the wind still coming in off the water.
+
+## B1.C3.S1700
+- actors: Leena, Ferry operator, Radio presenter, Café staff | loc: Harmaasalmi | heard: Landing, Café, Café customers | The cold holds into Saturday: below freezing, with the same wind off the water.

@@ -9,7 +9,7 @@ speech_act: none
 canon_scope:
   - "[[Tavi]]"
 mode: body_fill
-target_seconds: 75
+window_from: 1810   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 2.1820 — Landing: Landing
