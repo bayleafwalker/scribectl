@@ -31,7 +31,7 @@ def listened(record: Path) -> dict[str, str]:
     out = {}
     for sub in ("drafts", "repair"):  # repair overrides the original
         for d in sorted((record / sub).glob("*.md")):
-            if "review" in d.name:
+            if "review" in d.name or d.name.endswith("-context.md"):
                 continue
             text = d.read_text(encoding="utf-8")
             card = re.search(r'^card: "\[\[(.+?)\]\]"', text, re.M).group(1)

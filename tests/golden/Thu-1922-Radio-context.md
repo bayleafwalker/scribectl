@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: 8cc9de639ea3`
+`pack-sha: b5ff89d3ea89`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -24,6 +24,10 @@ or the café — and never affects it.
   appears only if the pack puts it there, however faint or ambiguous. Room
   texture (cups, chairs, a tap, voices at the tables) is free, and so is
   ordinary passing road traffic where the listening position can hear the road.
+- People and boats are named only as the pack names them. Anyone else (a
+  relative, a dedication's recipient, a driver) goes by what they are to the
+  speaker, never by an invented name: an invented name can collide with
+  someone who exists, and make a link the world does not have.
 - Nobody is waiting for the listener and nothing is addressed to them.
 - A speaker may be uncertain or mistaken within what they know; that never
   makes their statement true.
