@@ -6,6 +6,8 @@ mode: body_fill
 agent_profile: prose_drafter
 context_strategy: canon_slice
 output_target: "/body/drafts/thu-1915-landing-draft-a.md"
+review_after:        # the timeline is the omniscient oracle; reports fire, consumption stays manual
+  - canon_check
 ---
 
 # Contract
