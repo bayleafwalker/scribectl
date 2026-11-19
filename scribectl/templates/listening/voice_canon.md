@@ -9,6 +9,9 @@ type: voice_canon
   cues stamped with clock time; the bed runs on between them.
 - What the pack lists as already heard here is the listener's memory, not a
   script: recurring people and routines come back in new words.
+- What happens again on another day is heard afresh, not retraced: its
+  recorded time holds, but what the ear catches around it, in what order and
+  when, belongs to this fragment. An earlier fragment is never a frame.
 - What everyone present already knows stays unsaid or half-said; it shows in
   what people do about it.
 - <concrete directive>

@@ -6,7 +6,8 @@ Per voiced cue sheet: clock fidelity (every cue inside the card's real-time
 window, in order, anchor events at their recorded times), the card's leak
 oracle, canon names the card's pack never gave it (a person or a boat named
 in a script whose pack does not name them: an invented name colliding with
-someone who exists), sounds from the water, road traffic at the landing, and
+someone who exists), any other capitalised name mid-sentence that the pack
+never mentions (NEW: an invented name, or a place to check), sounds from the water, road traffic at the landing, and
 whether the standing cold, the regulars and the evening programme are audible. Cards come
 from the committed fixture; drafts from drafts/ and repair/ of RECORD_DIR
 (default: this record; later First Ice records reuse the checks)."""
@@ -36,6 +37,10 @@ ANCHORS = {  # the first cue matching the pattern must fall in [earliest, latest
     "Fri 2010 Café": [(r"crate", "20:03:00", "20:09:59")],
     "Sat 2020 Café": [(r"\bkey\b|lock", "20:14:00", "20:19:59")],
 }
+CALENDAR = set("Monday Tuesday Wednesday Thursday Friday Saturday Sunday January February March "
+               "April May June July August September October November December Christmas Easter".split())
+KIN = set("Mum Mam Dad Gran Granny Grandma Grandad Nan Auntie Uncle".split())  # what they are to the speaker
+MID_SENTENCE = re.compile(r"(?<=[a-z,;] )[A-Z][a-z]+")  # capitalised after a lowercase word or comma
 STAMP = re.compile(r"^\[(\d{2}):(\d{2}):(\d{2})\]", re.M)
 
 
@@ -67,6 +72,8 @@ def check(draft: Path) -> str:
     else:
         given = pack.read_text(encoding="utf-8")
         probs += [f"NAME {n}" for n in NAMES if re.search(rf"\b{n}\b", script) and n not in given]
+        probs += [f"NEW {w}" for w in sorted(set(MID_SENTENCE.findall(script)) - CALENDAR - KIN - set(NAMES))
+                  if not re.search(rf"\b{w}\b", given)]
     if card not in WATER_OK:  # sound cues only: what a character says is not a sound from the water
         sounds = re.sub(r'"[^"]*"', "", script)
         probs += [f"WATER {m}" for m in re.findall(r"\bhorn\b|\bboat\b|across the water|on the water", sounds, re.I)]

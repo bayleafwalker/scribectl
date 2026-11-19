@@ -25,6 +25,10 @@ type: voice_canon
 - What is already heard here has been heard. People and routines recur in
   their own new words: the same habit, a different line on a different night.
   An earlier thread comes back only where it would come up anyway.
+- Something that happens again on another evening (the same bus, the same
+  closing-up) is heard afresh, not retraced. Its recorded time holds; what the
+  ear catches around it, in what order and when, belongs to this evening. An
+  earlier fragment is never a frame to re-dress.
 - The bed recurs; its wording does not have to. Name each sound plainly, in
   this fragment's own words.
 

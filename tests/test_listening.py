@@ -232,6 +232,15 @@ def test_already_heard_never_widens_what_a_source_knows(voiced_vault, listening,
     assert leak is None, f"{card} pack leaks {leak.group(0)!r} through what it heard"
 
 
+@pytest.mark.parametrize("card", ["Sat 1955 Café customers", "Sat 2020 Café"])
+def test_superseded_entry_never_reaches_a_pack(lp_vault, listening, card):
+    # B1.C3.S1950 once told voicers the closure "comes up only in passing";
+    # its correction keeps what the customers know and drops the direction.
+    known = _known(build_pack(lp_vault, card, listening).markdown)
+    assert "comes up only in passing" not in known
+    assert "Customers, who know the ferry is off, make ordinary plans around the bus." in known
+
+
 def test_radio_pack_matches_golden(lp_vault, listening):
     """Byte-stable modulo the run date (and so the sha, which hashes it)."""
     generated = build_pack(lp_vault, "Thu 1922 Radio", listening).markdown
