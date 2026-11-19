@@ -1,6 +1,6 @@
 """Re-run the iteration-2 script checks over the drafts kept in this record.
 
-    .venv/bin/python docs/experiments/2026-11-19-first-ice-iteration-2/check_cue_sheets.py
+    uv run python docs/experiments/2026-11-19-first-ice-iteration-2/check_cue_sheets.py  # from the repo root
 
 Per voiced cue sheet: clock fidelity (every cue inside the card's real-time
 window, in order, anchor events at their recorded times), the card's leak

@@ -38,10 +38,11 @@ The kill criterion stays untriggered. The writer is still the taste gate.
 
 ## Checks and results
 
-`check_cue_sheets.py` re-runs every script check below from this record:
+`check_cue_sheets.py` re-runs every script check below from this record. Run
+it from the repository root:
 
 ```bash
-.venv/bin/python docs/experiments/2026-11-19-first-ice-iteration-2/check_cue_sheets.py
+uv run python docs/experiments/2026-11-19-first-ice-iteration-2/check_cue_sheets.py
 ```
 
 | Check | Result |
