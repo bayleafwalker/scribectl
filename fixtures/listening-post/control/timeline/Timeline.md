@@ -59,7 +59,8 @@ to its winter transport. Thursday is C1, Friday C2, Saturday C3.
 - actors: Café staff | loc: Café | The café receives a copy of the temporary timetable.
 
 ## B1.C2.S1812
-- loc: Landing | heard: Café | No ferry arrives. Ice at the ramp, the ropes quiet, the landing empty.
+- loc: Landing | heard: Café | No ferry arrives at 18:12: no engine, no horn.
+- loc: Landing | Ice at the ramp, the ropes quiet, the landing empty.
 
 ## B1.C2.S1935
 - actors: Café staff | loc: Café | The replacement bus reaches the village on the inlet road; its passengers come into the café.
@@ -71,7 +72,8 @@ to its winter transport. Thursday is C1, Friday C2, Saturday C3.
 - actors: Ferry operator | loc: Landing | The winter timetable is confirmed for the following week; the updated notice is posted over the temporary one.
 
 ## B1.C3.S1812
-- loc: Landing | heard: Café | The former ferry arrival time passes. Nothing happens at the landing; slush remains at the ramp.
+- loc: Landing | heard: Café | The former 18:12 arrival time passes with no engine and no horn.
+- loc: Landing | Nothing happens at the landing; slush remains at the ramp.
 
 ## B1.C3.S1935
 - actors: Café staff | loc: Café | The bus arrives on the established replacement schedule; passengers come in.
