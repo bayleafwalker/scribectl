@@ -9,8 +9,10 @@ speech_act: remark
 canon_scope:
   - "[[Café staff]]"
   - "[[Local radio]]"
+  - "[[Café regulars]]"
+  - "[[Evening programme]]"
 mode: body_fill
-target_seconds: 75
+window_from: 2010   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 3.2020 — Café: Café

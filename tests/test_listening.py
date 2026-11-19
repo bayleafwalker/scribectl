@@ -27,7 +27,9 @@ type          name                    status
 ----------------------------------------------
 canon_node    Café                    ratified
 canon_node    Café customers          ratified
+canon_node    Café regulars           ratified
 canon_node    Café staff              ratified
+canon_node    Evening programme       ratified
 canon_node    Ferry operator          ratified
 canon_node    Inlet road              ratified
 canon_node    Landing                 ratified
@@ -57,9 +59,11 @@ fragment_card Thu 1935 Café staff     ready_for_fill
 # Which timeline events reach each source (by position label). This is the
 # event sheet's knowledge-boundary table, made checkable.
 _THU_LANDING = ["C1.S1700", "C1.S1812", "C1.S1812", "C1.S1837", "C1.S1843", "C1.S1912"]
-_FRI_LANDING = _THU_LANDING + ["C2.S0830", "C2.S1530", "C2.S1812", "C2.S1812"]
-_FRI_CAFE = ["C1.S1700", "C1.S1812", "C1.S1912", "C1.S1930", "C2.S1530", "C2.S1812", "C2.S1935"]
-_SAT_CAFE = _FRI_CAFE + ["C2.S2005", "C3.S1812", "C3.S1935"]
+# C2.S1700 / C3.S1700 are standing conditions: the cold holds.
+_FRI_LANDING = _THU_LANDING + ["C2.S0830", "C2.S1530", "C2.S1700", "C2.S1812", "C2.S1812"]
+_FRI_CAFE = ["C1.S1700", "C1.S1812", "C1.S1912", "C1.S1930",
+             "C2.S1530", "C2.S1700", "C2.S1812", "C2.S1935"]
+_SAT_CAFE = _FRI_CAFE + ["C2.S2005", "C3.S1700", "C3.S1812", "C3.S1935"]
 KNOWS = {
     "Thu 1820 Landing": _THU_LANDING[:3],
     "Thu 1845 Landing": _THU_LANDING[:5],
@@ -69,12 +73,12 @@ KNOWS = {
     "Thu 1922 Radio": ["C1.S1700", "C1.S1920"],       # the bulletin, and nothing behind it
     "Thu 1935 Café staff": ["C1.S1700", "C1.S1930"],  # the delivery is late, not why
     "Fri 1820 Landing": _FRI_LANDING,                 # the notice, not the decision behind it
-    "Fri 1830 Radio": ["C1.S1700", "C1.S1920", "C2.S1215"],  # now the official explanation
+    "Fri 1830 Radio": ["C1.S1700", "C1.S1920", "C2.S1215", "C2.S1700"],  # now the official explanation
     "Fri 1940 Café": _FRI_CAFE,
     "Fri 2010 Café": _FRI_CAFE + ["C2.S2005"],
-    "Sat 1820 Landing": _FRI_LANDING + ["C3.S1740", "C3.S1812", "C3.S1812"],
+    "Sat 1820 Landing": _FRI_LANDING + ["C3.S1700", "C3.S1740", "C3.S1812", "C3.S1812"],
     "Sat 1940 Café": _SAT_CAFE,
-    "Sat 1955 Café customers": ["C3.S1950"],          # never heard Thursday at all
+    "Sat 1955 Café customers": ["C2.S1700", "C3.S1700", "C3.S1950"],  # felt the cold; never heard Thursday
     "Sat 2020 Café": _SAT_CAFE + ["C3.S1950", "C3.S2015"],
 }
 
@@ -154,6 +158,17 @@ def test_no_world_truth_leaks_past_the_boundary(lp_vault, listening, card):
         assert (int(c), int(t)) < here, f"{card} sees C{c}.S{t}"
     leak = re.search(FORBIDDEN[card], md, re.IGNORECASE)
     assert leak is None, f"{card} pack leaks {leak.group(0)!r}"
+
+
+@pytest.mark.parametrize("card", CARDS)
+def test_fragment_is_a_real_time_window(lp_vault, card):
+    """A fragment is real time over [window_from, clock): the card states that
+    window, and the pack (cut at clock) covers everything inside it."""
+    note = lp_vault.resolve(card)
+    frm, clock = int(note.meta["window_from"]), int(note.meta["clock"])
+    assert frm < clock
+    hm = lambda n: f"{n // 100:02d}:{n % 100:02d}"
+    assert f"{hm(frm)}–{hm(clock)}" in note.section("Observation")
 
 
 def test_radio_pack_matches_golden(lp_vault, listening):

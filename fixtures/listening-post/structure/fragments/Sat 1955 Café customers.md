@@ -9,17 +9,18 @@ speech_act: exchange
 canon_scope:
   - "[[Replacement bus]]"
   - "[[Inlet road]]"
+  - "[[Café regulars]]"
 mode: body_fill
-target_seconds: 75
+window_from: 1950   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 3.1955 — Café: Café customers
 
 ## Observation
-Saturday, 19:50–20:00, inside the café, at a table.
+Saturday, 19:50–19:55, inside the café, at a table.
 
 ## Brief
-Two or three customers at a table talking over their own plans for the coming days.
+The corner-table regulars talking over their own plans for the coming days.
 
 ## Permissible speech act
 An ordinary conversation among themselves. Anything else may come up once, in passing.

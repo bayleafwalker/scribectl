@@ -11,8 +11,10 @@ canon_scope:
   - "[[Replacement bus]]"
   - "[[Café customers]]"
   - "[[Local radio]]"
+  - "[[Café regulars]]"
+  - "[[Evening programme]]"
 mode: body_fill
-target_seconds: 90
+window_from: 1930   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 3.1940 — Café: Café

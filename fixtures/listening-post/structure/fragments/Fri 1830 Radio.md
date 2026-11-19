@@ -10,14 +10,15 @@ canon_scope:
   - "[[Local radio]]"
   - "[[Tavi]]"
   - "[[Replacement bus]]"
+  - "[[Evening programme]]"
 mode: body_fill
-target_seconds: 50
+window_from: 1825   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 2.1830 — Café: Radio presenter
 
 ## Observation
-Friday, 18:25–18:35. The local radio, as heard inside the café under the room's own sounds.
+Friday, 18:25–18:30. The local radio, as heard inside the café under the room's own sounds.
 
 ## Brief
 Among the evening's community notices, the presenter passes on what the ferry operator announced at midday, then goes back to the music.

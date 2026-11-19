@@ -15,6 +15,8 @@ Knowledge is scoped: an event reaches a fragment's pack only through its
 what happens at it) or its `heard:` list (who or where it reaches without
 taking part). An event naming none of them reaches nobody — record who
 learned it, or no narrator will.
+Events record what changed. Record what persists too (the cold holds into a
+second evening), or sources will not know it lasted.
 (Any bullet under a position heading is a real event — which is why this
 template seeds no example bullet.)
 

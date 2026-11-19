@@ -9,14 +9,15 @@ speech_act: exchange
 canon_scope:
   - "[[Café]]"
   - "[[Inlet road]]"
+  - "[[Evening programme]]"
 mode: body_fill
-target_seconds: 60
+window_from: 1930   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 1.1935 — Café: Café staff
 
 ## Observation
-Thursday, 19:30–19:40, inside the café, near the counter and kitchen.
+Thursday, 19:30–19:35, inside the café, near the counter and kitchen.
 
 ## Brief
 The staff carry on with the evening and adjust their work around what has and has not arrived.

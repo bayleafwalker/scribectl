@@ -5,7 +5,9 @@ type: voice_canon
 # Voice Canon
 
 ## Preferred
-- <concrete directive: what the ear receives, in order, with rough seconds>
+- A fragment is a real-time cue sheet over its whole observation window,
+  cues stamped with clock time; the bed runs on between them.
+- <concrete directive>
 
 ## Avoid
 - <named anti-pattern, e.g. a speaker explaining the situation for the listener's benefit>

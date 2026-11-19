@@ -9,13 +9,14 @@ speech_act: none    # none | report | remark | exchange … what the source may 
 canon_scope:
   - "[[ ]]"
 mode: body_fill
-target_seconds: 60
+window_from: 0       # HHMM; the fragment is real time over [window_from, clock)
 ---
 
 # Fragment <evening>.<clock> — <position>: <source>
 
 ## Observation
-<Day, clock window and listening position. What the ear is pointed at.>
+<Day, the window as HH:MM–HH:MM (window_from to clock), and the listening
+position. What the ear is pointed at.>
 
 ## Brief
 <What this source does in this window, within what it knows. Never what the

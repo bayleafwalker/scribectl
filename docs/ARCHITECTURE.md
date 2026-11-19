@@ -188,7 +188,11 @@ second-hand). An actor-less event is no longer global; it reaches only its
 location. Scoped packs print where and what, never the list of who else
 knew. The card's `position` (the listening position) ships as canon in scope
 for what is audible there. What happened, who learned it, and what the
-listener could observe stay three separate things. Sets that declare no
+listener could observe stay three separate things. A fragment is real time
+over `[window_from, clock)`: its fill is a clock-stamped cue sheet, not a
+compressed montage. Because events record only what changed, what persists
+(the cold holding into a second evening) is recorded as an event too, or no
+source knows it lasted. Sets that declare no
 `knowledge:` are byte-for-byte unaffected; `fixtures/listening-post/` holds
 event sheet 001, and `tests/test_listening.py` checks every Thursday pack
 against the sheet's knowledge-boundary table and a leak oracle.

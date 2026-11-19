@@ -13,9 +13,10 @@ review_after:        # the timeline is the omniscient oracle; reports fire, cons
 # Contract
 
 ## Task
-Voice this fragment as a listening script of about 75 seconds: what
-the ear receives at Café from Café customers, within what that
-source knows at the observation time.
+Voice this fragment as a real-time cue sheet over its whole observation
+window, 19:50 to 19:55: what the ear receives at Café from Café customers,
+within what that source knows. Stamp cues with clock time; events in the pack
+happen at their recorded times, and the bed runs on between cues.
 
 ## Scope
 Use only the supplied context pack and the fragment card. The pack is this
@@ -24,6 +25,6 @@ any new proper noun, event or world fact goes under "Introduced candidates" —
 never asserted as settled.
 
 ## Output
-- The listening script.
+- The cue sheet.
 - Introduced candidates.
 - Uncertainties.

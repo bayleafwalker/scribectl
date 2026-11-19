@@ -10,7 +10,7 @@ canon_scope:
   - "[[Tavi]]"
   - "[[Leena]]"
 mode: body_fill
-target_seconds: 90
+window_from: 1810   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 1.1820 — Landing: Landing

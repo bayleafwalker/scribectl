@@ -11,8 +11,10 @@ canon_scope:
   - "[[Local radio]]"
   - "[[Inlet road]]"
   - "[[Café customers]]"
+  - "[[Café regulars]]"
+  - "[[Evening programme]]"
 mode: body_fill
-target_seconds: 90
+window_from: 1805   # with clock, the real-time window [window_from, clock)
 ---
 
 # Fragment 1.1815 — Café: Café
