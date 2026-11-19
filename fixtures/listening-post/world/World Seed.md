@@ -27,6 +27,10 @@ Plain, cold, unhurried.
 - Generation may supply wording, conversational texture, delivery and
   harmless incidental detail. Nothing causal.
 - Silence and absence are valid projections.
+- A sound from the water is evidence: a boat, a horn or an engine out there
+  appears only if the pack puts it there, however faint or ambiguous. Room
+  texture (cups, chairs, a tap, voices at the tables) and ordinary passing
+  road traffic are free.
 - Nobody is waiting for the listener and nothing is addressed to them.
 - A speaker may be uncertain or mistaken within what they know; that never
   makes their statement true.

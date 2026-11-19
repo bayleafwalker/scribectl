@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: c46637fa3739`
+`pack-sha: 4654283671de`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -20,6 +20,10 @@ or the café — and never affects it.
 - Generation may supply wording, conversational texture, delivery and
   harmless incidental detail. Nothing causal.
 - Silence and absence are valid projections.
+- A sound from the water is evidence: a boat, a horn or an engine out there
+  appears only if the pack puts it there, however faint or ambiguous. Room
+  texture (cups, chairs, a tap, voices at the tables) and ordinary passing
+  road traffic are free.
 - Nobody is waiting for the listener and nothing is addressed to them.
 - A speaker may be uncertain or mistaken within what they know; that never
   makes their statement true.
@@ -67,7 +71,7 @@ The presenter on the local radio's evening programme.
 The village café by the road, and the other listening position.
 **Ratified facts**
 - Audible here: crockery, customers, quiet kitchen activity, the local radio, traffic on the inlet road.
-- The ferry is heard only distantly here, partly masked. The landing's mechanical sounds cannot be heard.
+- When the ferry comes, she is heard here only distantly, partly masked. The landing's mechanical sounds cannot be heard.
 
 ## Known to this source (timeline, scoped)
 _Only what this source took part in, was told, or could perceive before the observation time. The rest of the world is unknown to it._
