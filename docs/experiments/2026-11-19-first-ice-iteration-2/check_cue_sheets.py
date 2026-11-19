@@ -4,8 +4,10 @@
 
 Per voiced cue sheet: clock fidelity (every cue inside the card's real-time
 window, in order, anchor events at their recorded times), the card's leak
-oracle, sounds from the water, road traffic at the landing, and whether the
-standing cold, the regulars and the evening programme are audible. Cards come
+oracle, canon names the card's pack never gave it (a person or a boat named
+in a script whose pack does not name them: an invented name colliding with
+someone who exists), sounds from the water, road traffic at the landing, and
+whether the standing cold, the regulars and the evening programme are audible. Cards come
 from the committed fixture; drafts from drafts/ and repair/ of RECORD_DIR
 (default: this record; later First Ice records reuse the checks)."""
 import re
@@ -18,6 +20,11 @@ sys.path.insert(0, str(REPO / "tests"))
 from test_listening import FORBIDDEN  # noqa: E402
 
 CARDS = REPO / "fixtures" / "listening-post" / "structure" / "fragments"
+CANON = REPO / "fixtures" / "listening-post" / "world" / "canon"
+NAMES = sorted(n.stem for n in CANON.glob("*.md")
+               if re.search(r"^domain: (person|vessel)$", n.read_text(encoding="utf-8"), re.M))
+PACKS = {re.search(r"-([0-9a-f]{12})-context\.md$", p.name).group(1): p
+         for p in HERE.rglob("*-context.md")}
 WATER_OK = {"Thu 1820 Landing", "Thu 1815 Café"}  # the 18:12 approach is canon here
 ANCHORS = {  # the first cue matching the pattern must fall in [earliest, latest]
     "Thu 1820 Landing": [(r"horn", "18:12:00", "18:13:59")],
@@ -54,6 +61,12 @@ def check(draft: Path) -> str:
         if not hits or not secs(*a.split(":")) <= hits[0] <= secs(*b.split(":")):
             probs.append(f"anchor /{pat}/ not in {a}–{b}")
     probs += [f"LEAK {m}" for m in re.findall(FORBIDDEN[card], script, re.I)]
+    pack = PACKS.get(re.search(r"^pack_sha: (\w+)", text, re.M).group(1))
+    if pack is None:
+        probs.append("pack not in record")
+    else:
+        given = pack.read_text(encoding="utf-8")
+        probs += [f"NAME {n}" for n in NAMES if re.search(rf"\b{n}\b", script) and n not in given]
     if card not in WATER_OK:  # sound cues only: what a character says is not a sound from the water
         sounds = re.sub(r'"[^"]*"', "", script)
         probs += [f"WATER {m}" for m in re.findall(r"\bhorn\b|\bboat\b|across the water|on the water", sounds, re.I)]
@@ -68,5 +81,6 @@ def check(draft: Path) -> str:
 
 
 print(f"{'draft':36} cues  gap  CRP  fidelity / leaks / water / road@landing")
-for d in sorted((HERE / "drafts").glob("*.md")) + sorted(p for p in (HERE / "repair").glob("*.md") if "review" not in p.name):
+for d in sorted((HERE / "drafts").glob("*.md")) + sorted(p for p in (HERE / "repair").glob("*.md")
+                                                     if "review" not in p.name and not p.name.endswith("-context.md")):
     print(check(d))
