@@ -7,15 +7,23 @@ baseline. A record's listened set is drafts/ with any repair/ draft standing in
 for its card's original. Every quoted utterance of four words or more is
 compared with every utterance in *other* fragments; a pair whose word sequence
 matches at 0.75 or more (difflib ratio) counts as a near-verbatim repeat.
-Recurrence of a habit in new words is the goal and does not count."""
+Recurrence of a habit in new words is the goal and does not count.
+
+Cue text (everything outside tagged speech) is reported two ways. Cue clauses
+shared by three or more fragments are listed for the writer, since a recurring
+sound is the bed doing its job and only a reader can tell bed from tic.
+Commentary, meaning cue text that says what something means rather than what
+the ear receives, is flagged against the phrases listeners objected to."""
 import re
 import sys
+from collections import defaultdict
 from difflib import SequenceMatcher
 from itertools import combinations
 from pathlib import Path
 
 RECORD = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent
 THRESHOLD = 0.75
+COMMENTARY = r"their own business|nobody looks up|no one looks up|nobody reacts|no one reacts"
 
 
 def listened(record: Path) -> dict[str, str]:
@@ -44,3 +52,18 @@ print(f"{RECORD.name}: {len(scripts)} fragments, {len(said)} utterances of 4+ wo
       f"{len(repeats)} near-verbatim repeats across fragments")
 for (ca, ua), (cb, ub), r in sorted(repeats, key=lambda x: -x[2]):
     print(f"  {r:.2f}  {ca}: \"{ua}\"\n        {cb}: \"{ub}\"")
+
+cues = defaultdict(set)
+commentary = []
+for card, s in scripts.items():
+    text = re.sub(r"^\[\d\d:\d\d:\d\d\]\s*", "", s, flags=re.M)
+    text = re.sub(r'[A-Z][A-Z ()]+:\s*"[^"]*"', "", text)   # tagged speech is checked above
+    commentary += [(card, m) for m in re.findall(COMMENTARY, text, re.I)]
+    for clause in re.split(r"[.,;:\n]+", text):
+        if len(w := re.findall(r"[a-z']+", clause.lower())) >= 3:
+            cues[" ".join(w)].add(card)
+shared = sorted(((len(v), k) for k, v in cues.items() if len(v) >= 3), reverse=True)
+print(f"cue commentary: {len(commentary)}" + "".join(f"\n  {c}: {m}" for c, m in commentary))
+print(f"cue clauses in 3+ fragments (bed or tic, for the writer): {len(shared)}")
+for n, k in shared:
+    print(f"  {n}  {k}")

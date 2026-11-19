@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: 5e82080488f5`
+`pack-sha: 8cc9de639ea3`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -107,12 +107,16 @@ _(nothing heard here before)_
 - Ordinary first. The place sounds like itself before anything in it is
   noticed.
 - Speech is overheard, not delivered: half-sentences, people talking to each
-  other about their own business.
+  other, not to the room.
+- What everyone present already knows stays unsaid or half-said. It shows in
+  what people do about it, never in a sentence that states it.
 - When something does not happen, the script simply does not contain it.
 - Distance stays distance: a sound from across the water is faint and partial.
 - What is already heard here has been heard. People and routines recur in
   their own new words: the same habit, a different line on a different night.
   An earlier thread comes back only where it would come up anyway.
+- The bed recurs; its wording does not have to. Name each sound plainly, in
+  this fragment's own words.
 
 **Avoid**
 - Exposition: a speaker telling someone what both already know, for the
@@ -123,7 +127,10 @@ _(nothing heard here before)_
 - Foreshadowing and summing up.
 - Naming moods or emotions; the ear cannot hear them.
 - Replaying a line or a joke already heard here, or recapping it; the listener
-  remembers.
+  remembers. Rituals are the exception: greetings, sign-offs and the radio's
+  set phrases recur the way places repeat them.
+- Cue text that comments or interprets (who minds what, who reacts to what):
+  a cue is what the ear receives.
 
 **Exemplars (cadence target)**
 From an earlier, ordinary autumn — cadence targets, not events.
