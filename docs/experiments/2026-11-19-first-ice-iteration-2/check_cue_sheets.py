@@ -35,7 +35,7 @@ ANCHORS = {  # the first cue matching the pattern must fall in [earliest, latest
     "Fri 1940 Café": [(r"brake|bus", "19:34:30", "19:37:00")],
     "Sat 1940 Café": [(r"brake|bus", "19:34:30", "19:37:00")],
     "Fri 2010 Café": [(r"crate", "20:03:00", "20:09:59")],
-    "Sat 2020 Café": [(r"\bkey\b|lock", "20:14:00", "20:19:59")],
+    "Sat 2020 Café": [(r"\bkey\b|lock|bolt", "20:14:00", "20:19:59")],
 }
 CALENDAR = set("Monday Tuesday Wednesday Thursday Friday Saturday Sunday January February March "
                "April May June July August September October November December Christmas Easter".split())
