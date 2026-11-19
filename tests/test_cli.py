@@ -113,7 +113,7 @@ def test_status_json_carries_project_header_and_card_artifacts(run, scratch_root
     assert card["drafts"] == ["Scene 01-01 draft v1"]
     assert card["reviews"] == [{"name": "Scene 01-01 canon review",
                                 "kind": "canon",
-                                "draft": "Scene 01-01 draft v1"}]
+                                "draft": "Scene 01-01 draft v1", "verdict": "clean"}]
     # Node rows stay lean: no artifact keys.
     node = next(r for r in data["rows"] if r["type"] == "canon_node")
     assert "drafts" not in node

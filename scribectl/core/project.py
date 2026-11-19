@@ -152,7 +152,8 @@ def card_artifacts(vault: Vault, card_name: str) -> dict:
         "drafts": sorted(d.name for d in _drafts_for(vault, card_name)),
         "reviews": sorted(({"name": r.name,
                             "kind": str(r.meta.get("kind", "")),
-                            "draft": next(iter(r.links("draft")), "")}
+                            "draft": next(iter(r.links("draft")), ""),
+                            "verdict": str(r.meta.get("verdict", ""))}
                            for r in reviews), key=lambda r: r["name"]),
     }
 

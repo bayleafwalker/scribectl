@@ -7,6 +7,8 @@ type: voice_canon
 ## Preferred
 - A fragment is a real-time cue sheet over its whole observation window,
   cues stamped with clock time; the bed runs on between them.
+- What the pack lists as already heard here is the listener's memory, not a
+  script: recurring people and routines come back in new words.
 - <concrete directive>
 
 ## Avoid

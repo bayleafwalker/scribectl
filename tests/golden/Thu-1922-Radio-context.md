@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: 036645b914fc`
+`pack-sha: 5e82080488f5`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -88,6 +88,11 @@ _Only what this source took part in, was told, or could perceive before the obse
 - B1.C1.S1700 @ Harmaasalmi · An early cold spell holds the village below freezing, with a cold wind coming in off the water.
 - B1.C1.S1920 @ Local radio · The local radio receives the operator's bulletin. It states only that tonight's final crossing is cancelled.
 
+## Already heard here (ambient, not canon)
+_Earlier fragments the listener heard at this listening position. They are not canon and add nothing to what this source knows: a fragment is left out when its source knew anything this one does not._
+
+_(nothing heard here before)_
+
 ## Voice canon
 **Preferred**
 - A fragment is a real-time cue sheet over its whole observation window:
@@ -105,6 +110,9 @@ _Only what this source took part in, was told, or could perceive before the obse
   other about their own business.
 - When something does not happen, the script simply does not contain it.
 - Distance stays distance: a sound from across the water is faint and partial.
+- What is already heard here has been heard. People and routines recur in
+  their own new words: the same habit, a different line on a different night.
+  An earlier thread comes back only where it would come up anyway.
 
 **Avoid**
 - Exposition: a speaker telling someone what both already know, for the
@@ -114,6 +122,8 @@ _Only what this source took part in, was told, or could perceive before the obse
   music that swells.
 - Foreshadowing and summing up.
 - Naming moods or emotions; the ear cannot hear them.
+- Replaying a line or a joke already heard here, or recapping it; the listener
+  remembers.
 
 **Exemplars (cadence target)**
 From an earlier, ordinary autumn — cadence targets, not events.

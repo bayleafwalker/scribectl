@@ -9,6 +9,7 @@ evenings from two listening positions.
 """
 import pathlib
 import re
+import shutil
 
 import pytest
 
@@ -169,6 +170,66 @@ def test_fragment_is_a_real_time_window(lp_vault, card):
     assert frm < clock
     hm = lambda n: f"{n // 100:02d}:{n % 100:02d}"
     assert f"{hm(frm)}–{hm(clock)}" in note.section("Observation")
+
+
+# Already heard: earlier fragments at the same listening position ship as
+# ambient context so recurring talk can vary. They must never become a
+# knowledge channel. Exercised on the real iteration-2 voicings: a fragment is
+# heard only when everything its source knew is known to this card's source,
+# and only through a draft whose canon review is clean.
+LISTENING_FIXTURE = pathlib.Path(__file__).parents[1] / "fixtures" / "listening-post"
+VOICED = pathlib.Path(__file__).parents[1] / "docs" / "experiments" / "2026-11-19-first-ice-iteration-2"
+_CAFE_THU = ["Thu 1815 Café", "Thu 1915 Café", "Thu 1935 Café staff"]
+_LANDING_THU = ["Thu 1820 Landing", "Thu 1845 Landing", "Thu 1915 Landing"]
+HEARD = {
+    "Thu 1815 Café": [],
+    "Thu 1820 Landing": [],
+    "Thu 1845 Landing": _LANDING_THU[:1],
+    "Thu 1915 Café": _CAFE_THU[:1],
+    "Thu 1915 Landing": _LANDING_THU[:2],
+    "Thu 1922 Radio": [],                  # the café heard the horn; the presenter did not
+    "Thu 1935 Café staff": [],             # the radio carried the bulletin; the staff did not take it in
+    "Fri 1820 Landing": _LANDING_THU,
+    "Fri 1830 Radio": ["Thu 1922 Radio"],  # the presenter's own Thursday, nothing of the room
+    "Fri 1940 Café": _CAFE_THU,            # the café hears its staff, never the bulletins
+    "Fri 2010 Café": _CAFE_THU + ["Fri 1940 Café"],
+    "Sat 1820 Landing": _LANDING_THU + ["Fri 1820 Landing"],
+    "Sat 1940 Café": _CAFE_THU + ["Fri 1940 Café", "Fri 2010 Café"],
+    "Sat 1955 Café customers": [],         # they never heard Thursday
+    "Sat 2020 Café": _CAFE_THU + ["Fri 1940 Café", "Fri 2010 Café", "Sat 1940 Café"],
+    # ... and not Sat 1955: its only draft-a failed canon review
+}
+
+
+@pytest.fixture(scope="module")
+def voiced_vault(tmp_path_factory):
+    root = tmp_path_factory.mktemp("voiced") / "listening-post"
+    shutil.copytree(LISTENING_FIXTURE, root)
+    for sub, dest in (("drafts", "body/drafts"), ("reviews", "reviews/canon")):
+        for f in (VOICED / sub).glob("*.md"):
+            shutil.copy(f, root / dest / f.name)
+    return Vault.load(root)
+
+
+def _heard(md: str) -> str:
+    return md.split("## Already heard here (ambient, not canon)", 1)[1].split("\n## ", 1)[0]
+
+
+@pytest.mark.parametrize("card", CARDS)
+def test_unvoiced_fixture_has_heard_nothing(lp_vault, listening, card):
+    assert _heard(build_pack(lp_vault, card, listening).markdown).strip().endswith(
+        "_(nothing heard here before)_")
+
+
+@pytest.mark.parametrize("card", CARDS)
+def test_already_heard_never_widens_what_a_source_knows(voiced_vault, listening, card):
+    md = build_pack(voiced_vault, card, listening).markdown
+    heard = _heard(md)
+    assert re.findall(r"^### (.+)$", heard, re.M) == HEARD[card]
+    assert "Introduced candidates" not in heard and "Uncertainties" not in heard
+    assert _known(md) == _known(build_pack(Vault.load(LISTENING_FIXTURE), card, listening).markdown)
+    leak = re.search(FORBIDDEN[card], md, re.IGNORECASE)   # the whole pack, heard text included
+    assert leak is None, f"{card} pack leaks {leak.group(0)!r} through what it heard"
 
 
 def test_radio_pack_matches_golden(lp_vault, listening):

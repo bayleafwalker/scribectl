@@ -20,6 +20,9 @@ type: voice_canon
   other about their own business.
 - When something does not happen, the script simply does not contain it.
 - Distance stays distance: a sound from across the water is faint and partial.
+- What is already heard here has been heard. People and routines recur in
+  their own new words: the same habit, a different line on a different night.
+  An earlier thread comes back only where it would come up anyway.
 
 ## Avoid
 - Exposition: a speaker telling someone what both already know, for the
@@ -29,6 +32,8 @@ type: voice_canon
   music that swells.
 - Foreshadowing and summing up.
 - Naming moods or emotions; the ear cannot hear them.
+- Replaying a line or a joke already heard here, or recapping it; the listener
+  remembers.
 
 ## Exemplars
 From an earlier, ordinary autumn — cadence targets, not events.
