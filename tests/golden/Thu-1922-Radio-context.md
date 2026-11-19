@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: 4654283671de`
+`pack-sha: 80f2d49ef24f`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -22,8 +22,8 @@ or the café — and never affects it.
 - Silence and absence are valid projections.
 - A sound from the water is evidence: a boat, a horn or an engine out there
   appears only if the pack puts it there, however faint or ambiguous. Room
-  texture (cups, chairs, a tap, voices at the tables) and ordinary passing
-  road traffic are free.
+  texture (cups, chairs, a tap, voices at the tables) is free, and so is
+  ordinary passing road traffic where the listening position can hear the road.
 - Nobody is waiting for the listener and nothing is addressed to them.
 - A speaker may be uncertain or mistaken within what they know; that never
   makes their statement true.
