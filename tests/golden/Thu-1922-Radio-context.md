@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: 30b261fb9408`
+`pack-sha: 2f848a1af8d6`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -107,8 +107,9 @@ _(nothing heard here before)_
   clock time ([18:12:40]). Between cues the bed runs on unchanged. Cues are
   sparse (one every half minute or so is plenty) and a quiet minute stays
   quiet.
-- Events sit at their recorded times: if the pack puts something at 18:12, it
-  happens at 18:12 here.
+- Events sit at their recorded times: if the pack puts something at 18:12,
+  the first sound of it comes at 18:12 here. Nothing of it is heard earlier,
+  not even its approach.
 - Sounds in square brackets; speech as short quoted lines tagged with the
   speaker's role.
 - Ordinary first. The place sounds like itself before anything in it is
