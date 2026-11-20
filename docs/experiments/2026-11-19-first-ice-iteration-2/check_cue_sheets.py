@@ -76,7 +76,9 @@ def check(draft: Path) -> str:
         probs += [f"NAME {n}" for n in NAMES if re.search(rf"\b{n}\b", script) and n not in given]
         probs += [f"NEW {w}" for w in sorted(set(MID_SENTENCE.findall(script)) - CALENDAR - KIN - set(NAMES))
                   if not re.search(rf"\b{w}\b", given)]
-        pinned = {secs(t[:2], t[2:4], ss) for t, ss in re.findall(r"^- B\d+\.C\d+\.S(\d{4})\.(\d{2})\b", given, re.M)}
+        evening = int(re.search(r"^evening: (\d+)", meta, re.M).group(1))
+        pinned = {secs(t[:2], t[2:4], ss) for c, t, ss in
+                  re.findall(r"^- B\d+\.C(\d+)\.S(\d{4})\.(\d{2})\b", given, re.M) if int(c) == evening}
         probs += [f"SYNC {t // 3600:02}:{t % 3600 // 60:02}:{t % 60:02}" for t in sorted(pinned)
                   if lo <= t < hi and t not in stamps]
     if card not in WATER_OK:  # sound cues only: what a character says is not a sound from the water
