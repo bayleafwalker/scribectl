@@ -1,7 +1,8 @@
 """Timeline parsing and the prior-relevant oracle query."""
 from pathlib import Path
 
-from scribectl.core.timeline import _pos_key, dangling_supersedes, load_events, prior_relevant
+from scribectl.core.timeline import (_pos_key, dangling_supersedes, load_events, prior_relevant,
+                                     render_standing)
 from scribectl.core.vault import Note
 
 
@@ -14,6 +15,14 @@ def test_pos_key_forms():
     assert _pos_key("B1.C2.S3") == (1, 2, 3)
     assert _pos_key("b10.c1.s1") == (10, 1, 1)
     assert _pos_key("Chapter One") is None
+    assert _pos_key("B1.C1.S1812.40") == (1, 1, 1812, 40)
+
+
+def test_sub_position_sorts_inside_its_unit():
+    """S1812.40 is after S1812 and before S1813, and still before a card at 18:13."""
+    keys = [_pos_key(k) for k in ("B1.C1.S1813", "B1.C1.S1812.40", "B1.C1.S1812")]
+    assert sorted(keys) == [(1, 1, 1812), (1, 1, 1812, 40), (1, 1, 1813)]
+    assert (1, 1, 1812, 40) < (1, 1, 1813) and not (1, 1, 1813, 0) < (1, 1, 1813)
 
 
 def test_load_events_parses_actors_loc_fact():
@@ -146,3 +155,22 @@ def test_supersede_one_bullet_by_ordinal():
     assert dangling_supersedes(_note(tl)) == []
     # Ordinals count bullets already written, so a later one cannot be named early.
     assert dangling_supersedes(_note("## pre\n- a\n- supersedes: pre#3 | b\n- c\n")) == ["pre#3"]
+
+
+def test_render_standing_applies_corrections_and_drops_prose():
+    n = _note(
+        "Prose the reviewer must not hold over the voicer.\n\n"
+        "## B1.C1.S1812\n"
+        "- actors: Tavi | loc: Landing | heard: Café | Engine, then horn.\n"
+        "- actors: Tavi, Leena | loc: Landing | The ramp goes down.\n"
+        "## Corrections\n\nWhy the horn moved.\n\n"
+        "## B1.C1.S1812\n"
+        "- supersedes: B1.C1.S1812#1 | actors: Tavi | loc: Landing | Her engine.\n"
+        "## B1.C1.S1812.40\n"
+        "- actors: Tavi | loc: Landing | heard: Café | Her horn.\n")
+    assert render_standing(n) == (
+        "## B1.C1.S1812\n"
+        "- actors: Tavi, Leena | loc: Landing | The ramp goes down.\n"
+        "- actors: Tavi | loc: Landing | Her engine.\n"
+        "\n## B1.C1.S1812.40\n"
+        "- actors: Tavi | loc: Landing | heard: Café | Her horn.\n")

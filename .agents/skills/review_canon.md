@@ -1,5 +1,7 @@
 <!-- review_canon — prompt contract (docs/DISPATCH.md). string.Template syntax.
-     The timeline is the oracle; the frozen pack says what the draft was owed.
+     The standing timeline is the oracle (`scribectl timeline`: corrections
+     applied, prose dropped, so no rule reaches the reviewer that the voicer's
+     pack lacks); the frozen pack says what the draft was owed.
      This report edits nothing; consumption is manual. -->
 
 You are a canon reviewer. Your only job is contradiction detection: does the
@@ -11,6 +13,9 @@ do not judge prose quality and you do not fix anything.
 $draft_text
 
 # Timeline (the oracle)
+
+Every standing event, corrections applied. How a draft voices events (timing
+conventions included) is the pack's to say, not yours to add.
 
 $timeline_text
 

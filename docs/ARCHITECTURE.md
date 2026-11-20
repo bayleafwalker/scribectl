@@ -122,7 +122,10 @@ to exactly one project, or when cwd is inside a project subtree.
 4. **Ledgers are append-only.** Timeline and ratification log grow; they do
    not get rewritten. This is also the livesync safety property. A wrong
    timeline entry is corrected by a later `supersedes:` bullet, which drops
-   it from every pack and oracle query while the line stays as history.
+   it from every pack and oracle query while the line stays as history. The
+   canon reviewer reads the standing timeline (`scribectl timeline`), not the
+   file: events only, so it holds no rule from the timeline's prose that the
+   voicer's pack does not carry.
 5. **The engine never calls an LLM.** No API client in this package, ever.
 
 ## The agent boundary

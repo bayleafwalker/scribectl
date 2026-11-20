@@ -36,6 +36,13 @@ def mine(project: str | None = None) -> str:
     return _run(["ratify", "--mine"] + (["-p", project] if project else []))
 
 
+def timeline(project: str | None = None) -> str:
+    """The standing timeline (`scribectl timeline`): the canon reviewer's oracle.
+    Corrections applied and prose dropped, so the reviewer holds no rule the
+    voicer's pack does not carry."""
+    return _run(["timeline"] + (["-p", project] if project else []))
+
+
 def freeze_pack(card: str, project: str | None = None) -> Path:
     """Freeze (or find already-frozen) the card's pack; return its path."""
     out = _run(["pack", card] + (["-p", project] if project else []))

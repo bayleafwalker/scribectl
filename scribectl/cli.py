@@ -33,7 +33,8 @@ from .doctor import run_doctor
 from .core.inbox import append_bullets, mine, parse_inbox, receipt, remove_candidates
 from .core.project import (card_artifacts, ledger_links, project as project_rows,
                            proposal_status, reconciled_into)
-from .core.vault import Vault
+from .core.timeline import render_standing
+from .core.vault import Vault, _parse
 from .templateset import TemplateSet, list_sets, load_set
 
 
@@ -198,6 +199,16 @@ def cmd_pack(args) -> int:
         print(f"wrote {out}  (sha {pack.sha}, {len(pack.markdown)} bytes)")
     for warn in pack.warnings:
         print(f"scribectl: warning: {warn}", file=sys.stderr)
+    return 0
+
+
+
+def cmd_timeline(args) -> int:
+    """The standing timeline: what replay keeps, corrections applied, no prose.
+    The canon reviewer's oracle, so it judges by events and the pack alone."""
+    cfg = _select(args.project)
+    print(render_standing(_parse(cfg.timeline)) if cfg.timeline.is_file() else "(no timeline)",
+          end="")
     return 0
 
 
@@ -823,6 +834,11 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("card")
     p.add_argument("-p", "--project")
     p.set_defaults(fn=cmd_pack)
+
+    p = sub.add_parser("timeline",
+                       help="print the standing timeline: corrections applied, prose dropped")
+    p.add_argument("-p", "--project")
+    p.set_defaults(fn=cmd_timeline)
 
     p = sub.add_parser("propose",
                        help="freeze a mining pack + scaffold a quarantined fact proposal")

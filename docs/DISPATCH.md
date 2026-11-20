@@ -127,7 +127,7 @@ shape the dispatcher parses:
 | skill          | consumes                             | emits |
 |----------------|--------------------------------------|-------|
 | `body_fill`    | frozen pack + card + contract        | `body/drafts/<output_target>` — `type: draft`, links card, `pack_sha` |
-| `review_canon` | draft + timeline + pack              | `reviews/canon/<draft>-canon-review.md` — `type: review_report`, `kind: canon` |
+| `review_canon` | draft + standing timeline + pack     | `reviews/canon/<draft>-canon-review.md` — `type: review_report`, `kind: canon` |
 | `review_voice` | draft + voice canon + pack           | `reviews/voice/<draft>-voice-review.md` — `type: review_report`, `kind: voice` |
 | `review_mechanics` | draft + pack (the mechanic-node briefs are the rulebook) | `reviews/mechanics/<draft>-mechanics-review.md` — `type: review_report`, `kind: mechanics` |
 
