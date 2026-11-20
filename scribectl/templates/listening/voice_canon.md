@@ -8,7 +8,8 @@ type: voice_canon
 - A fragment is a real-time cue sheet over its whole observation window,
   cues stamped with clock time; the bed runs on between them.
 - Events sit at their recorded times: the first sound of one, its approach
-  included, comes at that time and not before.
+  included, comes at that time and not before. A time with seconds (S1812.40)
+  is that second, at every position that hears it.
 - What the pack lists as already heard here is the listener's memory, not a
   script: recurring people and routines come back in new words.
 - What happens again on another day is heard afresh, not retraced: its
@@ -20,7 +21,8 @@ type: voice_canon
 
 ## Avoid
 - <named anti-pattern, e.g. a speaker explaining the situation for the listener's benefit>
-- Cue text that comments or interprets: a cue is what the ear receives.
+- Cue text that comments or interprets (who minds what, what is usual for
+  the place): a cue is what the ear receives.
 
 ## Exemplars
 <Two or three short ratified fragments. review_voice checks cadence against

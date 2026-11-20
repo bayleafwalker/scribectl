@@ -12,7 +12,8 @@ type: voice_canon
   quiet.
 - Events sit at their recorded times: if the pack puts something at 18:12,
   the first sound of it comes at 18:12 here. Nothing of it is heard earlier,
-  not even its approach.
+  not even its approach. A time with seconds (S1812.40) is the second itself:
+  the sound comes at [18:12:40], wherever it is heard.
 - Sounds in square brackets; speech as short quoted lines tagged with the
   speaker's role.
 - Ordinary first. The place sounds like itself before anything in it is
@@ -44,8 +45,9 @@ type: voice_canon
 - Replaying a line or a joke already heard here, or recapping it; the listener
   remembers. Rituals are the exception: greetings, sign-offs and the radio's
   set phrases recur the way places repeat them.
-- Cue text that comments or interprets (who minds what, who reacts to what):
-  a cue is what the ear receives.
+- Cue text that comments or interprets (who minds what, who reacts to what,
+  what is usual or unusual for the place or the night): a cue is what the ear
+  receives.
 
 ## Exemplars
 From an earlier, ordinary autumn — cadence targets, not events.

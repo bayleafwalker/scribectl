@@ -14,7 +14,8 @@ bullet written earlier at that position) or `supersedes: <position>#<n> |`
 Format: `- actors: A, B | loc: Place | heard: C | fact`
 A heading's clock is when the event begins or is first perceived. An event
 that takes time (an unloading, a crossing) runs on from there; when its end
-matters, record the end as its own event.
+matters, record the end as its own event. A second after a dot (`S1812.40`
+is 18:12:40) pins a sound that more than one listening position hears.
 
 Knowledge is scoped: an event reaches a fragment's pack only through its
 `actors:` (who took part — learning is taking part), its `loc:` (a place hears

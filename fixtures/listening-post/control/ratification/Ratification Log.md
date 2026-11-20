@@ -23,3 +23,13 @@ Append-only. A node referenced as Accepted here reads as `ratified` in `scribect
 ### Rejected
 
 ### Deferred
+
+## 2026-11-20 (iteration 6)
+
+### Accepted
+- What a delivery brings, so both evenings' staff handle the same goods instead of each fragment inventing them (iteration 5 canon-review candidates: Thursday's beans, Friday's milk, bread and tins) → [[Café staff]]
+
+### Rejected
+- "Canned beans are kept in a cupboard in the café kitchen." — one fragment's prop; the ratified list stands in for it.
+
+### Deferred

@@ -14,7 +14,8 @@ bullet written earlier at that position) or `supersedes: <position>#<n> |`
 Format: `- actors: A, B | loc: Place | heard: C | fact`
 A heading's clock is when the event begins or is first perceived. An event
 that takes time (an unloading, a crossing) runs on from there; when its end
-matters, record the end as its own event.
+matters, record the end as its own event. A second after a dot (`S1812.40`
+is 18:12:40) pins a sound that more than one listening position hears.
 
 Knowledge is scoped: an event reaches a fragment's pack only through its
 `actors:` (who took part — learning is taking part), its `loc:` (a place hears
@@ -110,3 +111,19 @@ fragment's to voice, or to leave unsaid.
 
 ## B1.C3.S1950
 - supersedes: B1.C3.S1950 | actors: Café customers, Café staff | loc: Café | Customers, who know the ferry is off, make ordinary plans around the bus.
+
+## Corrections (appended 2026-11-20)
+
+B1.C1.S1812 left the moment of the Tavi's horn to each listening position, and
+the landing and the café each heard it on a second of their own (18:12:40 and
+18:12:50). One sound gets one moment: the horn is its own event at 18:12:40,
+and the boarding, which follows her approach, starts at 18:14.
+
+## B1.C1.S1812
+- supersedes: B1.C1.S1812 | actors: Tavi | loc: Landing | heard: Café | The Tavi makes her 18:12 approach, her engine first.
+
+## B1.C1.S1812.40
+- actors: Tavi | loc: Landing | heard: Café | The Tavi sounds her horn coming in.
+
+## B1.C1.S1814
+- actors: Tavi, Leena | loc: Landing | The boarding ramp goes down; passengers come off and others board; the ramp comes up and the Tavi pulls away.

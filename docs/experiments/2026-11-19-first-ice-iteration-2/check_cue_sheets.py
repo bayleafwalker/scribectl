@@ -7,7 +7,9 @@ window, in order, anchor events at their recorded times), the card's leak
 oracle, canon names the card's pack never gave it (a person or a boat named
 in a script whose pack does not name them: an invented name colliding with
 someone who exists), any other capitalised name mid-sentence that the pack
-never mentions (NEW: an invented name, or a place to check), sounds from the water, road traffic at the landing, and
+never mentions (NEW: an invented name, or a place to check), a pack event pinned
+to a second (S1812.40) inside the window with no cue on that second (SYNC: one
+sound, one moment at every position), sounds from the water, road traffic at the landing, and
 whether the standing cold, the regulars and the evening programme are audible. Cards come
 from the committed fixture; drafts from drafts/ and repair/ of RECORD_DIR
 (default: this record; later First Ice records reuse the checks)."""
@@ -74,6 +76,9 @@ def check(draft: Path) -> str:
         probs += [f"NAME {n}" for n in NAMES if re.search(rf"\b{n}\b", script) and n not in given]
         probs += [f"NEW {w}" for w in sorted(set(MID_SENTENCE.findall(script)) - CALENDAR - KIN - set(NAMES))
                   if not re.search(rf"\b{w}\b", given)]
+        pinned = {secs(t[:2], t[2:4], ss) for t, ss in re.findall(r"^- B\d+\.C\d+\.S(\d{4})\.(\d{2})\b", given, re.M)}
+        probs += [f"SYNC {t // 3600:02}:{t % 3600 // 60:02}:{t % 60:02}" for t in sorted(pinned)
+                  if lo <= t < hi and t not in stamps]
     if card not in WATER_OK:  # sound cues only: what a character says is not a sound from the water
         sounds = re.sub(r'"[^"]*"', "", script)
         probs += [f"WATER {m}" for m in re.findall(r"\bhorn\b|\bboat\b|across the water|on the water", sounds, re.I)]
