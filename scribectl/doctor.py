@@ -23,6 +23,8 @@ from pathlib import Path
 import yaml
 
 from .config import ProjectConfig, discover_projects, vault_roots
+from .core.timeline import dangling_supersedes
+from .core.vault import _parse
 from .templateset import load_set
 
 # Every skill the dispatcher can fire; grouped by resolved route for probing.
@@ -106,6 +108,9 @@ def _check_project(r: Report, cfg: ProjectConfig) -> None:
     for label, p in (("voice canon", cfg.voice_canon), ("timeline", cfg.timeline)):
         if not p.is_file():
             r.warn(f'  "{cfg.name}": no {label} at {p} — reviews run degraded')
+    if cfg.timeline.is_file() and (bad := dangling_supersedes(_parse(cfg.timeline))):
+        r.warn(f'  "{cfg.name}": timeline `supersedes:` correcting nothing (the entry '
+               "it meant still stands): " + ", ".join(bad))
     contracts = cfg.root / "control" / "contracts"
     if not (contracts.is_dir() and any(contracts.glob("*.md"))):
         r.warn(f'  "{cfg.name}": no contracts under control/contracts/ — '

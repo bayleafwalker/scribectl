@@ -10,8 +10,9 @@ type: voice_canon
   clock time ([18:12:40]). Between cues the bed runs on unchanged. Cues are
   sparse (one every half minute or so is plenty) and a quiet minute stays
   quiet.
-- Events sit at their recorded times: if the pack puts something at 18:12, it
-  happens at 18:12 here.
+- Events sit at their recorded times: if the pack puts something at 18:12,
+  the first sound of it comes at 18:12 here. Nothing of it is heard earlier,
+  not even its approach.
 - Sounds in square brackets; speech as short quoted lines tagged with the
   speaker's role.
 - Ordinary first. The place sounds like itself before anything in it is
@@ -25,6 +26,10 @@ type: voice_canon
 - What is already heard here has been heard. People and routines recur in
   their own new words: the same habit, a different line on a different night.
   An earlier thread comes back only where it would come up anyway.
+- Something that happens again on another evening (the same bus, the same
+  closing-up) is heard afresh, not retraced. Its recorded time holds; what the
+  ear catches around it, in what order and when, belongs to this evening. An
+  earlier fragment is never a frame to re-dress.
 - The bed recurs; its wording does not have to. Name each sound plainly, in
   this fragment's own words.
 

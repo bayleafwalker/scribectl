@@ -29,7 +29,8 @@ from pathlib import Path
 
 RECORD = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent
 THRESHOLD = 0.75
-COMMENTARY = r"their own business|nobody looks up|no one looks up|nobody reacts|no one reacts"
+COMMENTARY = (r"their own business|nobody looks up|no one looks up|nobody reacts|no one reacts"
+              r"|for an? (?:mon|tues|wednes|thurs|fri|satur|sun)day")  # compared with the usual
 
 
 def listened(record: Path) -> dict[str, str]:

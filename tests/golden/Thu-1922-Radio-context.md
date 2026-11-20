@@ -1,6 +1,6 @@
 # Context Pack — Thu 1922 Radio
 
-`pack-sha: b5ff89d3ea89`
+`pack-sha: 2f848a1af8d6`
 
 _Generated 2026-11-19 · regenerate to fill, freeze to audit, never hand-edit._
 
@@ -71,6 +71,9 @@ The local radio's evening programme, heard most evenings in the café.
 - Mostly accordion and guitar records, with a fiddle tune now and then.
 - Between records the presenter reads listeners' song dedications and short community notices.
 - Notices are kept brief, and then it is back to the music.
+- Dedications come mostly from a handful of regular listeners, read out by
+  first name: Marjatta, Sirkka, Pentti, Raili and Ossi. Whoever a dedication
+  is for goes by what they are to the sender (her sister, the grandchildren).
 
 ### Radio presenter
 The presenter on the local radio's evening programme.
@@ -104,8 +107,9 @@ _(nothing heard here before)_
   clock time ([18:12:40]). Between cues the bed runs on unchanged. Cues are
   sparse (one every half minute or so is plenty) and a quiet minute stays
   quiet.
-- Events sit at their recorded times: if the pack puts something at 18:12, it
-  happens at 18:12 here.
+- Events sit at their recorded times: if the pack puts something at 18:12,
+  the first sound of it comes at 18:12 here. Nothing of it is heard earlier,
+  not even its approach.
 - Sounds in square brackets; speech as short quoted lines tagged with the
   speaker's role.
 - Ordinary first. The place sounds like itself before anything in it is
@@ -119,6 +123,10 @@ _(nothing heard here before)_
 - What is already heard here has been heard. People and routines recur in
   their own new words: the same habit, a different line on a different night.
   An earlier thread comes back only where it would come up anyway.
+- Something that happens again on another evening (the same bus, the same
+  closing-up) is heard afresh, not retraced. Its recorded time holds; what the
+  ear catches around it, in what order and when, belongs to this evening. An
+  earlier fragment is never a frame to re-dress.
 - The bed recurs; its wording does not have to. Name each sound plainly, in
   this fragment's own words.
 
