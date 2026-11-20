@@ -511,3 +511,35 @@ def test_per_skill_routing_splits_fill_and_reviews(monkeypatch, capsys,
     assert ("openai", "local-writer", "http://127.0.0.1:8080") in made
     assert ("claude", None, None) in made  # reviews fell back to the default
     assert (scratch_project / "body/drafts/ch01-sc01-draft-a.md").is_file()
+
+
+def test_canon_reviewer_reads_the_standing_timeline(monkeypatch, capsys,
+                                                    scratch_root, scratch_project, fakes):
+    """The reviewer's oracle is what replay keeps: corrections applied and the
+    timeline's prose dropped, so it applies no rule the voicer never saw and
+    never judges against a superseded line."""
+    from scribedispatch import cli, runner as runner_mod
+
+    monkeypatch.setenv("SCRIBECTL_VAULT", str(scratch_root))
+    monkeypatch.setenv("SCRIBE_DISPATCH_FAKE_DIR", str(fakes))
+    tl = scratch_project / "control/timeline/Timeline.md"
+    tl.write_text(tl.read_text(encoding="utf-8")
+                  + "\nA note on reading clocks that only the reviewer would see.\n\n## pre\n"
+                  "- supersedes: pre#1 | loc: Lower Ashmarket | The last full breach took a day to contain.\n",
+                  encoding="utf-8")
+    prompts: dict[str, str] = {}
+
+    class Recording(runner_mod.FakeRunner):
+        def generate(self, skill, prompt):
+            prompts[skill] = prompt
+            return super().generate(skill, prompt)
+
+    monkeypatch.setattr(cli, "make_runner", lambda *a, **k: Recording(k.get("fake_dir") or str(fakes)))
+    unblock(scratch_project)
+    assert cli.main(["run", "--runner", "fake"]) == 0
+    oracle = prompts["review_canon"].split("# Timeline (the oracle)", 1)[1]
+    oracle = oracle.split("# Context pack", 1)[0]
+    assert "took a day to contain" in oracle
+    assert "contained in three hours" not in oracle
+    assert "reading clocks" not in oracle and "Append-only" not in oracle
+    assert "supersedes" not in oracle

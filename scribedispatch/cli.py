@@ -65,8 +65,7 @@ def execute(d: Dispatch, state: dict, contracts: dict, runner) -> Path:
     if d.kind == "canon":
         prompt = skills.render("review_canon", pack_path=str(pack_path or "none"),
                                pack_text=pack_text,
-                               timeline_text=_read(Path(proj["paths"]["timeline"]),
-                                                   "(no timeline)"), **common)
+                               timeline_text=engine.timeline(proj["name"]), **common)
     elif d.kind == "mechanics":
         # The pack briefs the in-scope mechanic nodes — it IS the rulebook.
         prompt = skills.render("review_mechanics", pack_path=str(pack_path or "none"),

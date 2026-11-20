@@ -34,6 +34,15 @@ heading:
     - supersedes: B1.C3.S1950 | actors: Café customers | loc: Café | They talk about the bus.
 
 The superseded lines stay in the file as history.
+
+A position may carry a sub-position after a dot, for a moment finer than the
+heading's unit: `S1812.40` sorts after `S1812` and before `S1813`. Listening
+sets read it as a second (18:12:40), where two positions must hear one sound
+at the same moment.
+
+`render_standing` writes what replay leaves standing (positions and bullets,
+no prose, corrections applied): the oracle a canon reviewer reads, so the
+reviewer applies nothing the timeline's prose says that the voicer never saw.
 """
 from __future__ import annotations
 
@@ -42,12 +51,12 @@ from dataclasses import dataclass, field
 
 from .vault import Vault, Note
 
-POS = re.compile(r"^(pre|B(\d+)\.C(\d+)\.S(\d+))$", re.IGNORECASE)
+POS = re.compile(r"^(pre|B(\d+)\.C(\d+)\.S(\d+)(?:\.(\d+))?)$", re.IGNORECASE)
 
 
 @dataclass
 class Event:
-    pos: tuple[int, int, int]  # sort key; pre-history sorts before everything
+    pos: tuple[int, ...]  # sort key; pre-history sorts before everything
     pos_label: str
     actors: list[str]
     location: str | None
@@ -55,13 +64,17 @@ class Event:
     heard: list[str] = field(default_factory=list)  # reached without taking part
 
 
-def _pos_key(label: str) -> tuple[int, int, int] | None:
+def _pos_key(label: str) -> tuple[int, ...] | None:
+    """(book, chapter, scene[, sub]). A sub-position makes a longer tuple, which
+    sorts after its scene and before the next; a card's 3-tuple position is
+    still strictly after everything earlier in its scene's unit."""
     m = POS.match(label.strip())
     if not m:
         return None
     if m.group(1).lower() == "pre":
         return (-1, -1, -1)
-    return (int(m.group(2)), int(m.group(3)), int(m.group(4)))
+    key = (int(m.group(2)), int(m.group(3)), int(m.group(4)))
+    return key + (int(m.group(5)),) if m.group(5) else key
 
 
 def _names(p: str) -> list[str]:
@@ -97,11 +110,11 @@ def _replay(note: Note) -> tuple[list[Event], list[str]]:
     """Bullets in file order, applying each `supersedes:` as it is reached.
     Returns the standing events and the `supersedes:` values that corrected
     nothing (malformed, or no such bullet written before them)."""
-    standing: list[tuple[tuple[int, int, int], int, Event]] = []
+    standing: list[tuple[tuple[int, ...], int, Event]] = []
     dangling: list[str] = []
-    written: dict[tuple[int, int, int], int] = {}  # bullets per position so far
+    written: dict[tuple[int, ...], int] = {}  # bullets per position so far
     current_label: str | None = None
-    current_key: tuple[int, int, int] | None = None
+    current_key: tuple[int, ...] | None = None
     for line in note.body.splitlines():
         if line.startswith("## "):
             label = line[3:].strip()
@@ -136,7 +149,23 @@ def dangling_supersedes(note: Note) -> list[str]:
     return _replay(note)[1]
 
 
-def prior_relevant(vault: Vault, before: tuple[int, int, int],
+def render_standing(note: Note) -> str:
+    """The standing timeline: every event replay keeps, by position, one
+    heading per position (a corrected position's bullets gather under it)."""
+    out: list[str] = []
+    pos = None
+    for e in sorted(load_events(note), key=lambda e: e.pos):
+        if e.pos != pos:
+            pos = e.pos
+            out += ["", f"## {e.pos_label}"]
+        routing = [f"actors: {', '.join(e.actors)}" if e.actors else "",
+                   f"loc: {e.location}" if e.location else "",
+                   f"heard: {', '.join(e.heard)}" if e.heard else ""]
+        out.append("- " + " | ".join([r for r in routing if r] + [e.fact]))
+    return "\n".join(out).strip() + "\n"
+
+
+def prior_relevant(vault: Vault, before: tuple[int, ...],
                    actors: set[str], location: str | None,
                    scoped: bool = False) -> list[Event]:
     """Events strictly before `before` touching any actor in scope or the location.

@@ -59,18 +59,19 @@ fragment_card Thu 1935 Café staff     ready_for_fill
 
 # Which timeline events reach each source (by position label). This is the
 # event sheet's knowledge-boundary table, made checkable.
-_THU_LANDING = ["C1.S1700", "C1.S1812", "C1.S1812", "C1.S1837", "C1.S1843", "C1.S1912"]
+# C1.S1812.40: the horn has its own second, so both positions hear it at once.
+_THU_LANDING = ["C1.S1700", "C1.S1812", "C1.S1812.40", "C1.S1814", "C1.S1837", "C1.S1843", "C1.S1912"]
 # C2.S1700 / C3.S1700 are standing conditions: the cold holds.
 _FRI_LANDING = _THU_LANDING + ["C2.S0830", "C2.S1530", "C2.S1700", "C2.S1812", "C2.S1812"]
-_FRI_CAFE = ["C1.S1700", "C1.S1812", "C1.S1912", "C1.S1930",
+_FRI_CAFE = ["C1.S1700", "C1.S1812", "C1.S1812.40", "C1.S1912", "C1.S1930",
              "C2.S1530", "C2.S1700", "C2.S1812", "C2.S1935"]
 _SAT_CAFE = _FRI_CAFE + ["C2.S2005", "C3.S1700", "C3.S1812", "C3.S1935"]
 KNOWS = {
-    "Thu 1820 Landing": _THU_LANDING[:3],
-    "Thu 1845 Landing": _THU_LANDING[:5],
+    "Thu 1820 Landing": _THU_LANDING[:4],
+    "Thu 1845 Landing": _THU_LANDING[:6],
     "Thu 1915 Landing": _THU_LANDING,
-    "Thu 1815 Café": ["C1.S1700", "C1.S1812"],        # the horn carries; the ramp does not
-    "Thu 1915 Café": ["C1.S1700", "C1.S1812", "C1.S1912"],
+    "Thu 1815 Café": ["C1.S1700", "C1.S1812", "C1.S1812.40"],  # the horn carries; the ramp does not
+    "Thu 1915 Café": ["C1.S1700", "C1.S1812", "C1.S1812.40", "C1.S1912"],
     "Thu 1922 Radio": ["C1.S1700", "C1.S1920"],       # the bulletin, and nothing behind it
     "Thu 1935 Café staff": ["C1.S1700", "C1.S1930"],  # the delivery is late, not why
     "Fri 1820 Landing": _FRI_LANDING,                 # the notice, not the decision behind it
@@ -147,7 +148,7 @@ def test_status_baseline(run, listening_root):
 @pytest.mark.parametrize("card", CARDS)
 def test_pack_holds_exactly_what_reached_the_source(lp_vault, listening, card):
     known = _known(build_pack(lp_vault, card, listening).markdown)
-    assert re.findall(r"B1\.(C\d\.S\d{4})", known) == KNOWS[card]
+    assert re.findall(r"B1\.(C\d\.S\d{4}(?:\.\d+)?)", known) == KNOWS[card]
 
 
 @pytest.mark.parametrize("card", CARDS)
